@@ -15,7 +15,7 @@ import java.util.List;
 public abstract class SpreadsheetValidator {
 
   protected static SpreadsheetValidator create(@Nonnull ValidatorContext validatorContext,
-                                             @Nonnull ValidatorElementList validatorElementList) {
+                                               @Nonnull ValidatorElementList validatorElementList) {
     return new AutoValue_SpreadsheetValidator(validatorContext, validatorElementList);
   }
 
