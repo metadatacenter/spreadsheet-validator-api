@@ -15,4 +15,8 @@ public class ValueAssertion {
     checkNotNull(criteria);
     return criteria.evaluate(value);
   }
+
+  public static boolean notEqual(@Nullable Object value, @Nonnull AssertionCriteria criteria) {
+    return !equals(value, criteria);
+  }
 }

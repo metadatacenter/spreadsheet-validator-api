@@ -5,7 +5,6 @@ import org.metadatacenter.spreadsheetvalidator.RepairClosures;
 import org.metadatacenter.spreadsheetvalidator.ValidationError;
 import org.metadatacenter.spreadsheetvalidator.ValidationResult;
 import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
-import org.metadatacenter.spreadsheetvalidator.domain.ValueType;
 import org.metadatacenter.spreadsheetvalidator.util.ValueAssertion;
 
 import javax.annotation.Nonnull;
@@ -28,7 +27,7 @@ public class StringTypeValidator extends AbstractValidator {
                                 @Nonnull RepairClosures repairClosures,
                                 @Nonnull ValidationResult validationResult) {
     if (columnDescription.getColumnType() == STRING) {
-      if (!ValueAssertion.equals(value, isString())) {
+      if (ValueAssertion.notEqual(value, isString())) {
         validationResult.add(
             ValidationError.builder()
                 .setRowNumber(rowNumber)
