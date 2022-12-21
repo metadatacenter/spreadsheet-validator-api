@@ -1,6 +1,7 @@
 package org.metadatacenter.spreadsheetvalidator.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
@@ -56,4 +57,9 @@ public abstract class ColumnDescription {
   @Nullable
   @JsonProperty(PERMISSIBLE_VALUES)
   public abstract ImmutableList<PermissibleValue> getPermissibleValues();
+
+  @JsonIgnore
+  public boolean hasPermissibleValues() {
+    return getPermissibleValues() != null && !getPermissibleValues().isEmpty();
+  }
 }
