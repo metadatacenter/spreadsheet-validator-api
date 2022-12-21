@@ -10,9 +10,9 @@ public class Matchers {
     return value -> value instanceof String;
   }
 
-  public static AssertionCriteria containsPattern(String regexPattern) {
+  public static AssertionCriteria isString(String withRegexPattern) {
     return value -> ValueAssertion.equals(value, isString())
-        && ((String) value).matches(regexPattern);
+        && ((String) value).matches(withRegexPattern);
   }
 
   public static AssertionCriteria isDecimal() {
