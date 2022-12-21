@@ -8,6 +8,7 @@ import com.google.auto.value.AutoValue;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -35,5 +36,11 @@ public abstract class SpreadsheetRow {
   @JsonIgnore
   public Object getValue(String columnName) {
     return getObject().get(columnName);
+  }
+
+  @Nonnull
+  @JsonIgnore
+  public Stream<String> columnStream() {
+    return getObject().keySet().stream();
   }
 }

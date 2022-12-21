@@ -8,26 +8,18 @@ import javax.annotation.Nonnull;
  */
 public enum ValueType {
 
-  STRING("string", String.class),
-  DECIMAL("decimal", Number.class),
-  INTEGER("integer", Number.class);
+  STRING("string"),
+  DECIMAL("decimal"),
+  INTEGER("integer");
 
   private final String canonicalName;
 
-  private final Class representationClass;
-
-  ValueType(@Nonnull String canonicalName,
-            @Nonnull Class representationClass) {
+  ValueType(@Nonnull String canonicalName) {
     this.canonicalName = canonicalName;
-    this.representationClass = representationClass;
   }
 
   public String getCanonicalName() {
     return canonicalName;
-  }
-
-  public Class asClass() {
-    return representationClass;
   }
 
   @Override

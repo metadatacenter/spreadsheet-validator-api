@@ -1,11 +1,9 @@
 package org.metadatacenter.spreadsheetvalidator.domain;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 
 import java.util.stream.Stream;
 

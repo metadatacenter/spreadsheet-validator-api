@@ -1,8 +1,10 @@
-package org.metadatacenter.spreadsheetvalidator.algorithm;
+package org.metadatacenter.spreadsheetvalidator;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-public class ConvertToStringHandler {
+public interface ResultCollector<T> {
+
+  T of(ValidationResult result);
 }

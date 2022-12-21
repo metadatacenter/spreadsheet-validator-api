@@ -6,7 +6,6 @@ import org.metadatacenter.spreadsheetvalidator.CedarConfig;
 import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidatorConfiguration;
 
 import javax.annotation.Nonnull;
-import javax.ws.rs.ext.Provider;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

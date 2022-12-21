@@ -36,7 +36,7 @@ public abstract class SpreadsheetDefinition {
 
   @Nonnull
   @JsonProperty(COLUMNS)
-  public abstract ImmutableMap<String, ColumnDescription> getColumnDescription();
+  public abstract ImmutableMap<String, ColumnDescription> getColumnDescriptions();
 
   @Nonnull
   @JsonProperty(GENERATED_FROM)
@@ -44,7 +44,13 @@ public abstract class SpreadsheetDefinition {
 
   @Nonnull
   @JsonIgnore
+  public ColumnDescription getColumnDescription(String columnName) {
+    return getColumnDescriptions().get(columnName);
+  }
+
+  @Nonnull
+  @JsonIgnore
   public Stream<ColumnDescription> getColumnDescriptionStream() {
-    return getColumnDescription().values().stream();
+    return getColumnDescriptions().values().stream();
   }
 }

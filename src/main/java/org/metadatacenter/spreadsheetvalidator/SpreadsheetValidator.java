@@ -1,40 +1,56 @@
 package org.metadatacenter.spreadsheetvalidator;
 
-import org.metadatacenter.spreadsheetvalidator.algorithm.AdherenceChecker;
-import org.metadatacenter.spreadsheetvalidator.algorithm.CompletenessChecker;
-import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
-import org.metadatacenter.spreadsheetvalidator.util.ResponseBuilder;
+import com.google.auto.value.AutoValue;
+import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetDefinition;
+import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetRow;
 
-import javax.inject.Inject;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.Response;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import javax.annotation.Nonnull;
+import java.util.List;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-public class SpreadsheetValidator {
+@AutoValue
+public abstract class SpreadsheetValidator {
 
-  private final CompletenessChecker completenessChecker;
-
-  private final AdherenceChecker adherenceChecker;
-
-  @Inject
-  public SpreadsheetValidator(@NotNull CompletenessChecker completenessChecker,
-                              @NotNull AdherenceChecker adherenceChecker) {
-    this.completenessChecker = checkNotNull(completenessChecker);
-    this.adherenceChecker = checkNotNull(adherenceChecker);
+  protected static SpreadsheetValidator create(@Nonnull ValidatorContext validatorContext,
+                                             @Nonnull ValidatorElementList validatorElementList) {
+    return new AutoValue_SpreadsheetValidator(validatorContext, validatorElementList);
   }
 
-  public Response validate(Spreadsheet spreadsheet) {
-    var responseBuilder = new ResponseBuilder();
-    spreadsheet.getRowStream()
-        .forEach((spreadsheetRow) -> {
-          var checkResults = completenessChecker.check(spreadsheetRow);
-          checkResults.forEach(responseBuilder::append);
+  public static SpreadsheetValidator create(@Nonnull ValidatorContext validatorContext) {
+    return create(validatorContext, new ValidatorElementList());
+  }
+
+  public static SpreadsheetValidator create(@Nonnull SpreadsheetDefinition spreadsheetDefinition) {
+    return create(ValidatorContext.create(spreadsheetDefinition), new ValidatorElementList());
+  }
+
+  public abstract ValidatorContext getValidatorContext();
+
+  public abstract ValidatorElementList getValidatorElementList();
+
+  public SpreadsheetValidator onEach(List<SpreadsheetRow> spreadsheetRows, Validator validator) {
+    spreadsheetRows.forEach(spreadsheetRow ->
+        getValidatorElementList().add(
+            ValidatorElement.create(validator, spreadsheetRow)
+        )
+    );
+    return this;
+  }
+
+  public SpreadsheetValidator validate() {
+    getValidatorElementList().stream()
+        .forEach(element -> {
+          var validator = element.getValidator();
+          var spreadsheetRow = element.getSpreadsheetRow();
+          validator.validate(getValidatorContext(), spreadsheetRow);
         });
-    return responseBuilder.build();
+    return this;
+  }
+
+  public <T> T collectResult(ResultCollector<T> resultCollector) {
+    return resultCollector.of(getValidatorContext().getValidationResult());
   }
 }
