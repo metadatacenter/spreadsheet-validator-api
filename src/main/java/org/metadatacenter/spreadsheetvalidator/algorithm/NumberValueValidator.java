@@ -11,6 +11,7 @@ import javax.annotation.Nonnull;
 import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.ERROR_TYPE;
 import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.SEVERITY;
 import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.SUGGESTION;
+import static org.metadatacenter.spreadsheetvalidator.domain.ValueType.NUMBER;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isString;
 
 /**
@@ -25,26 +26,22 @@ public class NumberValueValidator extends InputValueValidator {
                                  @Nonnull ColumnDescription columnDescription,
                                  @Nonnull RepairClosures repairClosures,
                                  @Nonnull ValidationResult validationResult) {
-    var columnType = columnDescription.getColumnType();
-    switch (columnType) {
-      case DECIMAL:
-      case INTEGER:
-        if (Assert.that(value, isString())) {
-          var repairClosure = repairClosures.get("numberExtractor");
-          var suggestion = repairClosure.execute(value);
-          validationResult.add(
-              ValidationError.builder()
-                  .setColumnName(columnName)
-                  .setRowNumber(rowNumber)
-                  .setInvalidValue(value)
-                  .setErrorDescription("Value is not a number")
-                  .setOtherProp(SUGGESTION, suggestion)
-                  .setOtherProp(ERROR_TYPE, "notNumberType")
-                  .setOtherProp(SEVERITY, 1)
-                  .build()
-          );
-        }
-        break;
+    if (columnDescription.getColumnType() == NUMBER) {
+      if (Assert.that(value, isString())) {
+        var repairClosure = repairClosures.get("numberExtractor");
+        var suggestion = repairClosure.execute(value);
+        validationResult.add(
+            ValidationError.builder()
+                .setColumnName(columnName)
+                .setRowNumber(rowNumber)
+                .setInvalidValue(value)
+                .setErrorDescription("Value is not a number")
+                .setOtherProp(SUGGESTION, suggestion)
+                .setOtherProp(ERROR_TYPE, "notNumberType")
+                .setOtherProp(SEVERITY, 1)
+                .build()
+        );
+      }
     }
   }
 }

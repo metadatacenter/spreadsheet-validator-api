@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
 public enum ValueType {
 
   STRING("string"),
-  DECIMAL("decimal"),
+  NUMBER("number"),
   INTEGER("integer");
 
   private final String canonicalName;

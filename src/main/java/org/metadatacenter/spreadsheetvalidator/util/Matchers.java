@@ -25,12 +25,8 @@ public class Matchers {
         && ((String) value).matches(withRegexPattern);
   }
 
-  public static AssertionCriteria isDecimal() {
+  public static AssertionCriteria isNumber() {
     return value -> value instanceof Number;
-  }
-
-  public static AssertionCriteria isInteger() {
-    return value -> value instanceof Integer;
   }
 
   public static AssertionCriteria isNull() {
