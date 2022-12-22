@@ -6,7 +6,7 @@ import org.metadatacenter.spreadsheetvalidator.ValidationError;
 import org.metadatacenter.spreadsheetvalidator.ValidationResult;
 import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetRow;
-import org.metadatacenter.spreadsheetvalidator.util.ValueAssertion;
+import org.metadatacenter.spreadsheetvalidator.util.Assert;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -15,6 +15,7 @@ import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.ERROR_
 import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.SEVERITY;
 import static org.metadatacenter.spreadsheetvalidator.domain.ValueType.STRING;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isString;
+import static org.metadatacenter.spreadsheetvalidator.util.Matchers.not;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -29,7 +30,7 @@ public class StringValueValidator extends InputValueValidator {
                                  @Nonnull RepairClosures repairClosures,
                                  @Nonnull ValidationResult validationResult) {
     if (columnDescription.getColumnType() == STRING) {
-      if (ValueAssertion.notEqual(value, isString())) {
+      if (Assert.that(value, not(isString()))) {
         validationResult.add(
             ValidationError.builder()
                 .setColumnName(columnName)

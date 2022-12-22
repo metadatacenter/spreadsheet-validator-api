@@ -5,7 +5,7 @@ import org.metadatacenter.spreadsheetvalidator.ValidationError;
 import org.metadatacenter.spreadsheetvalidator.Validator;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetRow;
-import org.metadatacenter.spreadsheetvalidator.util.ValueAssertion;
+import org.metadatacenter.spreadsheetvalidator.util.Assert;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -31,7 +31,7 @@ public class RequiredFieldValidator implements Validator {
           if (columnDescription.isRequiredColumn()) {
             var rowNumber = spreadsheetRow.getRowNumber();
             var value = spreadsheetRow.getValue(columnName);
-            if (ValueAssertion.equals(value, isNullOrEmpty())) {
+            if (Assert.that(value, isNullOrEmpty())) {
               validationResult.add(
                   ValidationError.builder()
                       .setColumnName(columnName)

@@ -7,12 +7,13 @@ import org.metadatacenter.spreadsheetvalidator.Validator;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
 import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetRow;
-import org.metadatacenter.spreadsheetvalidator.util.ValueAssertion;
+import org.metadatacenter.spreadsheetvalidator.util.Assert;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isNullOrEmpty;
+import static org.metadatacenter.spreadsheetvalidator.util.Matchers.not;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -26,7 +27,7 @@ public abstract class InputValueValidator implements Validator {
     spreadsheetRow.columnStream()
         .forEach(columnName -> {
           var value = spreadsheetRow.getValue(columnName);
-          if (!ValueAssertion.equals(value, isNullOrEmpty())) {
+          if (Assert.that(value, not(isNullOrEmpty()))) {
             validateInputValue(value,
                 columnName,
                 spreadsheetRow.getRowNumber(),

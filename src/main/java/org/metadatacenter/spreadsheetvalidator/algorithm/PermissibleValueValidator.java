@@ -6,7 +6,7 @@ import org.metadatacenter.spreadsheetvalidator.ValidationError;
 import org.metadatacenter.spreadsheetvalidator.ValidationResult;
 import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.PermissibleValue;
-import org.metadatacenter.spreadsheetvalidator.util.ValueAssertion;
+import org.metadatacenter.spreadsheetvalidator.util.Assert;
 
 import javax.annotation.Nonnull;
 
@@ -15,6 +15,7 @@ import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.POSSIB
 import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.SEVERITY;
 import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.SUGGESTION;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isMemberOf;
+import static org.metadatacenter.spreadsheetvalidator.util.Matchers.not;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -33,7 +34,7 @@ public class PermissibleValueValidator extends InputValueValidator {
       var label = (String) value;
       var permissibleValues = columnDescription.getPermissibleValues();
       var permissibleValueLabels = getPermissibleValueLabels(permissibleValues);
-      if (ValueAssertion.notEqual(label, isMemberOf(permissibleValueLabels))) {
+      if (Assert.that(label, not(isMemberOf(permissibleValueLabels)))) {
         var repairClosure = repairClosures.get("autoSuggest");
         var suggestion = repairClosure.execute(value, permissibleValues);
         validationResult.add(
