@@ -1,13 +1,15 @@
 package org.metadatacenter.spreadsheetvalidator.algorithm;
 
-import org.metadatacenter.spreadsheetvalidator.AbstractValidator;
 import org.metadatacenter.spreadsheetvalidator.RepairClosures;
+import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidator;
 import org.metadatacenter.spreadsheetvalidator.ValidationError;
 import org.metadatacenter.spreadsheetvalidator.ValidationResult;
 import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
+import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetRow;
 import org.metadatacenter.spreadsheetvalidator.util.ValueAssertion;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
 import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.ERROR_TYPE;
 import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.SEVERITY;
@@ -18,29 +20,33 @@ import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isString;
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-public class StringTypeValidator extends AbstractValidator {
+public class StringValueValidator extends InputValueValidator {
   @Override
-  public boolean validateOnEach(@Nonnull Integer rowNumber,
-                                @Nonnull String columnName,
-                                @Nonnull Object value,
-                                @Nonnull ColumnDescription columnDescription,
-                                @Nonnull RepairClosures repairClosures,
-                                @Nonnull ValidationResult validationResult) {
+  public void validateInputValue(@Nonnull Object value,
+                                 @Nonnull String columnName,
+                                 @Nonnull Integer rowNumber,
+                                 @Nonnull ColumnDescription columnDescription,
+                                 @Nonnull RepairClosures repairClosures,
+                                 @Nonnull ValidationResult validationResult) {
     if (columnDescription.getColumnType() == STRING) {
       if (ValueAssertion.notEqual(value, isString())) {
         validationResult.add(
             ValidationError.builder()
-                .setRowNumber(rowNumber)
                 .setColumnName(columnName)
+                .setRowNumber(rowNumber)
                 .setInvalidValue(value)
                 .setErrorDescription("Value is not a string")
                 .setOtherProp(ERROR_TYPE, "notStringType")
                 .setOtherProp(SEVERITY, 1)
                 .build()
         );
-        return false;
       }
     }
-    return true;
+  }
+
+  @Override
+  public void chain(@Nonnull SpreadsheetValidator spreadsheetValidator,
+                    @Nonnull List<SpreadsheetRow> spreadsheetRows) {
+    spreadsheetValidator.onEach(spreadsheetRows, new PermissibleValueValidator());
   }
 }

@@ -32,10 +32,12 @@ public abstract class SpreadsheetValidator {
   public abstract ValidatorElementList getValidatorElementList();
 
   public SpreadsheetValidator onEach(List<SpreadsheetRow> spreadsheetRows, Validator validator) {
-    spreadsheetRows.forEach(spreadsheetRow ->
-        getValidatorElementList().add(
-            ValidatorElement.create(validator, spreadsheetRow)
-        )
+    validator.chain(this, spreadsheetRows);
+    spreadsheetRows.forEach(spreadsheetRow -> {
+          getValidatorElementList().add(
+              ValidatorElement.create(validator, spreadsheetRow)
+          );
+        }
     );
     return this;
   }

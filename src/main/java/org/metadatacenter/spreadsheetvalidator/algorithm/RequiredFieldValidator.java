@@ -1,15 +1,14 @@
 package org.metadatacenter.spreadsheetvalidator.algorithm;
 
-import org.metadatacenter.spreadsheetvalidator.AbstractValidator;
-import org.metadatacenter.spreadsheetvalidator.RepairClosures;
+import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidator;
 import org.metadatacenter.spreadsheetvalidator.ValidationError;
-import org.metadatacenter.spreadsheetvalidator.ValidationResult;
+import org.metadatacenter.spreadsheetvalidator.Validator;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
-import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetRow;
 import org.metadatacenter.spreadsheetvalidator.util.ValueAssertion;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
 import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.ERROR_TYPE;
 import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.SEVERITY;
@@ -19,29 +18,37 @@ import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isNullOrEmpt
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-public class RequiredFieldValidator extends AbstractValidator {
+public class RequiredFieldValidator implements Validator {
 
   @Override
-  public boolean validateOnEach(@Nonnull Integer rowNumber,
-                                @Nonnull String columnName,
-                                @Nonnull Object value,
-                                @Nonnull ColumnDescription columnDescription,
-                                @Nonnull RepairClosures repairClosures,
-                                @Nonnull ValidationResult validationResult) {
-    if (columnDescription.isRequiredColumn()) {
-      if (ValueAssertion.equals(value, isNullOrEmpty())) {
-        validationResult.add(
-            ValidationError.builder()
-                .setRowNumber(rowNumber)
-                .setColumnName(columnName)
-                .setInvalidValue(value)
-                .setErrorDescription("Required value is missing")
-                .setOtherProp(ERROR_TYPE, "missingRequired")
-                .setOtherProp(SEVERITY, 5)
-                .build());
-        return false;
-      }
-    }
-    return true;
+  public void validate(@Nonnull ValidatorContext context,
+                       @Nonnull SpreadsheetRow spreadsheetRow) {
+    var spreadsheetDefinition = context.getSpreadsheetDefinition();
+    var validationResult = context.getValidationResult();
+    spreadsheetRow.columnStream()
+        .forEach(columnName -> {
+          var columnDescription = spreadsheetDefinition.getColumnDescription(columnName);
+          if (columnDescription.isRequiredColumn()) {
+            var rowNumber = spreadsheetRow.getRowNumber();
+            var value = spreadsheetRow.getValue(columnName);
+            if (ValueAssertion.equals(value, isNullOrEmpty())) {
+              validationResult.add(
+                  ValidationError.builder()
+                      .setColumnName(columnName)
+                      .setRowNumber(rowNumber)
+                      .setInvalidValue(value)
+                      .setErrorDescription("Required value is missing")
+                      .setOtherProp(ERROR_TYPE, "missingRequired")
+                      .setOtherProp(SEVERITY, 5)
+                      .build());
+            }
+          }
+        });
+  }
+
+  @Override
+  public void chain(@Nonnull SpreadsheetValidator spreadsheetValidator,
+                    @Nonnull List<SpreadsheetRow> spreadsheetRows) {
+    // No implementation
   }
 }

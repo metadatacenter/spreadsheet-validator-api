@@ -3,6 +3,7 @@ package org.metadatacenter.spreadsheetvalidator;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetRow;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -10,9 +11,9 @@ import javax.annotation.Nonnull;
  */
 public interface Validator {
 
-  boolean validate(@Nonnull ValidatorContext context,
-                   @Nonnull SpreadsheetRow spreadsheetRow);
+  void validate(@Nonnull ValidatorContext context,
+                @Nonnull SpreadsheetRow spreadsheetRow);
 
   void chain(@Nonnull SpreadsheetValidator spreadsheetValidator,
-             @Nonnull SpreadsheetRow spreadsheetRow);
+             @Nonnull List<SpreadsheetRow> spreadsheetRows);
 }

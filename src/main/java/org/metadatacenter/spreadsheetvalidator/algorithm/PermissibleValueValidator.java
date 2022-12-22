@@ -1,7 +1,6 @@
 package org.metadatacenter.spreadsheetvalidator.algorithm;
 
 import com.google.common.collect.ImmutableList;
-import org.metadatacenter.spreadsheetvalidator.AbstractValidator;
 import org.metadatacenter.spreadsheetvalidator.RepairClosures;
 import org.metadatacenter.spreadsheetvalidator.ValidationError;
 import org.metadatacenter.spreadsheetvalidator.ValidationResult;
@@ -16,21 +15,20 @@ import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.POSSIB
 import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.SEVERITY;
 import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.SUGGESTION;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isMemberOf;
-import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isString;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-public class PermissibleValueValidator extends AbstractValidator {
+public class PermissibleValueValidator extends InputValueValidator {
 
   @Override
-  public boolean validateOnEach(@Nonnull Integer rowNumber,
-                                @Nonnull String columnName,
-                                @Nonnull Object value,
-                                @Nonnull ColumnDescription columnDescription,
-                                @Nonnull RepairClosures repairClosures,
-                                @Nonnull ValidationResult validationResult) {
+  public void validateInputValue(@Nonnull Object value,
+                                 @Nonnull String columnName,
+                                 @Nonnull Integer rowNumber,
+                                 @Nonnull ColumnDescription columnDescription,
+                                 @Nonnull RepairClosures repairClosures,
+                                 @Nonnull ValidationResult validationResult) {
     if (columnDescription.hasPermissibleValues()) {
       var label = (String) value;
       var permissibleValues = columnDescription.getPermissibleValues();
@@ -40,8 +38,8 @@ public class PermissibleValueValidator extends AbstractValidator {
         var suggestion = repairClosure.execute(value, permissibleValues);
         validationResult.add(
             ValidationError.builder()
-                .setRowNumber(rowNumber)
                 .setColumnName(columnName)
+                .setRowNumber(rowNumber)
                 .setInvalidValue(value)
                 .setErrorDescription("Value is not part of the permissible values")
                 .setOtherProp(POSSIBLE_OPTIONS, permissibleValues.stream().map(PermissibleValue::getLabel))
@@ -51,7 +49,6 @@ public class PermissibleValueValidator extends AbstractValidator {
                 .build());
       }
     }
-    return true;
   }
 
   private ImmutableList<String> getPermissibleValueLabels(ImmutableList<PermissibleValue> permissibleValues) {
