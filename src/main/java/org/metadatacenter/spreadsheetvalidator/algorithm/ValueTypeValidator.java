@@ -42,8 +42,8 @@ public class ValueTypeValidator extends InputValueValidator {
               .build()
       );
     } else if (valueType == NUMBER && Assert.that(value, not(isNumber()))) {
-      var repairClosure = repairClosures.get("numberExtractor");
-      var suggestion = repairClosure.execute(value);
+      var numberExtractor = repairClosures.get("numberExtractor");
+      var suggestion = numberExtractor.execute(value);
       validationResult.add(
           ValidationError.builder()
               .setColumnName(columnName)
