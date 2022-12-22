@@ -1,5 +1,7 @@
 package org.metadatacenter.spreadsheetvalidator.util;
 
+import java.util.List;
+
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
@@ -35,5 +37,9 @@ public class Matchers {
   public static AssertionCriteria isNullOrEmpty() {
     return value -> ValueAssertion.equals(value, isNull())
         || ValueAssertion.equals(value, isEmpty());
+  }
+
+  public static AssertionCriteria isMemberOf(List<? extends Object> list) {
+    return value -> list.contains(value);
   }
 }

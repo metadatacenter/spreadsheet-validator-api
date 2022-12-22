@@ -15,6 +15,7 @@ import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.ERROR_
 import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.POSSIBLE_OPTIONS;
 import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.SEVERITY;
 import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.SUGGESTION;
+import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isMemberOf;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isString;
 
 /**
@@ -33,7 +34,8 @@ public class PermissibleValueValidator extends AbstractValidator {
     if (columnDescription.hasPermissibleValues()) {
       var label = (String) value;
       var permissibleValues = columnDescription.getPermissibleValues();
-      if (!isLabelMatched(label, permissibleValues)) {
+      var permissibleValueLabels = getPermissibleValueLabels(permissibleValues);
+      if (ValueAssertion.notEqual(label, isMemberOf(permissibleValueLabels))) {
         var repairClosure = repairClosures.get("autoSuggest");
         var suggestion = repairClosure.execute(value, permissibleValues);
         validationResult.add(
@@ -52,8 +54,9 @@ public class PermissibleValueValidator extends AbstractValidator {
     return true;
   }
 
-  private static boolean isLabelMatched(String label, ImmutableList<PermissibleValue> permissibleValues) {
+  private ImmutableList<String> getPermissibleValueLabels(ImmutableList<PermissibleValue> permissibleValues) {
     return permissibleValues.stream()
-        .anyMatch(permissibleValue -> permissibleValue.getLabel().equals(label));
+        .map(PermissibleValue::getLabel)
+        .collect(ImmutableList.toImmutableList());
   }
 }
