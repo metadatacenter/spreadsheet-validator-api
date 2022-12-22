@@ -35,8 +35,8 @@ public class PermissibleValueValidator extends InputValueValidator {
       var permissibleValues = columnDescription.getPermissibleValues();
       var permissibleValueLabels = getPermissibleValueLabels(permissibleValues);
       if (Assert.that(label, not(isMemberOf(permissibleValueLabels)))) {
-        var repairClosure = repairClosures.get("autoSuggest");
-        var suggestion = repairClosure.execute(value, permissibleValues);
+        var termSuggester = repairClosures.get("termSuggester");
+        var suggestion = termSuggester.execute(value, permissibleValues);
         validationResult.add(
             ValidationError.builder()
                 .setColumnName(columnName)
