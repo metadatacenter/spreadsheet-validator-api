@@ -10,6 +10,7 @@ public enum ValueType {
 
   STRING("string"),
   NUMBER("number"),
+  DECIMAL("decimal"),
   INTEGER("integer");
 
   private final String canonicalName;

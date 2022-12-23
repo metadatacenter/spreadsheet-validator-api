@@ -19,8 +19,9 @@ public abstract class ColumnDescription {
   private static final String NAME = "name";
   private static final String LABEL = "label";
   private static final String TYPE = "type";
-
   private static final String SUB_TYPE = "subType";
+  private static final String MIN = "min";
+  private static final String MAX = "max";
   private static final String REQUIRED = "required";
   private static final String PERMISSIBLE_VALUES = "permissibleValues";
   private static final String DESCRIPTION = "description";
@@ -31,10 +32,13 @@ public abstract class ColumnDescription {
                                          @Nonnull @JsonProperty(LABEL) String columnLabel,
                                          @Nonnull @JsonProperty(TYPE) ValueType valueType,
                                          @Nullable @JsonProperty(SUB_TYPE) ValueType valueSubType,
+                                         @Nullable @JsonProperty(MIN) Number minValue,
+                                         @Nullable @JsonProperty(MAX) Number maxValue,
                                          @Nonnull @JsonProperty(REQUIRED) Boolean isRequiredColumn,
                                          @Nonnull @JsonProperty(DESCRIPTION) String columnDescription,
                                          @Nullable @JsonProperty(PERMISSIBLE_VALUES) ImmutableList<PermissibleValue> permissibleValues) {
-    return new AutoValue_ColumnDescription(columnName, columnLabel, valueType, valueSubType, isRequiredColumn, columnDescription, permissibleValues);
+    return new AutoValue_ColumnDescription(columnName, columnLabel, valueType, valueSubType, minValue, maxValue,
+        isRequiredColumn, columnDescription, permissibleValues);
   }
 
   @Nonnull
@@ -52,6 +56,29 @@ public abstract class ColumnDescription {
   @Nullable
   @JsonProperty(SUB_TYPE)
   public abstract ValueType getColumnSubType();
+
+  @JsonIgnore
+  public boolean hasSubType() {
+    return getColumnSubType() != null;
+  }
+
+  @Nullable
+  @JsonProperty(MIN)
+  public abstract Number getMinValue();
+
+  @JsonIgnore
+  public boolean hasMinValue() {
+    return getMinValue() != null;
+  }
+
+  @Nullable
+  @JsonProperty(MAX)
+  public abstract Number getMaxValue();
+
+  @JsonIgnore
+  public boolean hasMaxValue() {
+    return getMaxValue() != null;
+  }
 
   @Nonnull
   @JsonProperty(REQUIRED)
