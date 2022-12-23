@@ -1,4 +1,4 @@
-package org.metadatacenter.spreadsheetvalidator.algorithm;
+package org.metadatacenter.spreadsheetvalidator.validator.closure;
 
 import org.metadatacenter.spreadsheetvalidator.Closure;
 

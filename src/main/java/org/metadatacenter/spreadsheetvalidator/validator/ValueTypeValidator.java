@@ -1,4 +1,4 @@
-package org.metadatacenter.spreadsheetvalidator.algorithm;
+package org.metadatacenter.spreadsheetvalidator.validator;
 
 import org.metadatacenter.spreadsheetvalidator.RepairClosures;
 import org.metadatacenter.spreadsheetvalidator.ValidationError;
@@ -8,9 +8,9 @@ import org.metadatacenter.spreadsheetvalidator.util.Assert;
 
 import javax.annotation.Nonnull;
 
-import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.ERROR_TYPE;
-import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.SEVERITY;
-import static org.metadatacenter.spreadsheetvalidator.algorithm.PropNames.SUGGESTION;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SUGGESTION;
 import static org.metadatacenter.spreadsheetvalidator.domain.ValueType.NUMBER;
 import static org.metadatacenter.spreadsheetvalidator.domain.ValueType.STRING;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isNumber;

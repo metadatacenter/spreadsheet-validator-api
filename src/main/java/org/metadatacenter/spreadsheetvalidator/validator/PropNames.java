@@ -1,4 +1,4 @@
-package org.metadatacenter.spreadsheetvalidator.algorithm;
+package org.metadatacenter.spreadsheetvalidator.validator;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>

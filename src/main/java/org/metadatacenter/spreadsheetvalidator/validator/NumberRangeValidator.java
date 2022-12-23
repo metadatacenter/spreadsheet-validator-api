@@ -1,4 +1,4 @@
-package org.metadatacenter.spreadsheetvalidator.algorithm;
+package org.metadatacenter.spreadsheetvalidator.validator;
 
 import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidator;
 import org.metadatacenter.spreadsheetvalidator.Validator;
