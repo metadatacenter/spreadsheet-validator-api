@@ -14,7 +14,7 @@ import java.util.stream.Stream;
  * Stanford Center for Biomedical Informatics Research
  */
 @AutoValue
-public abstract class SpreadsheetDefinition {
+public abstract class SpreadsheetSchema {
 
   private static final String NAME = "name";
   private static final String COLUMNS = "columns";
@@ -23,11 +23,11 @@ public abstract class SpreadsheetDefinition {
 
   @Nonnull
   @JsonCreator
-  public static SpreadsheetDefinition create(
+  public static SpreadsheetSchema create(
       @Nonnull @JsonProperty(NAME) String name,
       @Nonnull @JsonProperty(COLUMNS) ImmutableMap<String, ColumnDescription> columnDescriptions,
       @Nonnull @JsonProperty(GENERATED_FROM) String templateSource) {
-    return new AutoValue_SpreadsheetDefinition(name, columnDescriptions, templateSource);
+    return new AutoValue_SpreadsheetSchema(name, columnDescriptions, templateSource);
   }
 
   @Nonnull

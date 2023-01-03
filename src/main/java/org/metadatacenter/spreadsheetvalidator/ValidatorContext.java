@@ -1,7 +1,7 @@
 package org.metadatacenter.spreadsheetvalidator;
 
 import com.google.auto.value.AutoValue;
-import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetDefinition;
+import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
 
 import javax.annotation.Nonnull;
 
@@ -12,18 +12,18 @@ import javax.annotation.Nonnull;
 @AutoValue
 public abstract class ValidatorContext {
 
-  protected static ValidatorContext create(@Nonnull SpreadsheetDefinition spreadsheetDefinition,
+  protected static ValidatorContext create(@Nonnull SpreadsheetSchema spreadsheetSchema,
                                            @Nonnull RepairClosures repairClosures,
                                            @Nonnull ValidationResult validationResult) {
-    return new AutoValue_ValidatorContext(spreadsheetDefinition, repairClosures, validationResult);
+    return new AutoValue_ValidatorContext(spreadsheetSchema, repairClosures, validationResult);
   }
 
-  public static ValidatorContext create(@Nonnull SpreadsheetDefinition spreadsheetDefinition) {
-    return create(spreadsheetDefinition, new RepairClosures(), new ValidationResult());
+  public static ValidatorContext create(@Nonnull SpreadsheetSchema spreadsheetSchema) {
+    return create(spreadsheetSchema, new RepairClosures(), new ValidationResult());
   }
 
   @Nonnull
-  public abstract SpreadsheetDefinition getSpreadsheetDefinition();
+  public abstract SpreadsheetSchema getSpreadsheetDefinition();
 
   @Nonnull
   public abstract RepairClosures getRepairClosures();

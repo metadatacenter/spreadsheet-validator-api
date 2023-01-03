@@ -1,7 +1,7 @@
 package org.metadatacenter.spreadsheetvalidator;
 
 import com.google.auto.value.AutoValue;
-import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetDefinition;
+import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetRow;
 
 import javax.annotation.Nonnull;
@@ -23,8 +23,8 @@ public abstract class SpreadsheetValidator {
     return create(validatorContext, new ValidatorElementList());
   }
 
-  public static SpreadsheetValidator create(@Nonnull SpreadsheetDefinition spreadsheetDefinition) {
-    return create(ValidatorContext.create(spreadsheetDefinition), new ValidatorElementList());
+  public static SpreadsheetValidator create(@Nonnull SpreadsheetSchema spreadsheetSchema) {
+    return create(ValidatorContext.create(spreadsheetSchema), new ValidatorElementList());
   }
 
   public abstract ValidatorContext getValidatorContext();
