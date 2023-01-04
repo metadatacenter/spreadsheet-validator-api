@@ -5,8 +5,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import javax.annotation.Nonnull;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -26,8 +28,8 @@ public abstract class SpreadsheetSchema {
   public static SpreadsheetSchema create(
       @Nonnull @JsonProperty(NAME) String name,
       @Nonnull @JsonProperty(COLUMNS) ImmutableMap<String, ColumnDescription> columnDescriptions,
-      @Nonnull @JsonProperty(GENERATED_FROM) String templateSource) {
-    return new AutoValue_SpreadsheetSchema(name, columnDescriptions, templateSource);
+      @Nonnull @JsonProperty(GENERATED_FROM) String templateIri) {
+    return new AutoValue_SpreadsheetSchema(name, columnDescriptions, templateIri);
   }
 
   @Nonnull
@@ -40,7 +42,7 @@ public abstract class SpreadsheetSchema {
 
   @Nonnull
   @JsonProperty(GENERATED_FROM)
-  public abstract String getTemplateSource();
+  public abstract String getTemplateIri();
 
   @Nonnull
   @JsonIgnore
