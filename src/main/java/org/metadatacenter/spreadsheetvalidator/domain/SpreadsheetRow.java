@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -42,5 +43,16 @@ public abstract class SpreadsheetRow {
   @JsonIgnore
   public Stream<String> columnStream() {
     return getObject().keySet().stream();
+  }
+
+  @JsonIgnore
+  public int size() {
+    return getObject().size();
+  }
+
+  @Nullable
+  @JsonIgnore
+  public Object get(String columnName) {
+    return getObject().get(columnName);
   }
 }

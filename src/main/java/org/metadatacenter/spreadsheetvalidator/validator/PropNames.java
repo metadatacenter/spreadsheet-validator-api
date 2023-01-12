@@ -7,7 +7,6 @@ package org.metadatacenter.spreadsheetvalidator.validator;
 public class PropNames {
 
   public static final String ERROR_TYPE = "errorType";
-
   public static final String SUGGESTION = "suggestion";
   public static final String POSSIBLE_OPTIONS = "possibleOptions";
   public static final String SEVERITY = "severity";

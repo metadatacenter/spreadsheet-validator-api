@@ -4,12 +4,14 @@ import com.google.common.collect.ImmutableList;
 import org.metadatacenter.spreadsheetvalidator.RepairClosures;
 import org.metadatacenter.spreadsheetvalidator.ValidationError;
 import org.metadatacenter.spreadsheetvalidator.ValidationResult;
+import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
 import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.PermissibleValue;
 import org.metadatacenter.spreadsheetvalidator.util.Assert;
 
 import javax.annotation.Nonnull;
 
+import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isString;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.POSSIBLE_OPTIONS;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
@@ -22,25 +24,22 @@ import static org.metadatacenter.spreadsheetvalidator.util.Matchers.not;
  * Stanford Center for Biomedical Informatics Research
  */
 public class PermissibleValueValidator extends InputValueValidator {
-
   @Override
   public void validateInputValue(@Nonnull Object value,
-                                 @Nonnull String columnName,
-                                 @Nonnull Integer rowNumber,
-                                 @Nonnull ColumnDescription columnDescription,
-                                 @Nonnull RepairClosures repairClosures,
-                                 @Nonnull ValidationResult validationResult) {
-    if (columnDescription.hasPermissibleValues()) {
+                                 @Nonnull ValueContext valueContext,
+                                 @Nonnull ValidatorContext validatorContext) {
+    var columnDescription = valueContext.getColumnDescription();
+    if (columnDescription.hasPermissibleValues() && Assert.that(value, isString())) {
       var label = (String) value;
       var permissibleValues = columnDescription.getPermissibleValues();
       var permissibleValueLabels = getPermissibleValueLabels(permissibleValues);
       if (Assert.that(label, not(isMemberOf(permissibleValueLabels)))) {
-        var termSuggester = repairClosures.get("termSuggester");
+        var termSuggester = validatorContext.getClosure("termSuggester");
         var suggestion = termSuggester.execute(value, permissibleValues);
-        validationResult.add(
+        validatorContext.getValidationResult().add(
             ValidationError.builder()
-                .setColumnName(columnName)
-                .setRowNumber(rowNumber)
+                .setColumnName(valueContext.getColumn())
+                .setRowNumber(valueContext.getRow())
                 .setInvalidValue(value)
                 .setErrorDescription("Value is not part of the permissible values")
                 .setOtherProp(POSSIBLE_OPTIONS, permissibleValues.stream().map(PermissibleValue::getLabel))

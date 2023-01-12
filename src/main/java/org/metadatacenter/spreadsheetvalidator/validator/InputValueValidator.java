@@ -1,16 +1,12 @@
 package org.metadatacenter.spreadsheetvalidator.validator;
 
-import org.metadatacenter.spreadsheetvalidator.RepairClosures;
-import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidator;
-import org.metadatacenter.spreadsheetvalidator.ValidationResult;
 import org.metadatacenter.spreadsheetvalidator.Validator;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
-import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetRow;
+import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
 import org.metadatacenter.spreadsheetvalidator.util.Assert;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isNullOrEmpty;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.not;
@@ -22,32 +18,23 @@ import static org.metadatacenter.spreadsheetvalidator.util.Matchers.not;
 public abstract class InputValueValidator implements Validator {
 
   @Override
-  public void validate(@Nonnull ValidatorContext context,
+  public void validate(@Nonnull ValidatorContext validatorContext,
+                       @Nonnull SpreadsheetSchema spreadsheetSchema,
                        @Nonnull SpreadsheetRow spreadsheetRow) {
     spreadsheetRow.columnStream()
-        .forEach(columnName -> {
-          var value = spreadsheetRow.getValue(columnName);
+        .forEach(column -> {
+          var value = spreadsheetRow.getValue(column);
           if (Assert.that(value, not(isNullOrEmpty()))) {
-            validateInputValue(value,
-                columnName,
+            var valueContext = ValueContext.create(
+                column,
                 spreadsheetRow.getRowNumber(),
-                context.getSpreadsheetDefinition().getColumnDescription(columnName),
-                context.getRepairClosures(),
-                context.getValidationResult());
+                spreadsheetSchema.getColumnDescription(column));
+            validateInputValue(value, valueContext, validatorContext);
           }
         });
   }
 
   public abstract void validateInputValue(@Nonnull Object value,
-                                          @Nonnull String columnName,
-                                          @Nonnull Integer rowNumber,
-                                          @Nonnull ColumnDescription columnDescription,
-                                          @Nonnull RepairClosures repairClosures,
-                                          @Nonnull ValidationResult validationResult);
-
-  @Override
-  public void chain(@Nonnull SpreadsheetValidator spreadsheetValidator,
-                    @Nonnull List<SpreadsheetRow> spreadsheetRows) {
-    // Override this for a custom implementation
-  }
+                                          @Nonnull ValueContext valueContext,
+                                          @Nonnull ValidatorContext validatorContext);
 }

@@ -3,6 +3,7 @@ package org.metadatacenter.spreadsheetvalidator;
 import com.google.common.collect.Maps;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -24,6 +25,7 @@ public class RepairClosures {
   @Nonnull
   public Closure get(String key) {
     checkNotNull(key);
-    return closures.get(key);
+    var closure = closures.get(key);
+    return (closure == null) ? new EmptyClosure() : closure;
   }
 }

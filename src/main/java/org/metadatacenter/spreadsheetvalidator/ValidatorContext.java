@@ -1,33 +1,37 @@
 package org.metadatacenter.spreadsheetvalidator;
 
-import com.google.auto.value.AutoValue;
-import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
-
 import javax.annotation.Nonnull;
+import javax.inject.Inject;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-@AutoValue
-public abstract class ValidatorContext {
+public class ValidatorContext {
 
-  protected static ValidatorContext create(@Nonnull SpreadsheetSchema spreadsheetSchema,
-                                           @Nonnull RepairClosures repairClosures,
-                                           @Nonnull ValidationResult validationResult) {
-    return new AutoValue_ValidatorContext(spreadsheetSchema, repairClosures, validationResult);
+  private final RepairClosures repairClosures;
+
+  private final ValidationResult validationResult;
+
+  @Inject
+  public ValidatorContext(@Nonnull RepairClosures repairClosures,
+                          @Nonnull ValidationResult validationResult) {
+    this.repairClosures = checkNotNull(repairClosures);
+    this.validationResult = checkNotNull(validationResult);
   }
 
-  public static ValidatorContext create(@Nonnull SpreadsheetSchema spreadsheetSchema) {
-    return create(spreadsheetSchema, new RepairClosures(), new ValidationResult());
+  public void setClosure(@Nonnull String key, @Nonnull Closure closure) {
+    repairClosures.add(key, closure);
+  }
+
+  public Closure getClosure(@Nonnull String key) {
+    return repairClosures.get(key);
   }
 
   @Nonnull
-  public abstract SpreadsheetSchema getSpreadsheetDefinition();
-
-  @Nonnull
-  public abstract RepairClosures getRepairClosures();
-
-  @Nonnull
-  public abstract ValidationResult getValidationResult();
+  public ValidationResult getValidationResult() {
+    return validationResult;
+  }
 }

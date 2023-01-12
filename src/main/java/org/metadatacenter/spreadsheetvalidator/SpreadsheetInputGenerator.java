@@ -1,6 +1,5 @@
 package org.metadatacenter.spreadsheetvalidator;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -9,12 +8,13 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
+import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetRow;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Map;
+import java.io.InputStream;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -41,7 +41,7 @@ public class SpreadsheetInputGenerator {
   }
 
   @Nullable
-  public JsonNode generateFrom(@Nonnull FileInputStream inputStream) {
+  public Spreadsheet generateFrom(@Nonnull InputStream inputStream) {
     try {
       var workbook = WorkbookFactory.create(inputStream);
       return generateFromExcel(workbook);
@@ -52,16 +52,16 @@ public class SpreadsheetInputGenerator {
   }
 
   @Nonnull
-  private JsonNode generateFromExcel(Workbook workbook) {
+  private Spreadsheet generateFromExcel(Workbook workbook) {
     var sheet = workbook.getSheet("MAIN");
     if (sheet == null) {
       sheet = workbook.getSheetAt(0); // get the first sheet
     }
     var header = sheet.getRow(0); // get the row header
-    var metadataRecords = toStreamOfRows(sheet)
+    var listOfRows = toStreamOfRows(sheet)
         .filter(row -> row.getRowNum() != 0)
-        .collect(new MetadataRecordCollector(header));
-    return objectMapper.valueToTree(metadataRecords);
+        .collect(new SpreadsheetRowCollector(header));
+    return Spreadsheet.create(listOfRows);
   }
 
   private Stream<Row> toStreamOfRows(Sheet sheet) {
@@ -72,27 +72,27 @@ public class SpreadsheetInputGenerator {
         ), false);
   }
 
-  class MetadataRecordCollector implements Collector<
+  class SpreadsheetRowCollector implements Collector<
       Row,
-      ImmutableList.Builder<Map<String, Object>>,
-      ImmutableList<Map<String, Object>>> {
+      ImmutableList.Builder<SpreadsheetRow>,
+      ImmutableList<SpreadsheetRow>> {
 
     private final Row header;
 
-    MetadataRecordCollector(@Nonnull Row header) {
+    SpreadsheetRowCollector(@Nonnull Row header) {
       this.header = checkNotNull(header);
     }
 
     @Override
-    public Supplier<ImmutableList.Builder<Map<String, Object>>> supplier() {
+    public Supplier<ImmutableList.Builder<SpreadsheetRow>> supplier() {
       return ImmutableList.Builder::new;
     }
 
     @Override
-    public BiConsumer<ImmutableList.Builder<Map<String, Object>>, Row> accumulator() {
+    public BiConsumer<ImmutableList.Builder<SpreadsheetRow>, Row> accumulator() {
       return (builder, row) -> {
         var metadataRecord = Maps.<String, Object>newHashMap();
-        metadataRecord.put("_rowNumber", row.getRowNum() - 1); // -1 for minus the header row
+        var rowNumber = row.getRowNum() - 1; // -1 for minus the header row
         for (int i = 0; i < header.getLastCellNum(); i++) {
           var headerCell = header.getCell(i);
           var headerText = headerCell.getStringCellValue();
@@ -108,12 +108,13 @@ public class SpreadsheetInputGenerator {
             }
           }
         }
-        builder.add(metadataRecord);
+        var objectNode = objectMapper.valueToTree(metadataRecord);
+        builder.add(SpreadsheetRow.create(rowNumber, metadataRecord));
       };
     }
 
     @Override
-    public BinaryOperator<ImmutableList.Builder<Map<String, Object>>> combiner() {
+    public BinaryOperator<ImmutableList.Builder<SpreadsheetRow>> combiner() {
       return (builder1, builder2) -> {
         builder1.addAll(builder2.build());
         return builder1;
@@ -121,7 +122,7 @@ public class SpreadsheetInputGenerator {
     }
 
     @Override
-    public Function<ImmutableList.Builder<Map<String, Object>>, ImmutableList<Map<String, Object>>> finisher() {
+    public Function<ImmutableList.Builder<SpreadsheetRow>, ImmutableList<SpreadsheetRow>> finisher() {
       return ImmutableList.Builder::build;
     }
 

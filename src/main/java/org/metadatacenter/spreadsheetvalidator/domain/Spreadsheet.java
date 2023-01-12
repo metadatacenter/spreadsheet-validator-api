@@ -22,6 +22,16 @@ public abstract class Spreadsheet {
   public abstract ImmutableList<SpreadsheetRow> getRows();
 
   @JsonIgnore
+  public int size() {
+    return getRows().size();
+  }
+
+  @JsonIgnore
+  public SpreadsheetRow get(int rowNumber) {
+    return getRows().get(rowNumber);
+  }
+
+  @JsonIgnore
   public Stream<SpreadsheetRow> getRowStream() {
     return getRows().stream();
   }
