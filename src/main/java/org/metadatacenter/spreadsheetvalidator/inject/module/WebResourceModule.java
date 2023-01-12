@@ -1,11 +1,16 @@
 package org.metadatacenter.spreadsheetvalidator.inject.module;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dagger.Module;
 import dagger.Provides;
+import org.jvnet.hk2.annotations.Service;
 import org.metadatacenter.spreadsheetvalidator.CedarConfig;
 import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidatorConfiguration;
+import org.metadatacenter.spreadsheetvalidator.inject.provider.ObjectMapperProvider;
+import org.metadatacenter.spreadsheetvalidator.inject.scope.ServiceSessionScope;
 
 import javax.annotation.Nonnull;
+import javax.inject.Singleton;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

@@ -1,8 +1,21 @@
 package org.metadatacenter.spreadsheetvalidator;
 
-import org.metadatacenter.artifacts.model.reader.ArtifactReader;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Charsets;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.util.EntityUtils;
 
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -12,12 +25,66 @@ public class CedarService {
 
   private final CedarConfig cedarConfig;
 
-  private final ArtifactReader artifactReader;
+  private final RestServiceHandler restServiceHandler;
 
   @Inject
   public CedarService(CedarConfig cedarConfig,
-                      ArtifactReader artifactReader) {
-    this.cedarConfig = cedarConfig;
-    this.artifactReader = artifactReader;
+                      RestServiceHandler restServiceHandler) {
+    this.cedarConfig = checkNotNull(cedarConfig);
+    this.restServiceHandler = checkNotNull(restServiceHandler);
+  }
+
+  public ObjectNode getCedarTemplate(String iri) {
+    HttpResponse response = null;
+    // Execute the request
+    try {
+      var url = generateTemplateUrlFromIri(iri);
+      var request = restServiceHandler.createGetRequest(
+          url,
+          "apiKey " + cedarConfig.getApiKey());
+      response = restServiceHandler.execute(request);
+    } catch (IOException e) {
+      throw new BadRequestException(e);
+    }
+    // Process the response
+    try {
+      return processResponse(response);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private ObjectNode processResponse(HttpResponse response) throws IOException {
+    var statusLine = response.getStatusLine();
+    switch (statusLine.getStatusCode()) {
+      case HttpStatus.SC_OK:
+        var jsonString = new String(EntityUtils.toByteArray(response.getEntity()));
+        return (ObjectNode) restServiceHandler.parseJsonString(jsonString);
+      case HttpStatus.SC_NOT_FOUND:
+        throw new FileNotFoundException(format(
+            "Couldn't find CEDAR template. Cause: %s", statusLine));
+      default:
+        throw new BadRequestException(format(
+            "Error retrieving template. Cause: %s", statusLine));
+    }
+  }
+
+  private String generateTemplateUrlFromIri(String iri) {
+    try {
+      var templateId = getLastSegment(iri);
+      return new StringBuilder()
+          .append(cedarConfig.getBaseUrl())
+          .append("templates/")
+          .append(URLEncoder.encode(templateId, Charsets.UTF_8.toString()))
+          .toString();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private String getLastSegment(String s) throws URISyntaxException {
+    var uri = new URI(s);
+    var segments = uri.getPath().split("/");
+    return segments[segments.length - 1];
   }
 }

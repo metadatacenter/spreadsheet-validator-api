@@ -18,6 +18,8 @@
         <dropwizard.version>2.1.4</dropwizard.version>
         <dropwizard.swagger.version>2.0.28-1</dropwizard.swagger.version>
         <jackson.version>2.14.1</jackson.version>
+        <httpcomponents.version>4.5.14</httpcomponents.version>
+        <jersey.version>1.19.4</jersey.version>
         <autovalue.version>1.10.1</autovalue.version>
         <junit.version>5.9.1</junit.version>
         <hamcrest.version>2.2</hamcrest.version>
@@ -45,6 +47,11 @@
         <dependency>
             <groupId>com.google.dagger</groupId>
             <artifactId>dagger</artifactId>
+            <version>${dagger.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.dagger</groupId>
+            <artifactId>dagger-compiler</artifactId>
             <version>${dagger.version}</version>
         </dependency>
         <dependency>
@@ -98,6 +105,16 @@
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
             <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>fluent-hc</artifactId>
+            <version>${httpcomponents.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey.contribs</groupId>
+            <artifactId>jersey-multipart</artifactId>
+            <version>${jersey.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.auto.value</groupId>
