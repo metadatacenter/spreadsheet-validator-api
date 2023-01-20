@@ -31,8 +31,8 @@ public class NumberTypeValidator extends InputValueValidator {
               .setRowNumber(valueContext.getRow())
               .setInvalidValue(value)
               .setErrorDescription("Value is not a number")
-              .setOtherProp(SUGGESTION, suggestion)
               .setOtherProp(ERROR_TYPE, "notNumberType")
+              .setOtherProp(SUGGESTION, suggestion)
               .setOtherProp(SEVERITY, 1)
               .build()
       );
