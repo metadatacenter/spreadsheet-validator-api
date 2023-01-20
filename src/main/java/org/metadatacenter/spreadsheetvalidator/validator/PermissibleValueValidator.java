@@ -10,7 +10,6 @@ import javax.annotation.Nonnull;
 
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isString;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.POSSIBLE_OPTIONS;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SUGGESTION;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isMemberOf;
@@ -40,7 +39,6 @@ public class PermissibleValueValidator extends InputValueValidator {
                 .setRowNumber(valueContext.getRow())
                 .setErrorDescription("Value is not part of the permissible values")
                 .setProp(VALUE, value)
-                .setProp(POSSIBLE_OPTIONS, permissibleValues.stream().map(PermissibleValue::getLabel))
                 .setProp(SUGGESTION, suggestion)
                 .setProp(ERROR_TYPE, "notStandardTerm")
                 .setProp(SEVERITY, 1)
