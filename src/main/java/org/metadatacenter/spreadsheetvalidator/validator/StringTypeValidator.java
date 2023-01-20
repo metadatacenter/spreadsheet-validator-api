@@ -10,6 +10,7 @@ import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isString;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.not;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -26,8 +27,8 @@ public class StringTypeValidator extends InputValueValidator {
           ValidationError.builder()
               .setColumnName(valueContext.getColumn())
               .setRowNumber(valueContext.getRow())
-              .setInvalidValue(value)
               .setErrorDescription("Value is not a string")
+              .setProp(VALUE, value)
               .setProp(ERROR_TYPE, "notStringType")
               .setProp(SEVERITY, 1)
               .build()

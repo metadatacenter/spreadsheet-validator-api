@@ -12,6 +12,7 @@ import static org.metadatacenter.spreadsheetvalidator.domain.ValueType.NUMBER;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isNumber;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -35,8 +36,8 @@ public class MinRangeValidator extends InputValueValidator {
               ValidationError.builder()
                   .setColumnName(valueContext.getColumn())
                   .setRowNumber(valueContext.getRow())
-                  .setInvalidValue(value)
                   .setErrorDescription("Value is exceeded the minimum value constraint of " + minValue)
+                  .setProp(VALUE, value)
                   .setProp(ERROR_TYPE, "numberOutOfRange")
                   .setProp(SEVERITY, 3)
                   .build());

@@ -15,6 +15,7 @@ import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERI
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SUGGESTION;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isMemberOf;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.not;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -37,8 +38,8 @@ public class PermissibleValueValidator extends InputValueValidator {
             ValidationError.builder()
                 .setColumnName(valueContext.getColumn())
                 .setRowNumber(valueContext.getRow())
-                .setInvalidValue(value)
                 .setErrorDescription("Value is not part of the permissible values")
+                .setProp(VALUE, value)
                 .setProp(POSSIBLE_OPTIONS, permissibleValues.stream().map(PermissibleValue::getLabel))
                 .setProp(SUGGESTION, suggestion)
                 .setProp(ERROR_TYPE, "notStandardTerm")

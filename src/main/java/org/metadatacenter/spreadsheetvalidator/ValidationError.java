@@ -20,10 +20,9 @@ public abstract class ValidationError {
   @Nonnull
   public static ValidationError create(@Nonnull Integer rowNumber,
                                        @Nonnull String columnName,
-                                       @Nullable Object invalidValue,
                                        @Nonnull String errorDescription,
                                        @Nonnull ImmutableMap<String, Object> additionalProps) {
-    return new AutoValue_ValidationError(rowNumber, columnName, invalidValue, errorDescription, additionalProps);
+    return new AutoValue_ValidationError(rowNumber, columnName, errorDescription, additionalProps);
   }
 
   public static Builder builder() {
@@ -35,9 +34,6 @@ public abstract class ValidationError {
 
   @Nonnull
   public abstract String getColumnName();
-
-  @Nullable
-  public abstract Object getInvalidValue();
 
   @Nonnull
   public abstract String getErrorDescription();
@@ -58,7 +54,6 @@ public abstract class ValidationError {
 
     private Integer rowNumber;
     private String columnName;
-    private Object invalidValue;
     private String errorDescription;
 
     private Map<String, Object> additionalProps = Maps.newHashMap();
@@ -72,11 +67,6 @@ public abstract class ValidationError {
     public Builder setColumnName(@Nonnull String columnName) {
       checkNotNull(columnName);
       this.columnName = columnName;
-      return this;
-    }
-
-    public Builder setInvalidValue(@Nullable Object value) {
-      this.invalidValue = value;
       return this;
     }
 
@@ -97,9 +87,9 @@ public abstract class ValidationError {
       checkNotNull(rowNumber);
       checkNotNull(columnName);
       checkNotNull(errorDescription);
-      return ValidationError.create(rowNumber,
+      return ValidationError.create(
+          rowNumber,
           columnName,
-          invalidValue,
           errorDescription,
           ImmutableMap.copyOf(additionalProps));
     }

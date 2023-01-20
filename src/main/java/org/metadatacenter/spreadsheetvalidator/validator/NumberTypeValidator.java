@@ -11,6 +11,7 @@ import static org.metadatacenter.spreadsheetvalidator.util.Matchers.not;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SUGGESTION;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -29,8 +30,8 @@ public class NumberTypeValidator extends InputValueValidator {
           ValidationError.builder()
               .setColumnName(valueContext.getColumn())
               .setRowNumber(valueContext.getRow())
-              .setInvalidValue(value)
               .setErrorDescription("Value is not a number")
+              .setProp(VALUE, value)
               .setProp(ERROR_TYPE, "notNumberType")
               .setProp(SUGGESTION, suggestion)
               .setProp(SEVERITY, 1)

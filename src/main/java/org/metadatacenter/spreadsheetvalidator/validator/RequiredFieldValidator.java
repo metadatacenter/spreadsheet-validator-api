@@ -12,6 +12,7 @@ import javax.annotation.Nonnull;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isNullOrEmpty;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
 import static org.metadatacenter.spreadsheetvalidator.validator.ValidatorUtils.checkAdditionalColumns;
 
 /**
@@ -35,8 +36,8 @@ public class RequiredFieldValidator implements Validator {
                 ValidationError.builder()
                     .setColumnName(column)
                     .setRowNumber(rowNumber)
-                    .setInvalidValue(value)
                     .setErrorDescription("Required value is missing")
+                    .setProp(VALUE, value)
                     .setProp(ERROR_TYPE, "missingRequired")
                     .setProp(SEVERITY, 5)
                     .build());
