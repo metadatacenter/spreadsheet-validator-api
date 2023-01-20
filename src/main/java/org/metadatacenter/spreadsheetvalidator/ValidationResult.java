@@ -18,7 +18,7 @@ public class ValidationResult {
     errorList.add(error);
   }
 
-  public ImmutableList<ValidationError> getList() {
+  public ImmutableList<ValidationError> getErrorList() {
     return ImmutableList.copyOf(errorList);
   }
 
