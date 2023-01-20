@@ -10,6 +10,7 @@ import javax.annotation.Nonnull;
 
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isNullOrEmpty;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.not;
+import static org.metadatacenter.spreadsheetvalidator.validator.ValidatorUtils.checkAdditionalColumns;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -21,6 +22,7 @@ public abstract class InputValueValidator implements Validator {
   public void validate(@Nonnull ValidatorContext validatorContext,
                        @Nonnull SpreadsheetSchema spreadsheetSchema,
                        @Nonnull SpreadsheetRow spreadsheetRow) {
+    checkAdditionalColumns(spreadsheetRow, spreadsheetSchema);
     spreadsheetRow.columnStream()
         .forEach(column -> {
           var value = spreadsheetRow.getValue(column);

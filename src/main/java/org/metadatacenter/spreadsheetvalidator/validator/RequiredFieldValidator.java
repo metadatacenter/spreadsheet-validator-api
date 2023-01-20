@@ -12,6 +12,7 @@ import javax.annotation.Nonnull;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isNullOrEmpty;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
+import static org.metadatacenter.spreadsheetvalidator.validator.ValidatorUtils.checkAdditionalColumns;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -22,6 +23,7 @@ public class RequiredFieldValidator implements Validator {
   public void validate(@Nonnull ValidatorContext context,
                        @Nonnull SpreadsheetSchema spreadsheetSchema,
                        @Nonnull SpreadsheetRow spreadsheetRow) {
+    checkAdditionalColumns(spreadsheetRow, spreadsheetSchema);
     var validationResult = context.getValidationResult();
     spreadsheetRow.columnStream()
         .forEach(column -> {

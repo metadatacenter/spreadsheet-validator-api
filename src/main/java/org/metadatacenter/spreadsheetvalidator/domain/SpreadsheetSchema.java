@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -44,7 +45,7 @@ public abstract class SpreadsheetSchema {
   @JsonProperty(GENERATED_FROM)
   public abstract String getTemplateIri();
 
-  @Nonnull
+  @Nullable
   @JsonIgnore
   public ColumnDescription getColumnDescription(String columnName) {
     return getColumnDescriptions().get(columnName);
@@ -54,5 +55,10 @@ public abstract class SpreadsheetSchema {
   @JsonIgnore
   public Stream<ColumnDescription> getColumnDescriptionStream() {
     return getColumnDescriptions().values().stream();
+  }
+
+  @JsonIgnore
+  public boolean containsColumn(String columnName) {
+    return getColumnDescriptions().containsKey(columnName);
   }
 }
