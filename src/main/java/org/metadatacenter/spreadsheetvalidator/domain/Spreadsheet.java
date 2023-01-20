@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -17,6 +20,16 @@ public abstract class Spreadsheet {
   @JsonCreator
   public static Spreadsheet create(ImmutableList<SpreadsheetRow> spreadsheetRows) {
     return new AutoValue_Spreadsheet(spreadsheetRows);
+  }
+
+  public static Spreadsheet create(List<Map<String, Object>> rawData) {
+    var spreadsheetRows = IntStream.range(0, rawData.size())
+        .mapToObj(index -> {
+          var rowData = rawData.get(index);
+          return SpreadsheetRow.create(index, rowData);
+        })
+        .collect(ImmutableList.toImmutableList());
+    return create(spreadsheetRows);
   }
 
   public abstract ImmutableList<SpreadsheetRow> getRows();

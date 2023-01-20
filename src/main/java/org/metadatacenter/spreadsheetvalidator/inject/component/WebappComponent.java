@@ -4,7 +4,6 @@ import dagger.Component;
 import org.metadatacenter.spreadsheetvalidator.ServiceResource;
 import org.metadatacenter.spreadsheetvalidator.inject.module.CedarServiceModule;
 import org.metadatacenter.spreadsheetvalidator.inject.module.SchemaProcessingModule;
-import org.metadatacenter.spreadsheetvalidator.inject.module.SpreadsheetProcessingModule;
 import org.metadatacenter.spreadsheetvalidator.inject.module.SpreadsheetValidatorModule;
 
 import javax.inject.Singleton;
@@ -16,7 +15,6 @@ import javax.inject.Singleton;
 @Component(modules = {
     CedarServiceModule.class,
     SchemaProcessingModule.class,
-    SpreadsheetProcessingModule.class,
     SpreadsheetValidatorModule.class
 })
 @Singleton

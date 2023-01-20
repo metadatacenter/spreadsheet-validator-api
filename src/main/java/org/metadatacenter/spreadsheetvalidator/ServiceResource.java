@@ -1,7 +1,10 @@
 package org.metadatacenter.spreadsheetvalidator;
 
-import com.sun.jersey.multipart.FormDataParam;
+import com.google.common.collect.ImmutableList;
 import io.swagger.v3.oas.annotations.Operation;
+import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
+import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetRow;
+import org.metadatacenter.spreadsheetvalidator.request.ValidateSpreadsheetRequest;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -11,9 +14,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.Map;
+import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -27,30 +34,33 @@ public class ServiceResource {
 
   private final SpreadsheetSchemaGenerator spreadsheetSchemaGenerator;
 
-  private final SpreadsheetInputGenerator spreadsheetInputGenerator;
-
   private final SpreadsheetValidator spreadsheetValidator;
 
   @Inject
   public ServiceResource(@Nonnull CedarService cedarService,
                          @Nonnull SpreadsheetSchemaGenerator spreadsheetSchemaGenerator,
-                         @Nonnull SpreadsheetInputGenerator spreadsheetInputGenerator,
                          @Nonnull SpreadsheetValidator spreadsheetValidator) {
     this.cedarService = checkNotNull(cedarService);
     this.spreadsheetSchemaGenerator = checkNotNull(spreadsheetSchemaGenerator);
-    this.spreadsheetInputGenerator = checkNotNull(spreadsheetInputGenerator);
     this.spreadsheetValidator = checkNotNull(spreadsheetValidator);
   }
 
   @POST
   @Operation(summary = "Validate an Excel spreadsheet against a CEDAR template.")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
   @Path("/validate")
-  @Consumes(MediaType.MULTIPART_FORM_DATA)
-  public Response validate(@FormDataParam("file") InputStream inputStream) {
-    var cedarTemplate = cedarService.getCedarTemplate("iri");
-    var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
-    var spreadsheetInput = spreadsheetInputGenerator.generateFrom(inputStream);
-    var validationResult = spreadsheetValidator.validate(spreadsheetInput, spreadsheetSchema);
-    return null;
+  public Response validate(@Nonnull ValidateSpreadsheetRequest request) {
+    try {
+      var cedarTemplateIri = request.getCedarTemplateIri();
+      var cedarTemplate = cedarService.getCedarTemplate(cedarTemplateIri);
+      var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
+      var spreadsheetData = request.getSpreadsheetData();
+      var spreadsheet = Spreadsheet.create(spreadsheetData);
+      var validationResult = spreadsheetValidator.validate(spreadsheet, spreadsheetSchema);
+      return Response.ok(singletonMap("message", "File Uploaded Successfully")).build();
+    } catch (Exception e) {
+      return Response.serverError().build();
+    }
   }
 }

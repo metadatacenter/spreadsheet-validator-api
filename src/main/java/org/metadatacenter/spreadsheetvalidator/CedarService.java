@@ -10,8 +10,6 @@ import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -71,20 +69,13 @@ public class CedarService {
 
   private String generateTemplateUrlFromIri(String iri) {
     try {
-      var templateId = getLastSegment(iri);
       return new StringBuilder()
           .append(cedarConfig.getBaseUrl())
           .append("templates/")
-          .append(URLEncoder.encode(templateId, Charsets.UTF_8.toString()))
+          .append(URLEncoder.encode(iri, Charsets.UTF_8.toString()))
           .toString();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-  }
-
-  private String getLastSegment(String s) throws URISyntaxException {
-    var uri = new URI(s);
-    var segments = uri.getPath().split("/");
-    return segments[segments.length - 1];
   }
 }

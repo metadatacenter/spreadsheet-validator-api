@@ -2,8 +2,12 @@ package org.metadatacenter.spreadsheetvalidator;
 
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.metadatacenter.spreadsheetvalidator.inject.component.DaggerWebappComponent;
 import org.metadatacenter.spreadsheetvalidator.inject.module.WebResourceModule;
+
+import javax.servlet.DispatcherType;
+import java.util.EnumSet;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -17,7 +21,14 @@ public class SpreadsheetValidatorApplication extends Application<SpreadsheetVali
 
   @Override
   public void run(SpreadsheetValidatorConfiguration spreadsheetValidatorConfiguration,
-                  Environment environment) throws Exception {
+                  Environment environment) {
+    // Enable CORS headers
+    final var cors = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
+    cors.setInitParameter("allowedOrigins", "*");
+    cors.setInitParameter("allowedHeaders", "X-Requested-With,Content-Type,Accept,Origin");
+    cors.setInitParameter("allowedMethods", "OPTIONS,GET,PUT,POST,DELETE,HEAD");
+    cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
+
     var component = DaggerWebappComponent.builder()
         .webResourceModule(new WebResourceModule(spreadsheetValidatorConfiguration))
         .build();

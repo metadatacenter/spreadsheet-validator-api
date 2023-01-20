@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -18,15 +19,16 @@ import java.util.stream.Stream;
 @AutoValue
 public abstract class SpreadsheetRow {
 
-  private static final String ROW_NUM = "rowNum";
+  private static final String ROW_NUM = "__rowNum__";
 
-  @JsonCreator
-  public static SpreadsheetRow create(@JsonProperty(ROW_NUM) int rowNumber,
-                                      @Nonnull Map<String, Object> object) {
-    return new AutoValue_SpreadsheetRow(rowNumber, object);
+  public static SpreadsheetRow create(int rowNumber, @Nonnull Map<String, Object> map) {
+    var newMap = ImmutableMap.<String, Object>builder()
+        .putAll(map)
+        .put(ROW_NUM, rowNumber)
+        .build();
+    return new AutoValue_SpreadsheetRow(rowNumber, map);
   }
 
-  @JsonProperty(ROW_NUM)
   public abstract int getRowNumber();
 
   @Nonnull
