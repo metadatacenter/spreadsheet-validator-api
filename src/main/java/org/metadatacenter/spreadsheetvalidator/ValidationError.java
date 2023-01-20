@@ -83,7 +83,9 @@ public abstract class ValidationError {
     }
 
     public Builder setOtherProp(String key, Object value) {
-      otherProps.put(key, value);
+      if (value != null) {
+        otherProps.put(key, value);
+      }
       return this;
     }
 
