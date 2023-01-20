@@ -1,11 +1,8 @@
 package org.metadatacenter.spreadsheetvalidator.validator;
 
 import com.google.common.collect.ImmutableList;
-import org.metadatacenter.spreadsheetvalidator.RepairClosures;
 import org.metadatacenter.spreadsheetvalidator.ValidationError;
-import org.metadatacenter.spreadsheetvalidator.ValidationResult;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
-import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.PermissibleValue;
 import org.metadatacenter.spreadsheetvalidator.util.Assert;
 
@@ -42,10 +39,10 @@ public class PermissibleValueValidator extends InputValueValidator {
                 .setRowNumber(valueContext.getRow())
                 .setInvalidValue(value)
                 .setErrorDescription("Value is not part of the permissible values")
-                .setOtherProp(POSSIBLE_OPTIONS, permissibleValues.stream().map(PermissibleValue::getLabel))
-                .setOtherProp(SUGGESTION, suggestion)
-                .setOtherProp(ERROR_TYPE, "notStandardTerm")
-                .setOtherProp(SEVERITY, 1)
+                .setProp(POSSIBLE_OPTIONS, permissibleValues.stream().map(PermissibleValue::getLabel))
+                .setProp(SUGGESTION, suggestion)
+                .setProp(ERROR_TYPE, "notStandardTerm")
+                .setProp(SEVERITY, 1)
                 .build());
       }
     }

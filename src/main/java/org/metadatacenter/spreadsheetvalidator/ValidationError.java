@@ -22,8 +22,8 @@ public abstract class ValidationError {
                                        @Nonnull String columnName,
                                        @Nullable Object invalidValue,
                                        @Nonnull String errorDescription,
-                                       @Nonnull ImmutableMap<String, Object> otherProps) {
-    return new AutoValue_ValidationError(rowNumber, columnName, invalidValue, errorDescription, otherProps);
+                                       @Nonnull ImmutableMap<String, Object> additionalProps) {
+    return new AutoValue_ValidationError(rowNumber, columnName, invalidValue, errorDescription, additionalProps);
   }
 
   public static Builder builder() {
@@ -43,11 +43,15 @@ public abstract class ValidationError {
   public abstract String getErrorDescription();
 
   @Nonnull
-  public abstract ImmutableMap<String, Object> getOtherProps();
+  public abstract ImmutableMap<String, Object> getAdditionalProps();
 
   @Nonnull
-  public Object getOtherProp(String key) {
-    return getOtherProps().get(key);
+  public Object getProp(String name) {
+    return getAdditionalProps().get(name);
+  }
+
+  public boolean hasProp(String name) {
+    return getAdditionalProps().containsKey(name);
   }
 
   public static class Builder {
@@ -57,7 +61,7 @@ public abstract class ValidationError {
     private Object invalidValue;
     private String errorDescription;
 
-    private Map<String, Object> otherProps = Maps.newHashMap();
+    private Map<String, Object> additionalProps = Maps.newHashMap();
 
     public Builder setRowNumber(@Nonnull Integer rowNumber) {
       checkNotNull(rowNumber);
@@ -82,9 +86,9 @@ public abstract class ValidationError {
       return this;
     }
 
-    public Builder setOtherProp(String key, Object value) {
+    public Builder setProp(String name, Object value) {
       if (value != null) {
-        otherProps.put(key, value);
+        additionalProps.put(name, value);
       }
       return this;
     }
@@ -97,7 +101,7 @@ public abstract class ValidationError {
           columnName,
           invalidValue,
           errorDescription,
-          ImmutableMap.copyOf(otherProps));
+          ImmutableMap.copyOf(additionalProps));
     }
   }
 }

@@ -28,8 +28,8 @@ public class StringTypeValidator extends InputValueValidator {
               .setRowNumber(valueContext.getRow())
               .setInvalidValue(value)
               .setErrorDescription("Value is not a string")
-              .setOtherProp(ERROR_TYPE, "notStringType")
-              .setOtherProp(SEVERITY, 1)
+              .setProp(ERROR_TYPE, "notStringType")
+              .setProp(SEVERITY, 1)
               .build()
       );
     }

@@ -37,8 +37,8 @@ public class MinRangeValidator extends InputValueValidator {
                   .setRowNumber(valueContext.getRow())
                   .setInvalidValue(value)
                   .setErrorDescription("Value is exceeded the minimum value constraint of " + minValue)
-                  .setOtherProp(ERROR_TYPE, "numberOutOfRange")
-                  .setOtherProp(SEVERITY, 3)
+                  .setProp(ERROR_TYPE, "numberOutOfRange")
+                  .setProp(SEVERITY, 3)
                   .build());
         }
       }

@@ -37,8 +37,8 @@ public class RequiredFieldValidator implements Validator {
                     .setRowNumber(rowNumber)
                     .setInvalidValue(value)
                     .setErrorDescription("Required value is missing")
-                    .setOtherProp(ERROR_TYPE, "missingRequired")
-                    .setOtherProp(SEVERITY, 5)
+                    .setProp(ERROR_TYPE, "missingRequired")
+                    .setProp(SEVERITY, 5)
                     .build());
           }
         });
