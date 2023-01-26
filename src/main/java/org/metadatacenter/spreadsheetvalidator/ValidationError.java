@@ -41,7 +41,7 @@ public abstract class ValidationError {
   @Nonnull
   public abstract ImmutableMap<String, Object> getAdditionalProps();
 
-  @Nonnull
+  @Nullable
   public Object getProp(String name) {
     return getAdditionalProps().get(name);
   }

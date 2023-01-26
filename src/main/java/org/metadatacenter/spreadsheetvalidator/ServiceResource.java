@@ -1,9 +1,7 @@
 package org.metadatacenter.spreadsheetvalidator;
 
-import com.google.common.collect.ImmutableList;
 import io.swagger.v3.oas.annotations.Operation;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
-import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetRow;
 import org.metadatacenter.spreadsheetvalidator.request.ValidateSpreadsheetRequest;
 
 import javax.annotation.Nonnull;
@@ -14,13 +12,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.util.Map;
-import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Collections.singletonMap;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -36,13 +29,17 @@ public class ServiceResource {
 
   private final SpreadsheetValidator spreadsheetValidator;
 
+  private final ResultCollector resultCollector;
+
   @Inject
   public ServiceResource(@Nonnull CedarService cedarService,
                          @Nonnull SpreadsheetSchemaGenerator spreadsheetSchemaGenerator,
-                         @Nonnull SpreadsheetValidator spreadsheetValidator) {
+                         @Nonnull SpreadsheetValidator spreadsheetValidator,
+                         @Nonnull ResultCollector resultCollector) {
     this.cedarService = checkNotNull(cedarService);
     this.spreadsheetSchemaGenerator = checkNotNull(spreadsheetSchemaGenerator);
     this.spreadsheetValidator = checkNotNull(spreadsheetValidator);
+    this.resultCollector = checkNotNull(resultCollector);
   }
 
   @POST
@@ -57,8 +54,10 @@ public class ServiceResource {
       var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
       var spreadsheetData = request.getSpreadsheetData();
       var spreadsheet = Spreadsheet.create(spreadsheetData);
-      var validationResult = spreadsheetValidator.validate(spreadsheet, spreadsheetSchema);
-      return Response.ok(singletonMap("message", "File Uploaded Successfully")).build();
+      var reporting = spreadsheetValidator
+          .validate(spreadsheet, spreadsheetSchema)
+          .collect(resultCollector);
+      return null;
     } catch (Exception e) {
       return Response.serverError().build();
     }

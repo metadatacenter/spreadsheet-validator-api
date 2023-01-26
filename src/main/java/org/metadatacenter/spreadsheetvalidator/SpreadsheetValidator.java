@@ -40,7 +40,7 @@ public class SpreadsheetValidator {
     return this;
   }
 
-  public <T> T collectResult(ResultCollector<T> resultCollector) {
+  public ValidationReport collect(ResultCollector resultCollector) {
     return resultCollector.of(validatorContext.getValidationResult());
   }
 }

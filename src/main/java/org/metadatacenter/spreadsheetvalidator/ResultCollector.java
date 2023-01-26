@@ -4,7 +4,7 @@ package org.metadatacenter.spreadsheetvalidator;
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-public interface ResultCollector<T> {
+public interface ResultCollector {
 
-  T of(ValidationResult result);
+  ValidationReport of(ValidationResult result);
 }

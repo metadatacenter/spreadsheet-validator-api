@@ -1,14 +1,15 @@
 package org.metadatacenter.spreadsheetvalidator.inject.module;
 
+import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
+import org.metadatacenter.spreadsheetvalidator.ResultCollector;
 import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidator;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
 import org.metadatacenter.spreadsheetvalidator.inject.provider.SpreadsheetValidatorProvider;
+import org.metadatacenter.spreadsheetvalidator.validator.ResultCollectorImpl;
 
 import javax.annotation.Nonnull;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -20,5 +21,10 @@ public class SpreadsheetValidatorModule {
   @Provides
   public SpreadsheetValidator provideSpreadsheetValidator(@Nonnull ValidatorContext validatorContext) {
     return new SpreadsheetValidatorProvider(validatorContext).get();
+  }
+
+  @Binds
+  public ResultCollector provideResultCollector(ResultCollectorImpl collector) {
+    return collector;
   }
 }
