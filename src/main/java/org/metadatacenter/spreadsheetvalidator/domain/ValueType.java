@@ -1,5 +1,7 @@
 package org.metadatacenter.spreadsheetvalidator.domain;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -19,6 +21,7 @@ public enum ValueType {
     this.canonicalName = canonicalName;
   }
 
+  @JsonValue
   public String getCanonicalName() {
     return canonicalName;
   }

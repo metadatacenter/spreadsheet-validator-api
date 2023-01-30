@@ -1,7 +1,8 @@
 package org.metadatacenter.spreadsheetvalidator;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -23,11 +24,12 @@ public abstract class ValidationReport {
     return new AutoValue_ValidationReport(reportItems);
   }
 
+  @JsonIgnore
   public static ValidationReport.Builder builder() {
     return new ValidationReport.Builder();
   }
 
-  @JsonAnyGetter
+  @JsonValue
   public abstract ImmutableList<Map<String, Object>> getItems();
 
   public static class Builder {

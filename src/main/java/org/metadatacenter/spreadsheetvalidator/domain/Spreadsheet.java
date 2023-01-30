@@ -2,6 +2,7 @@ package org.metadatacenter.spreadsheetvalidator.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
@@ -32,6 +33,7 @@ public abstract class Spreadsheet {
     return create(spreadsheetRows);
   }
 
+  @JsonValue
   public abstract ImmutableList<SpreadsheetRow> getRows();
 
   @JsonIgnore
