@@ -23,8 +23,8 @@ public class SpreadsheetValidatorModule {
     return new SpreadsheetValidatorProvider(validatorContext).get();
   }
 
-  @Binds
-  public ResultCollector provideResultCollector(ResultCollectorImpl collector) {
-    return collector;
+  @Provides
+  public ResultCollector provideResultCollector() {
+    return new ResultCollectorImpl();
   }
 }
