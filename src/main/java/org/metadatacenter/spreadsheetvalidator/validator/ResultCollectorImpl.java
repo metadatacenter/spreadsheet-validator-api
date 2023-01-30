@@ -25,7 +25,7 @@ public class ResultCollectorImpl implements ResultCollector {
           map.put("row", validationItem.getRowNumber());
           map.put("column", validationItem.getColumnName());
           if (validationItem.hasProp(VALUE)) {
-            map.put("userInput", validationItem.getProp(VALUE));
+            map.put("value", validationItem.getProp(VALUE));
           }
           if (validationItem.hasProp(SUGGESTION)) {
             map.put("repairSuggestion", validationItem.getProp(SUGGESTION));
