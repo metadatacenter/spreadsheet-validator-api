@@ -3,6 +3,9 @@ package org.metadatacenter.spreadsheetvalidator.response;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
+import org.metadatacenter.spreadsheetvalidator.ValidationReport;
+import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
+import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -14,39 +17,27 @@ import javax.annotation.Nullable;
 @AutoValue
 public abstract class ValidateResponse {
 
-  private static final String ROW = "row";
-  private static final String COLUMN = "column";
-  private static final String VALUE = "value";
-  private static final String SUGGESTION = "suggestion";
-  private static final String ERROR_TYPE = "errorType";
+  private static final String SCHEMA = "schema";
+  private static final String DATA = "data";
+  private static final String REPORTING = "reporting";
 
   @Nonnull
   @JsonCreator
-  public static ValidateResponse create(@Nonnull @JsonProperty(ROW) Integer row,
-                                        @Nonnull @JsonProperty(COLUMN) String column,
-                                        @Nullable @JsonProperty(VALUE) Object value,
-                                        @Nullable @JsonProperty(SUGGESTION) Object suggestion,
-                                        @Nonnull @JsonProperty(ERROR_TYPE) String errorType) {
-    return new AutoValue_ValidateResponse(row, column, value, suggestion, errorType);
+  public static ValidateResponse create(@Nonnull @JsonProperty(SCHEMA) SpreadsheetSchema schema,
+                                        @Nonnull @JsonProperty(DATA) Spreadsheet data,
+                                        @Nonnull @JsonProperty(REPORTING) ValidationReport reporting) {
+    return new AutoValue_ValidateResponse(schema, data, reporting);
   }
 
   @Nonnull
-  @JsonProperty(ROW)
-  public abstract Integer getRow();
+  @JsonProperty(SCHEMA)
+  public abstract SpreadsheetSchema getSchema();
 
   @Nonnull
-  @JsonProperty(COLUMN)
-  public abstract String getColumn();
-
-  @Nullable
-  @JsonProperty(VALUE)
-  public abstract Object getValue();
-
-  @Nullable
-  @JsonProperty(SUGGESTION)
-  public abstract Object getSuggestion();
+  @JsonProperty(DATA)
+  public abstract Spreadsheet getData();
 
   @Nonnull
-  @JsonProperty(ERROR_TYPE)
-  public abstract String getErrorType();
+  @JsonProperty(REPORTING)
+  public abstract ValidationReport getReporting();
 }
