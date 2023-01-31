@@ -8,12 +8,12 @@ import org.metadatacenter.spreadsheetvalidator.util.Assert;
 
 import javax.annotation.Nonnull;
 
+import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isIgnoreCaseMemberOf;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isString;
+import static org.metadatacenter.spreadsheetvalidator.util.Matchers.not;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SUGGESTION;
-import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isMemberOf;
-import static org.metadatacenter.spreadsheetvalidator.util.Matchers.not;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
 
 /**
@@ -30,7 +30,7 @@ public class PermissibleValueValidator extends InputValueValidator {
       var label = (String) value;
       var permissibleValues = columnDescription.getPermissibleValues();
       var permissibleValueLabels = getPermissibleValueLabels(permissibleValues);
-      if (Assert.that(label, not(isMemberOf(permissibleValueLabels)))) {
+      if (Assert.that(label, not(isIgnoreCaseMemberOf(permissibleValueLabels)))) {
         var termSuggester = validatorContext.getClosure("termSuggester");
         var suggestion = termSuggester.execute(value, permissibleValues);
         validatorContext.getValidationResult().add(

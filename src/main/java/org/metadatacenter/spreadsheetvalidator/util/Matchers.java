@@ -46,4 +46,8 @@ public class Matchers {
   public static AssertionCriteria isMemberOf(List<? extends Object> list) {
     return value -> list.contains(value);
   }
+
+  public static AssertionCriteria isIgnoreCaseMemberOf(List<String> strings) {
+    return value -> strings.stream().anyMatch(((String) value)::equalsIgnoreCase);
+  }
 }
