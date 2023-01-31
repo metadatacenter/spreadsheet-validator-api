@@ -3,6 +3,7 @@ package org.metadatacenter.spreadsheetvalidator;
 import io.swagger.v3.oas.annotations.Operation;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.request.ValidateSpreadsheetRequest;
+import org.metadatacenter.spreadsheetvalidator.response.ValidateResponse;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -57,7 +58,8 @@ public class ServiceResource {
       var reporting = spreadsheetValidator
           .validate(spreadsheet, spreadsheetSchema)
           .collect(resultCollector);
-      return null;
+      var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
+      return Response.ok(response).build();
     } catch (Exception e) {
       return Response.serverError().build();
     }
