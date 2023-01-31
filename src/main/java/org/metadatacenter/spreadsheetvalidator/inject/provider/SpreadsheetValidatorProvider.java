@@ -1,6 +1,9 @@
 package org.metadatacenter.spreadsheetvalidator.inject.provider;
 
+import org.metadatacenter.spreadsheetvalidator.RepairClosures;
 import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidator;
+import org.metadatacenter.spreadsheetvalidator.ValidationResult;
+import org.metadatacenter.spreadsheetvalidator.ValidationResultProvider;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
 import org.metadatacenter.spreadsheetvalidator.validator.MaxRangeValidator;
 import org.metadatacenter.spreadsheetvalidator.validator.MinRangeValidator;
@@ -22,15 +25,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class SpreadsheetValidatorProvider implements Provider<SpreadsheetValidator> {
 
-  private final ValidatorContext validatorContext;
+  private final RepairClosures repairClosures;
 
-  public SpreadsheetValidatorProvider(@Nonnull ValidatorContext validatorContext) {
-    this.validatorContext = checkNotNull(validatorContext);
+  private final ValidationResultProvider validationResultProvider;
+
+  public SpreadsheetValidatorProvider(@Nonnull RepairClosures repairClosures,
+                                      @Nonnull ValidationResultProvider validationResultProvider) {
+    this.repairClosures = checkNotNull(repairClosures);
+    this.validationResultProvider = checkNotNull(validationResultProvider);
   }
 
   @Override
   public SpreadsheetValidator get() {
-    var validator = new SpreadsheetValidator(validatorContext);
+    var validator = new SpreadsheetValidator(repairClosures, validationResultProvider);
     validator.setClosure("numberExtractor", new NumberExtractor());
     validator.setClosure("termSuggester", new TermSuggester());
     validator.registerValidator(new RequiredFieldValidator());

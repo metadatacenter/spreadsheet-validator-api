@@ -5,6 +5,7 @@ import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
 
 import javax.annotation.Nonnull;
+import javax.inject.Inject;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -15,16 +16,23 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class SpreadsheetValidator {
 
-  private final ValidatorContext validatorContext;
+  private final RepairClosures repairClosures;
+
+  private final ValidationResultProvider validationResultProvider;
 
   private final List<Validator> validatorList = Lists.newArrayList();
 
-  public SpreadsheetValidator(@Nonnull ValidatorContext validatorContext) {
-    this.validatorContext = checkNotNull(validatorContext);
+  private ValidatorContext validatorContext;
+
+  @Inject
+  public SpreadsheetValidator(@Nonnull RepairClosures repairClosures,
+                              @Nonnull ValidationResultProvider validationResultProvider) {
+    this.repairClosures = checkNotNull(repairClosures);
+    this.validationResultProvider = checkNotNull(validationResultProvider);
   }
 
   public void setClosure(@Nonnull String key, @Nonnull Closure closure) {
-    validatorContext.setClosure(key, closure);
+    repairClosures.add(key, closure);
   }
 
   public void registerValidator(@Nonnull Validator validator) {
@@ -33,6 +41,7 @@ public class SpreadsheetValidator {
 
   public SpreadsheetValidator validate(Spreadsheet spreadsheet,
                                        SpreadsheetSchema spreadsheetSchema) {
+    validatorContext = new ValidatorContext(repairClosures, validationResultProvider.get());
     validatorList.forEach(
         validator -> spreadsheet.getRowStream().forEach(
             spreadsheetRow -> validator.validate(validatorContext, spreadsheetSchema, spreadsheetRow))

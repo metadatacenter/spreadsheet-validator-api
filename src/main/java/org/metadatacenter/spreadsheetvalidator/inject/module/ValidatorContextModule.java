@@ -4,6 +4,7 @@ import dagger.Module;
 import dagger.Provides;
 import org.metadatacenter.spreadsheetvalidator.RepairClosures;
 import org.metadatacenter.spreadsheetvalidator.ValidationResult;
+import org.metadatacenter.spreadsheetvalidator.ValidationResultProvider;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -18,7 +19,7 @@ public class ValidatorContextModule {
   }
 
   @Provides
-  public ValidationResult providesValidationResults() {
-    return new ValidationResult();
+  public ValidationResultProvider providesValidationResultProvider() {
+    return new ValidationResultProvider();
   }
 }
