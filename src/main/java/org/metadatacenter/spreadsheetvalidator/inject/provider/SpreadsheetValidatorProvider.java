@@ -2,11 +2,9 @@ package org.metadatacenter.spreadsheetvalidator.inject.provider;
 
 import org.metadatacenter.spreadsheetvalidator.RepairClosures;
 import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidator;
-import org.metadatacenter.spreadsheetvalidator.ValidationResult;
 import org.metadatacenter.spreadsheetvalidator.ValidationResultProvider;
-import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
-import org.metadatacenter.spreadsheetvalidator.validator.MaxRangeValidator;
-import org.metadatacenter.spreadsheetvalidator.validator.MinRangeValidator;
+import org.metadatacenter.spreadsheetvalidator.validator.DecimalNumberRangeValidator;
+import org.metadatacenter.spreadsheetvalidator.validator.IntegerNumberRangeValidator;
 import org.metadatacenter.spreadsheetvalidator.validator.NumberTypeValidator;
 import org.metadatacenter.spreadsheetvalidator.validator.PermissibleValueValidator;
 import org.metadatacenter.spreadsheetvalidator.validator.RequiredFieldValidator;
@@ -43,8 +41,8 @@ public class SpreadsheetValidatorProvider implements Provider<SpreadsheetValidat
     validator.registerValidator(new RequiredFieldValidator());
     validator.registerValidator(new StringTypeValidator());
     validator.registerValidator(new NumberTypeValidator());
-    validator.registerValidator(new MinRangeValidator());
-    validator.registerValidator(new MaxRangeValidator());
+    validator.registerValidator(new IntegerNumberRangeValidator());
+    validator.registerValidator(new DecimalNumberRangeValidator());
     validator.registerValidator(new PermissibleValueValidator());
     return validator;
   }
