@@ -38,8 +38,8 @@ class SpreadsheetSchemaGeneratorIntegrationTest {
     var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(templateNode);
     assertThat(spreadsheetSchema.getName(), is("Sample Section"));
     assertThat(spreadsheetSchema.getTemplateIri(), is("https://repo.metadatacenter.org/templates/a9efb30e-4e2c-4d66-8890-b66204a4a774"));
-    assertThat(spreadsheetSchema.getColumnDescriptions().size(), is(17));
-    assertThat(spreadsheetSchema.getColumnDescriptions().keySet(), containsInAnyOrder(
+    assertThat(spreadsheetSchema.getColumnDescription().size(), is(17));
+    assertThat(spreadsheetSchema.getColumnDescription().keySet(), containsInAnyOrder(
         "sample_id",
         "source_storage_time_value",
         "source_storage_time_unit",

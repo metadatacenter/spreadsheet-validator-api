@@ -4,12 +4,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -20,7 +19,9 @@ import java.util.stream.Stream;
 public abstract class SpreadsheetSchema {
 
   private static final String NAME = "name";
-  private static final String COLUMNS = "columns";
+  private static final String COLUMN_DESCRIPTION = "columnDescription";
+
+  private static final String COLUMN_ORDER = "columnOrder";
 
   private static final String GENERATED_FROM = "generatedFrom";
 
@@ -28,9 +29,10 @@ public abstract class SpreadsheetSchema {
   @JsonCreator
   public static SpreadsheetSchema create(
       @Nonnull @JsonProperty(NAME) String name,
-      @Nonnull @JsonProperty(COLUMNS) ImmutableMap<String, ColumnDescription> columnDescriptions,
+      @Nonnull @JsonProperty(COLUMN_DESCRIPTION) ImmutableMap<String, ColumnDescription> columnDescription,
+      @Nonnull @JsonProperty(COLUMN_ORDER) ImmutableList<String> columnOrder,
       @Nonnull @JsonProperty(GENERATED_FROM) String templateIri) {
-    return new AutoValue_SpreadsheetSchema(name, columnDescriptions, templateIri);
+    return new AutoValue_SpreadsheetSchema(name, columnDescription, columnOrder, templateIri);
   }
 
   @Nonnull
@@ -38,8 +40,12 @@ public abstract class SpreadsheetSchema {
   public abstract String getName();
 
   @Nonnull
-  @JsonProperty(COLUMNS)
-  public abstract ImmutableMap<String, ColumnDescription> getColumnDescriptions();
+  @JsonProperty(COLUMN_DESCRIPTION)
+  public abstract ImmutableMap<String, ColumnDescription> getColumnDescription();
+
+  @Nonnull
+  @JsonProperty(COLUMN_ORDER)
+  public abstract ImmutableList<String> getColumnOrder();
 
   @Nonnull
   @JsonProperty(GENERATED_FROM)
@@ -48,17 +54,17 @@ public abstract class SpreadsheetSchema {
   @Nullable
   @JsonIgnore
   public ColumnDescription getColumnDescription(String columnName) {
-    return getColumnDescriptions().get(columnName);
+    return getColumnDescription().get(columnName);
   }
 
   @Nonnull
   @JsonIgnore
   public Stream<ColumnDescription> getColumnDescriptionStream() {
-    return getColumnDescriptions().values().stream();
+    return getColumnDescription().values().stream();
   }
 
   @JsonIgnore
   public boolean containsColumn(String columnName) {
-    return getColumnDescriptions().containsKey(columnName);
+    return getColumnDescription().containsKey(columnName);
   }
 }

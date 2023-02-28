@@ -47,10 +47,14 @@ public class SpreadsheetSchemaGenerator {
     var templateName = templateSchema.getName();
     var templateIri = templateSchema.getJsonLDID().toString();
     var fieldSchemas = templateSchema.getFieldSchemas();
-    var columnDescriptions = fieldSchemas.values()
+    var columnDescription = fieldSchemas.values()
         .stream()
         .collect(new ColumnDescriptionCollector());
-    return SpreadsheetSchema.create(templateName, columnDescriptions, templateIri);
+    var templateUi = templateSchema.getTemplateUI();
+    var columnOrder = templateUi.getOrder()
+        .stream()
+        .collect(ImmutableList.toImmutableList());
+    return SpreadsheetSchema.create(templateName, columnDescription, columnOrder, templateIri);
   }
 
   class ColumnDescriptionCollector implements Collector<
