@@ -18,6 +18,7 @@
         <dropwizard.version>2.1.4</dropwizard.version>
         <dropwizard.swagger.version>2.0.28-1</dropwizard.swagger.version>
         <jackson.version>2.14.1</jackson.version>
+        <fuzzywuzzy.version>1.4.0</fuzzywuzzy.version>
         <httpcomponents.version>4.5.14</httpcomponents.version>
         <autovalue.version>1.10.1</autovalue.version>
         <log4j.version>2.19.0</log4j.version>
@@ -105,6 +106,11 @@
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
             <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>me.xdrop</groupId>
+            <artifactId>fuzzywuzzy</artifactId>
+            <version>${fuzzywuzzy.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

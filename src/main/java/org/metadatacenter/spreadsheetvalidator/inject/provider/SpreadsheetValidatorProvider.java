@@ -10,7 +10,7 @@ import org.metadatacenter.spreadsheetvalidator.validator.PermissibleValueValidat
 import org.metadatacenter.spreadsheetvalidator.validator.RequiredFieldValidator;
 import org.metadatacenter.spreadsheetvalidator.validator.StringTypeValidator;
 import org.metadatacenter.spreadsheetvalidator.validator.closure.NumberExtractor;
-import org.metadatacenter.spreadsheetvalidator.validator.closure.TermSuggester;
+import org.metadatacenter.spreadsheetvalidator.validator.closure.SimpleSimilarityChecker;
 
 import javax.annotation.Nonnull;
 import javax.inject.Provider;
@@ -37,7 +37,7 @@ public class SpreadsheetValidatorProvider implements Provider<SpreadsheetValidat
   public SpreadsheetValidator get() {
     var validator = new SpreadsheetValidator(repairClosures, validationResultProvider);
     validator.setClosure("numberExtractor", new NumberExtractor());
-    validator.setClosure("termSuggester", new TermSuggester());
+    validator.setClosure("similarityChecker", new SimpleSimilarityChecker());
     validator.registerValidator(new RequiredFieldValidator());
     validator.registerValidator(new StringTypeValidator());
     validator.registerValidator(new NumberTypeValidator());

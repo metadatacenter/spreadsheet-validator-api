@@ -31,8 +31,8 @@ public class PermissibleValueValidator extends InputValueValidator {
       var permissibleValues = columnDescription.getPermissibleValues();
       var permissibleValueLabels = getPermissibleValueLabels(permissibleValues);
       if (Assert.that(label, not(isIgnoreCaseMemberOf(permissibleValueLabels)))) {
-        var termSuggester = validatorContext.getClosure("termSuggester");
-        var suggestion = termSuggester.execute(value, permissibleValues);
+        var similarityChecker = validatorContext.getClosure("similarityChecker");
+        var suggestion = similarityChecker.execute(value, permissibleValueLabels);
         validatorContext.getValidationResult().add(
             ValidationError.builder()
                 .setColumnName(valueContext.getColumn())
