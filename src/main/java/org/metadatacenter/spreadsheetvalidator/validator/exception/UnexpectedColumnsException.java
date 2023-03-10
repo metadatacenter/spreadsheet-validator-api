@@ -39,7 +39,11 @@ public class UnexpectedColumnsException extends BadValidatorRequestException {
 
   @Override
   public String getFixSuggestion() {
-    return String.format("Please make sure to use the following column names: %s.", validColumns);
+    var sb = new StringBuilder();
+    sb.append("1. Please download the latest version of the metadata spreadsheet from CEDAR website.\n\n");
+    sb.append(String.format("2. Alternatively, a manual fix can be performed by replacing the unexpect column " +
+            "with one of these columns: %s.", validColumns));
+    return sb.toString();
   }
 
   @Override

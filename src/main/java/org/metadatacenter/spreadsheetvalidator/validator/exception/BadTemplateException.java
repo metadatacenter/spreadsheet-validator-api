@@ -32,6 +32,6 @@ public class BadTemplateException extends BadValidatorRequestException {
   @Override
   public String getFixSuggestion() {
     return String.format(
-        "Please contact CEDAR (cedar-users@lists.stanford.edu) and send the following text: ", cause);
+        "Please contact CEDAR (cedar-users@lists.stanford.edu) and send the following error message: ", cause);
   }
 }
