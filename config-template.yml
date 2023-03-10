@@ -36,7 +36,7 @@ logging:
       timeZone: UTC
 
 cedarConfig:
-  apiKey: '8b9e3e4d8f0aa726e27aa314174b6d5491bbdf77f2bca6e796d6f0ef8ec6dee4'
+  apiKey: ''
   baseUrl: 'https://resource.metadatacenter.org/'
 
 swagger:
