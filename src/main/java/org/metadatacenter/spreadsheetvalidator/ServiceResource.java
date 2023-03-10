@@ -1,9 +1,18 @@
 package org.metadatacenter.spreadsheetvalidator;
 
+import com.google.common.collect.ImmutableMap;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.request.ValidateSpreadsheetRequest;
+import org.metadatacenter.spreadsheetvalidator.response.ErrorResponse;
 import org.metadatacenter.spreadsheetvalidator.response.ValidateResponse;
+import org.metadatacenter.spreadsheetvalidator.validator.exception.BadValidatorRequestException;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -48,6 +57,32 @@ public class ServiceResource {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/validate")
+  @Tag(name = "Validation")
+  @RequestBody(
+      description = "A JSON object containing the spreadsheet data and CEDAR template ID string. The spreadsheet " +
+          "data is a JSON representation of the input table data it forms as an array of objects where each " +
+          "object is a row with the column name as the field name and the cell as the value.",
+      required = true,
+      content = @Content(
+          schema = @Schema(implementation = ValidateSpreadsheetRequest.class),
+          mediaType = MediaType.APPLICATION_JSON
+      ))
+  @ApiResponse(
+      responseCode = "200",
+      description = "A JSON object showing the validation report and other properties such as the" +
+          "extracted schema and the original spreadsheet data.",
+      content = @Content(
+          schema = @Schema(implementation = ValidateResponse.class),
+          mediaType = "application/json"
+      ))
+  @ApiResponse(
+      responseCode = "400",
+      description = "The request could not be understood by the server due to " +
+      "malformed syntax in the request body.")
+  @ApiResponse(
+      responseCode = "500",
+      description = "The server encountered an unexpected condition that prevented " +
+      "it from fulfilling the request.")
   public Response validate(@Nonnull ValidateSpreadsheetRequest request) {
     try {
       var cedarTemplateIri = request.getCedarTemplateIri();
@@ -60,8 +95,12 @@ public class ServiceResource {
           .collect(resultCollector);
       var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
       return Response.ok(response).build();
-    } catch (Exception e) {
-      return Response.serverError().build();
+    } catch (BadValidatorRequestException e) {
+      var response = ErrorResponse.create(e.getErrorCode(), e.getMessage(), e.getFixSuggestion());
+      return Response.status(Response.Status.BAD_REQUEST)
+          .type(MediaType.APPLICATION_JSON_TYPE)
+          .entity(response)
+          .build();
     }
   }
 }

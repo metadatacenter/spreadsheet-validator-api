@@ -5,10 +5,11 @@ import com.google.common.base.Charsets;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.util.EntityUtils;
+import org.metadatacenter.spreadsheetvalidator.validator.exception.BadTemplateException;
+import org.metadatacenter.spreadsheetvalidator.validator.exception.BadValidatorRequestException;
+import org.metadatacenter.spreadsheetvalidator.validator.exception.RemoteAccessException;
 
 import javax.inject.Inject;
-import javax.ws.rs.BadRequestException;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URLEncoder;
 
@@ -42,28 +43,28 @@ public class CedarService {
           "apiKey " + cedarConfig.getApiKey());
       response = restServiceHandler.execute(request);
     } catch (IOException e) {
-      throw new BadRequestException(e);
+      throw new RemoteAccessException(iri);
     }
     // Process the response
     try {
-      return processResponse(response);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+      return processResponse(response, iri);
+    } catch (BadValidatorRequestException e) {
+      throw e;
     }
   }
 
-  private ObjectNode processResponse(HttpResponse response) throws IOException {
+  private ObjectNode processResponse(HttpResponse response, String templateIri) throws RemoteAccessException {
     var statusLine = response.getStatusLine();
     switch (statusLine.getStatusCode()) {
       case HttpStatus.SC_OK:
-        var jsonString = new String(EntityUtils.toByteArray(response.getEntity()));
-        return (ObjectNode) restServiceHandler.parseJsonString(jsonString);
-      case HttpStatus.SC_NOT_FOUND:
-        throw new FileNotFoundException(format(
-            "Couldn't find CEDAR template. Cause: %s", statusLine));
+        try {
+          var jsonString = new String(EntityUtils.toByteArray(response.getEntity()));
+          return (ObjectNode) restServiceHandler.parseJsonString(jsonString);
+        } catch (IOException e) {
+          throw new BadTemplateException(e.getLocalizedMessage());
+        }
       default:
-        throw new BadRequestException(format(
-            "Error retrieving template. Cause: %s", statusLine));
+        throw new RemoteAccessException(templateIri);
     }
   }
 

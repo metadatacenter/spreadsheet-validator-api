@@ -3,6 +3,7 @@ package org.metadatacenter.spreadsheetvalidator.validator;
 import com.google.common.collect.Lists;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetRow;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
+import org.metadatacenter.spreadsheetvalidator.validator.exception.UnexpectedColumnsException;
 
 import javax.annotation.Nonnull;
 import javax.ws.rs.BadRequestException;
@@ -22,8 +23,7 @@ public class ValidatorUtils {
             additionalColumns.add(column);
           }});
     if (!additionalColumns.isEmpty()) {
-      throw new BadRequestException(
-          String.format("Additional columns are not allowed (%s were unexpected)", additionalColumns));
+      throw new UnexpectedColumnsException(additionalColumns, spreadsheetSchema.getColumnOrder());
     }
     return spreadsheetRow;
   }

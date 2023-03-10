@@ -1,6 +1,9 @@
 package org.metadatacenter.spreadsheetvalidator;
 
+import in.vectorpro.dropwizard.swagger.SwaggerBundle;
+import in.vectorpro.dropwizard.swagger.SwaggerBundleConfiguration;
 import io.dropwizard.Application;
+import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.metadatacenter.spreadsheetvalidator.inject.component.DaggerWebappComponent;
@@ -17,6 +20,17 @@ public class SpreadsheetValidatorApplication extends Application<SpreadsheetVali
 
   public static void main(String[] args) throws Exception {
     new SpreadsheetValidatorApplication().run(args);
+  }
+
+  @Override
+  public void initialize(final Bootstrap<SpreadsheetValidatorConfiguration> bootstrap) {
+    // Swagger initialization
+    bootstrap.addBundle(new SwaggerBundle<>() {
+      @Override
+      protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(SpreadsheetValidatorConfiguration configuration) {
+        return configuration.getSwaggerBundleConfiguration();
+      }
+    });
   }
 
   @Override
