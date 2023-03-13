@@ -13,7 +13,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <cedar.version>2.6.20-SNAPSHOT</cedar.version>
+        <cedar.version>2.6.21</cedar.version>
         <dagger.version>2.44.2</dagger.version>
         <dropwizard.version>2.1.4</dropwizard.version>
         <dropwizard.swagger.version>2.0.28-1</dropwizard.swagger.version>
