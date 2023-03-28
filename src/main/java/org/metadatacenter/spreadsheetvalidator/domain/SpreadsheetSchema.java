@@ -19,6 +19,9 @@ import java.util.stream.Stream;
 public abstract class SpreadsheetSchema {
 
   private static final String NAME = "name";
+
+  private static final String VERSION = "version";
+
   private static final String COLUMN_DESCRIPTION = "columnDescription";
 
   private static final String COLUMN_ORDER = "columnOrder";
@@ -29,15 +32,20 @@ public abstract class SpreadsheetSchema {
   @JsonCreator
   public static SpreadsheetSchema create(
       @Nonnull @JsonProperty(NAME) String name,
+      @Nonnull @JsonProperty(VERSION) String version,
       @Nonnull @JsonProperty(COLUMN_DESCRIPTION) ImmutableMap<String, ColumnDescription> columnDescription,
       @Nonnull @JsonProperty(COLUMN_ORDER) ImmutableList<String> columnOrder,
       @Nonnull @JsonProperty(GENERATED_FROM) String templateIri) {
-    return new AutoValue_SpreadsheetSchema(name, columnDescription, columnOrder, templateIri);
+    return new AutoValue_SpreadsheetSchema(name, version, columnDescription, columnOrder, templateIri);
   }
 
   @Nonnull
   @JsonProperty(NAME)
   public abstract String getName();
+
+  @Nonnull
+  @JsonProperty(VERSION)
+  public abstract String getVersion();
 
   @Nonnull
   @JsonProperty(COLUMN_DESCRIPTION)

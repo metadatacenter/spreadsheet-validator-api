@@ -8,6 +8,7 @@ import org.metadatacenter.artifacts.model.core.ClassValueConstraint;
 import org.metadatacenter.artifacts.model.core.FieldInputType;
 import org.metadatacenter.artifacts.model.core.FieldSchemaArtifact;
 import org.metadatacenter.artifacts.model.core.NumberType;
+import org.metadatacenter.artifacts.model.core.Version;
 import org.metadatacenter.artifacts.model.reader.ArtifactReader;
 import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.PermissibleValue;
@@ -45,6 +46,8 @@ public class SpreadsheetSchemaGenerator {
   public SpreadsheetSchema generateFrom(@Nonnull ObjectNode templateNode) {
     var templateSchema = artifactReader.readTemplateSchemaArtifact(templateNode);
     var templateName = templateSchema.getName();
+    var defaultVersion = Version.fromString("0.0.1");
+    var templateVersion = templateSchema.getVersion().orElse(defaultVersion).toString();
     var templateIri = templateSchema.getJsonLDID().toString();
     var fieldSchemas = templateSchema.getFieldSchemas();
     var columnDescription = fieldSchemas.values()
@@ -54,7 +57,7 @@ public class SpreadsheetSchemaGenerator {
     var columnOrder = templateUi.getOrder()
         .stream()
         .collect(ImmutableList.toImmutableList());
-    return SpreadsheetSchema.create(templateName, columnDescription, columnOrder, templateIri);
+    return SpreadsheetSchema.create(templateName, templateVersion, columnDescription, columnOrder, templateIri);
   }
 
   class ColumnDescriptionCollector implements Collector<
