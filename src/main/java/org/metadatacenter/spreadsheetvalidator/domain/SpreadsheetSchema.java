@@ -28,6 +28,8 @@ public abstract class SpreadsheetSchema {
 
   private static final String GENERATED_FROM = "generatedFrom";
 
+  private static final String ACCESS_URL = "accessUrl";
+
   @Nonnull
   @JsonCreator
   public static SpreadsheetSchema create(
@@ -35,8 +37,9 @@ public abstract class SpreadsheetSchema {
       @Nonnull @JsonProperty(VERSION) String version,
       @Nonnull @JsonProperty(COLUMN_DESCRIPTION) ImmutableMap<String, ColumnDescription> columnDescription,
       @Nonnull @JsonProperty(COLUMN_ORDER) ImmutableList<String> columnOrder,
-      @Nonnull @JsonProperty(GENERATED_FROM) String templateIri) {
-    return new AutoValue_SpreadsheetSchema(name, version, columnDescription, columnOrder, templateIri);
+      @Nonnull @JsonProperty(GENERATED_FROM) String templateIri,
+      @Nonnull @JsonProperty(ACCESS_URL) String accessUrl) {
+    return new AutoValue_SpreadsheetSchema(name, version, columnDescription, columnOrder, templateIri, accessUrl);
   }
 
   @Nonnull
@@ -58,6 +61,10 @@ public abstract class SpreadsheetSchema {
   @Nonnull
   @JsonProperty(GENERATED_FROM)
   public abstract String getTemplateIri();
+
+  @Nonnull
+  @JsonProperty(ACCESS_URL)
+  public abstract String getAccessUrl();
 
   @Nullable
   @JsonIgnore

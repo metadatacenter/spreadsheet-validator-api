@@ -8,6 +8,7 @@ import org.metadatacenter.artifacts.model.core.ClassValueConstraint;
 import org.metadatacenter.artifacts.model.core.FieldInputType;
 import org.metadatacenter.artifacts.model.core.FieldSchemaArtifact;
 import org.metadatacenter.artifacts.model.core.NumberType;
+import org.metadatacenter.artifacts.model.core.TemplateSchemaArtifact;
 import org.metadatacenter.artifacts.model.core.Version;
 import org.metadatacenter.artifacts.model.reader.ArtifactReader;
 import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
@@ -19,6 +20,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -46,9 +49,9 @@ public class SpreadsheetSchemaGenerator {
   public SpreadsheetSchema generateFrom(@Nonnull ObjectNode templateNode) {
     var templateSchema = artifactReader.readTemplateSchemaArtifact(templateNode);
     var templateName = templateSchema.getName();
-    var defaultVersion = Version.fromString("0.0.1");
-    var templateVersion = templateSchema.getVersion().orElse(defaultVersion).toString();
+    var templateVersion = getTemplateVesion(templateSchema);
     var templateIri = templateSchema.getJsonLDID().toString();
+    var templateAccessUrl = getTemplateAccessUrl(templateSchema);
     var fieldSchemas = templateSchema.getFieldSchemas();
     var columnDescription = fieldSchemas.values()
         .stream()
@@ -57,7 +60,21 @@ public class SpreadsheetSchemaGenerator {
     var columnOrder = templateUi.getOrder()
         .stream()
         .collect(ImmutableList.toImmutableList());
-    return SpreadsheetSchema.create(templateName, templateVersion, columnDescription, columnOrder, templateIri);
+    return SpreadsheetSchema.create(templateName, templateVersion, columnDescription, columnOrder, templateIri, templateAccessUrl);
+  }
+
+  @Nonnull
+  private String getTemplateVesion(TemplateSchemaArtifact templateSchema) {
+    var defaultVersion = Version.fromString("0.0.1");
+    return templateSchema.getVersion().orElse(defaultVersion).toString();
+  }
+
+  @Nonnull
+  private String getTemplateAccessUrl(TemplateSchemaArtifact templateSchema) {
+    var templateIri = templateSchema.getJsonLDID().toString();
+    return String.format(
+        "https://openview.metadatacenter.org/templates/%s",
+        URLEncoder.encode(templateIri, StandardCharsets.UTF_8));
   }
 
   class ColumnDescriptionCollector implements Collector<
