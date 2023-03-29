@@ -19,7 +19,7 @@ import java.util.stream.Stream;
 @AutoValue
 public abstract class SpreadsheetRow {
 
-  private static final String ROW_NUM = "__rowNum__";
+  private static final String ROW_NUM = "rowNumber";
 
   public static SpreadsheetRow create(int rowNumber, @Nonnull Map<String, Object> map) {
     var newMap = ImmutableMap.<String, Object>builder()
