@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -19,7 +20,7 @@ public abstract class PermissibleValue {
   @Nonnull
   @JsonCreator
   public static PermissibleValue create(@Nonnull @JsonProperty(LABEL) String label,
-                                        @Nonnull @JsonProperty(MEANING) String meaning) {
+                                        @Nullable @JsonProperty(MEANING) String meaning) {
     return new AutoValue_PermissibleValue(label, meaning);
   }
 
@@ -27,7 +28,7 @@ public abstract class PermissibleValue {
   @JsonProperty(LABEL)
   public abstract String getLabel();
 
-  @Nonnull
+  @Nullable
   @JsonProperty(MEANING)
   public abstract String getMeaning();
 }

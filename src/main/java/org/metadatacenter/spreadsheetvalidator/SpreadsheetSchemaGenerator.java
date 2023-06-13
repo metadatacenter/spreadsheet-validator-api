@@ -7,8 +7,10 @@ import com.google.common.collect.ImmutableSet;
 import org.metadatacenter.artifacts.model.core.ClassValueConstraint;
 import org.metadatacenter.artifacts.model.core.FieldInputType;
 import org.metadatacenter.artifacts.model.core.FieldSchemaArtifact;
+import org.metadatacenter.artifacts.model.core.LiteralValueConstraint;
 import org.metadatacenter.artifacts.model.core.NumberType;
 import org.metadatacenter.artifacts.model.core.TemplateSchemaArtifact;
+import org.metadatacenter.artifacts.model.core.ValueConstraints;
 import org.metadatacenter.artifacts.model.core.Version;
 import org.metadatacenter.artifacts.model.reader.ArtifactReader;
 import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
@@ -99,9 +101,7 @@ public class SpreadsheetSchemaGenerator {
               fieldSchema.getValueConstraints().getMaxValue().orElse(null),
               fieldSchema.getValueConstraints().isRequiredValue(),
               fieldSchema.getDescription(),
-              fieldSchema.getValueConstraints().getClasses()
-                  .stream()
-                  .collect(new PermissibleValueCollector())
+              getPermissibleValues(fieldSchema.getValueConstraints())
           ));
     }
 
@@ -129,6 +129,19 @@ public class SpreadsheetSchemaGenerator {
       }
     }
 
+    @Nonnull
+    private ImmutableList<PermissibleValue> getPermissibleValues(ValueConstraints valueConstraints) {
+      var classes = valueConstraints.getClasses();
+      if (!classes.isEmpty()) {
+        return classes.stream().collect(new ClassValueCollector());
+      }
+      var literals = valueConstraints.getLiterals();
+      if (!literals.isEmpty()) {
+        return literals.stream().collect(new LiteralValueCollector());
+      }
+      return ImmutableList.of();
+    }
+
     @Override
     public BinaryOperator<ImmutableMap.Builder<String, ColumnDescription>> combiner() {
       return (builder1, builder2) -> {
@@ -148,7 +161,7 @@ public class SpreadsheetSchemaGenerator {
     }
   }
 
-  class PermissibleValueCollector implements Collector<
+  class ClassValueCollector implements Collector<
       ClassValueConstraint,
       ImmutableList.Builder<PermissibleValue>,
       ImmutableList<PermissibleValue>> {
@@ -164,6 +177,42 @@ public class SpreadsheetSchemaGenerator {
           PermissibleValue.create(
               valueConstraint.getPrefLabel(),
               valueConstraint.getUri().toString())
+      );
+    }
+
+    @Override
+    public BinaryOperator<ImmutableList.Builder<PermissibleValue>> combiner() {
+      return (builder1, builder2) -> {
+        builder1.addAll(builder2.build());
+        return builder1;
+      };
+    }
+
+    @Override
+    public Function<ImmutableList.Builder<PermissibleValue>, ImmutableList<PermissibleValue>> finisher() {
+      return ImmutableList.Builder::build;
+    }
+
+    @Override
+    public Set<Characteristics> characteristics() {
+      return ImmutableSet.of();
+    }
+  }
+
+  class LiteralValueCollector implements Collector<
+      LiteralValueConstraint,
+      ImmutableList.Builder<PermissibleValue>,
+      ImmutableList<PermissibleValue>> {
+
+    @Override
+    public Supplier<ImmutableList.Builder<PermissibleValue>> supplier() {
+      return ImmutableList.Builder::new;
+    }
+
+    @Override
+    public BiConsumer<ImmutableList.Builder<PermissibleValue>, LiteralValueConstraint> accumulator() {
+      return (builder, valueConstraint) -> builder.add(
+          PermissibleValue.create(valueConstraint.getLabel(), null)
       );
     }
 
