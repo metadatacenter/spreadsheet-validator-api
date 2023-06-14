@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.metadatacenter.artifacts.model.core.BranchValueConstraint;
 import org.metadatacenter.artifacts.model.core.ClassValueConstraint;
 import org.metadatacenter.artifacts.model.core.FieldInputType;
 import org.metadatacenter.artifacts.model.core.FieldSchemaArtifact;
@@ -21,7 +22,6 @@ import org.metadatacenter.spreadsheetvalidator.domain.ValueType;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
@@ -41,10 +41,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class SpreadsheetSchemaGenerator {
 
   private final ArtifactReader artifactReader;
+  private final BioPortalService bioPortalService;
 
   @Inject
-  public SpreadsheetSchemaGenerator(@Nonnull ArtifactReader artifactReader) {
+  public SpreadsheetSchemaGenerator(@Nonnull ArtifactReader artifactReader,
+                                    @Nonnull BioPortalService bioPortalService) {
     this.artifactReader = checkNotNull(artifactReader);
+    this.bioPortalService = checkNotNull(bioPortalService);
   }
 
   @Nonnull
@@ -80,9 +83,9 @@ public class SpreadsheetSchemaGenerator {
   }
 
   class ColumnDescriptionCollector implements Collector<
-        FieldSchemaArtifact,
-        ImmutableMap.Builder<String, ColumnDescription>,
-        ImmutableMap<String, ColumnDescription>> {
+      FieldSchemaArtifact,
+      ImmutableMap.Builder<String, ColumnDescription>,
+      ImmutableMap<String, ColumnDescription>> {
 
     @Override
     public Supplier<ImmutableMap.Builder<String, ColumnDescription>> supplier() {
@@ -108,7 +111,7 @@ public class SpreadsheetSchemaGenerator {
     @Nonnull
     private ValueType getColumnType(FieldInputType inputType) {
       var inputTypeText = inputType.getText();
-      if("numeric".equals(inputTypeText)) {
+      if ("numeric".equals(inputTypeText)) {
         return ValueType.NUMBER;
       } else {
         return ValueType.STRING;
@@ -138,6 +141,10 @@ public class SpreadsheetSchemaGenerator {
       var literals = valueConstraints.getLiterals();
       if (!literals.isEmpty()) {
         return literals.stream().collect(new LiteralValueCollector());
+      }
+      var branches = valueConstraints.getBranches();
+      if (!branches.isEmpty()) {
+        return branches.stream().collect(new ClassValueFromBranchesCollector());
       }
       return ImmutableList.of();
     }
@@ -214,6 +221,47 @@ public class SpreadsheetSchemaGenerator {
       return (builder, valueConstraint) -> builder.add(
           PermissibleValue.create(valueConstraint.getLabel(), null)
       );
+    }
+
+    @Override
+    public BinaryOperator<ImmutableList.Builder<PermissibleValue>> combiner() {
+      return (builder1, builder2) -> {
+        builder1.addAll(builder2.build());
+        return builder1;
+      };
+    }
+
+    @Override
+    public Function<ImmutableList.Builder<PermissibleValue>, ImmutableList<PermissibleValue>> finisher() {
+      return ImmutableList.Builder::build;
+    }
+
+    @Override
+    public Set<Characteristics> characteristics() {
+      return ImmutableSet.of();
+    }
+  }
+
+  class ClassValueFromBranchesCollector implements Collector<
+      BranchValueConstraint,
+      ImmutableList.Builder<PermissibleValue>,
+      ImmutableList<PermissibleValue>> {
+
+    @Override
+    public Supplier<ImmutableList.Builder<PermissibleValue>> supplier() {
+      return ImmutableList.Builder::new;
+    }
+
+    @Override
+    public BiConsumer<ImmutableList.Builder<PermissibleValue>, BranchValueConstraint> accumulator() {
+      return (builder, valueConstraint) -> {
+        var termMap = bioPortalService.getDescendantsFromBranch(
+            valueConstraint.getAcronym(),
+            valueConstraint.getUri());
+        for (var termLabel : termMap.keySet()) {
+          builder.add(PermissibleValue.create(termLabel, termMap.get(termLabel)));
+        }
+      };
     }
 
     @Override

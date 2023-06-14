@@ -23,7 +23,7 @@ class SpreadsheetSchemaGeneratorIntegrationTest {
 
   private final ObjectMapper mapper = new ObjectMapper();
   private ArtifactReader artifactReader = new ArtifactReader(mapper);
-  private SpreadsheetSchemaGenerator spreadsheetSchemaGenerator = new SpreadsheetSchemaGenerator(artifactReader);
+  private SpreadsheetSchemaGenerator spreadsheetSchemaGenerator = new SpreadsheetSchemaGenerator(artifactReader, null);
   private File templateFile;
 
   @BeforeEach

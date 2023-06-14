@@ -17,18 +17,25 @@ public abstract class SpreadsheetValidatorConfiguration extends Configuration {
 
   private static final String CEDAR_CONFIG = "cedarConfig";
 
+  private static final String BIO_PORTAL_CONFIG = "bioPortalConfig";
+
   private static final String SWAGGER = "swagger";
 
   @Nonnull
   @JsonCreator
   public static SpreadsheetValidatorConfiguration create(@Nonnull @JsonProperty(CEDAR_CONFIG) CedarConfig cedarConfig,
+                                                         @Nonnull @JsonProperty(BIO_PORTAL_CONFIG) BioPortalConfig bioPortalConfig,
                                                          @Nonnull @JsonProperty(SWAGGER) SwaggerBundleConfiguration swaggerBundleConfiguration) {
-    return new AutoValue_SpreadsheetValidatorConfiguration(cedarConfig, swaggerBundleConfiguration);
+    return new AutoValue_SpreadsheetValidatorConfiguration(cedarConfig, bioPortalConfig, swaggerBundleConfiguration);
   }
 
   @Nonnull
   @JsonProperty(CEDAR_CONFIG)
   public abstract CedarConfig getCedarConfig();
+
+  @Nonnull
+  @JsonProperty(BIO_PORTAL_CONFIG)
+  public abstract BioPortalConfig getBioPortalConfig();
 
   @Nonnull
   @JsonProperty(SWAGGER)
