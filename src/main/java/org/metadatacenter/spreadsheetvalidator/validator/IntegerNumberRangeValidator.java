@@ -25,8 +25,8 @@ public class IntegerNumberRangeValidator extends InputValueValidator {
     var columnDescription = valueContext.getColumnDescription();
     var columnSubType = columnDescription.getColumnSubType();
     if (columnSubType == INTEGER && Assert.that(value, isNumber())) {
+      var suggestion = "";
       if (columnDescription.hasMinValue() || columnDescription.hasMaxValue()) {
-        var suggestion = "";
         var numberValue = ((Number) value).intValue();
         if (columnDescription.hasMinValue() && columnDescription.hasMaxValue()) {
           var minValue = columnDescription.getMinValue().intValue();
@@ -45,6 +45,8 @@ public class IntegerNumberRangeValidator extends InputValueValidator {
             suggestion = String.format("Enter a number below %d", maxValue);
           }
         }
+      }
+      if (!suggestion.isEmpty()) {
         // Construct the error message
         validatorContext.getValidationResult().add(
             ValidationError.builder()

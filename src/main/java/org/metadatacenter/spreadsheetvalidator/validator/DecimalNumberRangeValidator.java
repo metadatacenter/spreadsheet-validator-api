@@ -26,8 +26,8 @@ public class DecimalNumberRangeValidator extends InputValueValidator {
     var columnDescription = valueContext.getColumnDescription();
     var columnSubType = columnDescription.getColumnSubType();
     if (columnSubType == DECIMAL && Assert.that(value, isNumber())) {
+      var suggestion = "";
       if (columnDescription.hasMinValue() || columnDescription.hasMaxValue()) {
-        var suggestion = "";
         var numberValue = ((Number) value).doubleValue();
         if (columnDescription.hasMinValue() && columnDescription.hasMaxValue()) {
           var minValue = columnDescription.getMinValue().doubleValue();
@@ -35,7 +35,7 @@ public class DecimalNumberRangeValidator extends InputValueValidator {
           if (numberValue < minValue || numberValue > maxValue) {
             suggestion = String.format("Enter a decimal number between %f and %f", minValue, maxValue);
           }
-        } else if (columnDescription.hasMinValue() && !columnDescription.hasMinValue()) {
+        } else if (columnDescription.hasMinValue() && !columnDescription.hasMaxValue()) {
           var minValue = columnDescription.getMinValue().doubleValue();
           if (numberValue < minValue) {
             suggestion = String.format("Enter a decimal number above %f", minValue);
@@ -46,6 +46,8 @@ public class DecimalNumberRangeValidator extends InputValueValidator {
             suggestion = String.format("Enter a decimal number below %f", maxValue);
           }
         }
+      }
+      if (!suggestion.isEmpty()) {
         // Construct the error message
         validatorContext.getValidationResult().add(
             ValidationError.builder()
