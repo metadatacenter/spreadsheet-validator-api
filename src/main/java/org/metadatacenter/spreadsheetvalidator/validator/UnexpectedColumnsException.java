@@ -1,10 +1,9 @@
-package org.metadatacenter.spreadsheetvalidator.validator.exception;
+package org.metadatacenter.spreadsheetvalidator.validator;
 
 import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
+import org.metadatacenter.spreadsheetvalidator.exception.BadValidatorRequestException;
 
 import javax.annotation.Nonnull;
-import javax.ws.rs.BadRequestException;
 
 import java.util.List;
 

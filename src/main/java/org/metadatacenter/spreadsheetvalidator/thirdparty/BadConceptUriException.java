@@ -1,6 +1,7 @@
-package org.metadatacenter.spreadsheetvalidator.validator.exception;
+package org.metadatacenter.spreadsheetvalidator.thirdparty;
 
 import org.jetbrains.annotations.NotNull;
+import org.metadatacenter.spreadsheetvalidator.exception.BadValidatorRequestException;
 
 import javax.annotation.Nonnull;
 

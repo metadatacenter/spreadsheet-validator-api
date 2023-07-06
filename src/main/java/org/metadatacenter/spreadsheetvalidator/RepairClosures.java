@@ -1,9 +1,10 @@
 package org.metadatacenter.spreadsheetvalidator;
 
 import com.google.common.collect.Maps;
+import org.metadatacenter.spreadsheetvalidator.validator.closure.Closure;
+import org.metadatacenter.spreadsheetvalidator.validator.closure.EmptyClosure;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;

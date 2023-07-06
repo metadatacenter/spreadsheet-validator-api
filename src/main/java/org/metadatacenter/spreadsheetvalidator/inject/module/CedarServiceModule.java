@@ -2,10 +2,9 @@ package org.metadatacenter.spreadsheetvalidator.inject.module;
 
 import dagger.Module;
 import dagger.Provides;
-import org.metadatacenter.spreadsheetvalidator.CedarConfig;
-import org.metadatacenter.spreadsheetvalidator.CedarService;
-import org.metadatacenter.spreadsheetvalidator.RestServiceHandler;
-import org.metadatacenter.spreadsheetvalidator.inject.scope.ServiceSessionScope;
+import org.metadatacenter.spreadsheetvalidator.thirdparty.CedarConfig;
+import org.metadatacenter.spreadsheetvalidator.thirdparty.CedarService;
+import org.metadatacenter.spreadsheetvalidator.thirdparty.RestServiceHandler;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>

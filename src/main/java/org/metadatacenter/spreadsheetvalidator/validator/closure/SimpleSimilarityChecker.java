@@ -1,9 +1,7 @@
 package org.metadatacenter.spreadsheetvalidator.validator.closure;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import me.xdrop.fuzzywuzzy.FuzzySearch;
-import org.metadatacenter.spreadsheetvalidator.Closure;
 import org.metadatacenter.spreadsheetvalidator.util.StringUtil;
 
 import java.util.List;

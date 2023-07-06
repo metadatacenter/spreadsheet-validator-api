@@ -1,9 +1,7 @@
 package org.metadatacenter.spreadsheetvalidator;
 
-import com.google.common.collect.ImmutableMap;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -12,7 +10,8 @@ import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.request.ValidateSpreadsheetRequest;
 import org.metadatacenter.spreadsheetvalidator.response.ErrorResponse;
 import org.metadatacenter.spreadsheetvalidator.response.ValidateResponse;
-import org.metadatacenter.spreadsheetvalidator.validator.exception.BadValidatorRequestException;
+import org.metadatacenter.spreadsheetvalidator.exception.BadValidatorRequestException;
+import org.metadatacenter.spreadsheetvalidator.thirdparty.CedarService;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;

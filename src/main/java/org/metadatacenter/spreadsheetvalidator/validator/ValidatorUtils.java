@@ -3,10 +3,8 @@ package org.metadatacenter.spreadsheetvalidator.validator;
 import com.google.common.collect.Lists;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetRow;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
-import org.metadatacenter.spreadsheetvalidator.validator.exception.UnexpectedColumnsException;
 
 import javax.annotation.Nonnull;
-import javax.ws.rs.BadRequestException;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>

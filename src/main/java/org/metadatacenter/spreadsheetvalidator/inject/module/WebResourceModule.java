@@ -2,8 +2,8 @@ package org.metadatacenter.spreadsheetvalidator.inject.module;
 
 import dagger.Module;
 import dagger.Provides;
-import org.metadatacenter.spreadsheetvalidator.BioPortalConfig;
-import org.metadatacenter.spreadsheetvalidator.CedarConfig;
+import org.metadatacenter.spreadsheetvalidator.thirdparty.BioPortalConfig;
+import org.metadatacenter.spreadsheetvalidator.thirdparty.CedarConfig;
 import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidatorConfiguration;
 
 import javax.annotation.Nonnull;

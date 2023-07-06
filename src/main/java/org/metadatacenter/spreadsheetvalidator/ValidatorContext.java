@@ -1,5 +1,7 @@
 package org.metadatacenter.spreadsheetvalidator;
 
+import org.metadatacenter.spreadsheetvalidator.validator.closure.Closure;
+
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 

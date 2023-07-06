@@ -1,4 +1,6 @@
-package org.metadatacenter.spreadsheetvalidator;
+package org.metadatacenter.spreadsheetvalidator.validator.closure;
+
+import org.metadatacenter.spreadsheetvalidator.validator.closure.Closure;
 
 import javax.annotation.Nullable;
 

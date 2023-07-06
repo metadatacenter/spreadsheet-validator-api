@@ -1,4 +1,4 @@
-package org.metadatacenter.spreadsheetvalidator;
+package org.metadatacenter.spreadsheetvalidator.thirdparty;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;

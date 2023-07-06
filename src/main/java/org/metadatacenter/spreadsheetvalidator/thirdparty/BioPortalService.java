@@ -1,12 +1,10 @@
-package org.metadatacenter.spreadsheetvalidator;
+package org.metadatacenter.spreadsheetvalidator.thirdparty;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.util.EntityUtils;
-import org.metadatacenter.spreadsheetvalidator.validator.exception.BadConceptUriException;
-import org.metadatacenter.spreadsheetvalidator.validator.exception.TemplateAccessException;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;

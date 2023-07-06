@@ -1,4 +1,4 @@
-package org.metadatacenter.spreadsheetvalidator.validator.exception;
+package org.metadatacenter.spreadsheetvalidator.exception;
 
 import javax.annotation.Nonnull;
 import javax.ws.rs.BadRequestException;

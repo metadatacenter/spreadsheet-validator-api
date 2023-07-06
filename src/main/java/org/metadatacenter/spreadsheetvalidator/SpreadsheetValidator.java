@@ -3,6 +3,7 @@ package org.metadatacenter.spreadsheetvalidator;
 import com.google.common.collect.Lists;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
+import org.metadatacenter.spreadsheetvalidator.validator.closure.Closure;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;

@@ -1,4 +1,4 @@
-package org.metadatacenter.spreadsheetvalidator;
+package org.metadatacenter.spreadsheetvalidator.thirdparty;
 
 import autovalue.shaded.com.google.common.collect.ImmutableList;
 import autovalue.shaded.com.google.common.collect.ImmutableMap;
@@ -10,9 +10,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.util.EntityUtils;
 import org.metadatacenter.artifacts.model.core.ValueConstraints;
-import org.metadatacenter.spreadsheetvalidator.validator.exception.BadConceptUriException;
-import org.metadatacenter.spreadsheetvalidator.validator.exception.BadValidatorRequestException;
-import org.metadatacenter.spreadsheetvalidator.validator.exception.TemplateAccessException;
+import org.metadatacenter.spreadsheetvalidator.exception.BadValidatorRequestException;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;

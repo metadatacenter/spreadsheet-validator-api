@@ -16,6 +16,8 @@ import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.PermissibleValue;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
 import org.metadatacenter.spreadsheetvalidator.domain.ValueType;
+import org.metadatacenter.spreadsheetvalidator.thirdparty.OntologyValue;
+import org.metadatacenter.spreadsheetvalidator.thirdparty.TerminologyService;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

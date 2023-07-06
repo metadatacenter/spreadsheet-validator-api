@@ -2,9 +2,9 @@ package org.metadatacenter.spreadsheetvalidator.inject.module;
 
 import dagger.Module;
 import dagger.Provides;
-import org.metadatacenter.spreadsheetvalidator.BioPortalConfig;
-import org.metadatacenter.spreadsheetvalidator.BioPortalService;
-import org.metadatacenter.spreadsheetvalidator.RestServiceHandler;
+import org.metadatacenter.spreadsheetvalidator.thirdparty.BioPortalConfig;
+import org.metadatacenter.spreadsheetvalidator.thirdparty.BioPortalService;
+import org.metadatacenter.spreadsheetvalidator.thirdparty.RestServiceHandler;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>

@@ -1,8 +1,9 @@
-package org.metadatacenter.spreadsheetvalidator;
+package org.metadatacenter.spreadsheetvalidator.thirdparty;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
+import org.metadatacenter.spreadsheetvalidator.AutoValue_BioPortalConfig;
 
 import javax.annotation.Nonnull;
 

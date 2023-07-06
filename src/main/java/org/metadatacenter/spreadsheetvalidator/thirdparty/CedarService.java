@@ -1,13 +1,11 @@
-package org.metadatacenter.spreadsheetvalidator;
+package org.metadatacenter.spreadsheetvalidator.thirdparty;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Charsets;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.util.EntityUtils;
-import org.metadatacenter.spreadsheetvalidator.validator.exception.BadTemplateException;
-import org.metadatacenter.spreadsheetvalidator.validator.exception.BadValidatorRequestException;
-import org.metadatacenter.spreadsheetvalidator.validator.exception.TemplateAccessException;
+import org.metadatacenter.spreadsheetvalidator.exception.BadValidatorRequestException;
 
 import javax.inject.Inject;
 import java.io.IOException;

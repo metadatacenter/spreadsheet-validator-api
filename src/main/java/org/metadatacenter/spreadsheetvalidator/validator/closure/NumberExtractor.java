@@ -1,7 +1,5 @@
 package org.metadatacenter.spreadsheetvalidator.validator.closure;
 
-import org.metadatacenter.spreadsheetvalidator.Closure;
-
 import javax.annotation.Nullable;
 import java.util.regex.Pattern;
 
