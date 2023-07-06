@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.metadatacenter.artifacts.model.core.BranchValueConstraint;
-import org.metadatacenter.artifacts.model.core.ClassValueConstraint;
 import org.metadatacenter.artifacts.model.core.FieldInputType;
 import org.metadatacenter.artifacts.model.core.FieldSchemaArtifact;
 import org.metadatacenter.artifacts.model.core.LiteralValueConstraint;
@@ -41,21 +39,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class SpreadsheetSchemaGenerator {
 
   private final ArtifactReader artifactReader;
-  private final BioPortalService bioPortalService;
+  private final TerminologyService terminologyService;
 
   @Inject
   public SpreadsheetSchemaGenerator(@Nonnull ArtifactReader artifactReader,
-                                    @Nonnull BioPortalService bioPortalService) {
+                                    @Nonnull TerminologyService terminologyService) {
     this.artifactReader = checkNotNull(artifactReader);
-    this.bioPortalService = checkNotNull(bioPortalService);
+    this.terminologyService = checkNotNull(terminologyService);
   }
 
   @Nonnull
   public SpreadsheetSchema generateFrom(@Nonnull ObjectNode templateNode) {
     var templateSchema = artifactReader.readTemplateSchemaArtifact(templateNode);
     var templateName = templateSchema.getName();
-    var templateVersion = getTemplateVesion(templateSchema);
-    var templateIri = templateSchema.getJsonLDID().toString();
+    var templateVersion = getTemplateVersion(templateSchema);
+    var templateIri = templateSchema.getJsonLdId().toString();
     var templateAccessUrl = getTemplateAccessUrl(templateSchema);
     var fieldSchemas = templateSchema.getFieldSchemas();
     var columnDescription = fieldSchemas.values()
@@ -69,14 +67,14 @@ public class SpreadsheetSchemaGenerator {
   }
 
   @Nonnull
-  private String getTemplateVesion(TemplateSchemaArtifact templateSchema) {
+  private String getTemplateVersion(TemplateSchemaArtifact templateSchema) {
     var defaultVersion = Version.fromString("0.0.1");
     return templateSchema.getVersion().orElse(defaultVersion).toString();
   }
 
   @Nonnull
   private String getTemplateAccessUrl(TemplateSchemaArtifact templateSchema) {
-    var templateIri = templateSchema.getJsonLDID().toString();
+    var templateIri = templateSchema.getJsonLdId().toString();
     return String.format(
         "https://openview.metadatacenter.org/templates/%s",
         URLEncoder.encode(templateIri, StandardCharsets.UTF_8));
@@ -99,12 +97,12 @@ public class SpreadsheetSchemaGenerator {
               fieldSchema.getName(),
               fieldSchema.getSkosPrefLabel().orElse(fieldSchema.getName()),
               getColumnType(fieldSchema.getFieldUI().getInputType()),
-              getColumnSubType(fieldSchema.getValueConstraints().getNumberType()),
-              fieldSchema.getValueConstraints().getMinValue().orElse(null),
-              fieldSchema.getValueConstraints().getMaxValue().orElse(null),
-              fieldSchema.getValueConstraints().isRequiredValue(),
+              getColumnSubType(fieldSchema.getValueConstraints().get().getNumberType()),
+              fieldSchema.getValueConstraints().get().getMinValue().orElse(null),
+              fieldSchema.getValueConstraints().get().getMaxValue().orElse(null),
+              fieldSchema.getValueConstraints().get().isRequiredValue(),
               fieldSchema.getDescription(),
-              getPermissibleValues(fieldSchema.getValueConstraints())
+              getPermissibleValues(fieldSchema.getValueConstraints().get())
           ));
     }
 
@@ -134,19 +132,12 @@ public class SpreadsheetSchemaGenerator {
 
     @Nonnull
     private ImmutableList<PermissibleValue> getPermissibleValues(ValueConstraints valueConstraints) {
-      var classes = valueConstraints.getClasses();
-      if (!classes.isEmpty()) {
-        return classes.stream().collect(new ClassValueCollector());
+      if (valueConstraints.hasOntologyValueBasedConstraints()) {
+        var ontologyValues = terminologyService.getOntologyValues(valueConstraints);
+        return ontologyValues.stream().collect(new OntologyValueCollector());
+      } else {
+        return valueConstraints.getLiterals().stream().collect(new LiteralValueCollector());
       }
-      var literals = valueConstraints.getLiterals();
-      if (!literals.isEmpty()) {
-        return literals.stream().collect(new LiteralValueCollector());
-      }
-      var branches = valueConstraints.getBranches();
-      if (!branches.isEmpty()) {
-        return branches.stream().collect(new ClassValueFromBranchesCollector());
-      }
-      return ImmutableList.of();
     }
 
     @Override
@@ -168,8 +159,8 @@ public class SpreadsheetSchemaGenerator {
     }
   }
 
-  class ClassValueCollector implements Collector<
-      ClassValueConstraint,
+  class OntologyValueCollector implements Collector<
+      OntologyValue,
       ImmutableList.Builder<PermissibleValue>,
       ImmutableList<PermissibleValue>> {
 
@@ -179,11 +170,11 @@ public class SpreadsheetSchemaGenerator {
     }
 
     @Override
-    public BiConsumer<ImmutableList.Builder<PermissibleValue>, ClassValueConstraint> accumulator() {
-      return (builder, valueConstraint) -> builder.add(
+    public BiConsumer<ImmutableList.Builder<PermissibleValue>, OntologyValue> accumulator() {
+      return (builder, ontologyValue) -> builder.add(
           PermissibleValue.create(
-              valueConstraint.getPrefLabel(),
-              valueConstraint.getUri().toString())
+              ontologyValue.getPrefLabel(),
+              ontologyValue.getIri())
       );
     }
 
@@ -221,47 +212,6 @@ public class SpreadsheetSchemaGenerator {
       return (builder, valueConstraint) -> builder.add(
           PermissibleValue.create(valueConstraint.getLabel(), null)
       );
-    }
-
-    @Override
-    public BinaryOperator<ImmutableList.Builder<PermissibleValue>> combiner() {
-      return (builder1, builder2) -> {
-        builder1.addAll(builder2.build());
-        return builder1;
-      };
-    }
-
-    @Override
-    public Function<ImmutableList.Builder<PermissibleValue>, ImmutableList<PermissibleValue>> finisher() {
-      return ImmutableList.Builder::build;
-    }
-
-    @Override
-    public Set<Characteristics> characteristics() {
-      return ImmutableSet.of();
-    }
-  }
-
-  class ClassValueFromBranchesCollector implements Collector<
-      BranchValueConstraint,
-      ImmutableList.Builder<PermissibleValue>,
-      ImmutableList<PermissibleValue>> {
-
-    @Override
-    public Supplier<ImmutableList.Builder<PermissibleValue>> supplier() {
-      return ImmutableList.Builder::new;
-    }
-
-    @Override
-    public BiConsumer<ImmutableList.Builder<PermissibleValue>, BranchValueConstraint> accumulator() {
-      return (builder, valueConstraint) -> {
-        var termMap = bioPortalService.getDescendantsFromBranch(
-            valueConstraint.getAcronym(),
-            valueConstraint.getUri());
-        for (var termLabel : termMap.keySet()) {
-          builder.add(PermissibleValue.create(termLabel, termMap.get(termLabel)));
-        }
-      };
     }
 
     @Override

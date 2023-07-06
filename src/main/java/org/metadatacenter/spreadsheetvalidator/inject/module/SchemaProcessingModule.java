@@ -4,7 +4,9 @@ import dagger.Module;
 import dagger.Provides;
 import org.metadatacenter.artifacts.model.reader.ArtifactReader;
 import org.metadatacenter.spreadsheetvalidator.BioPortalService;
+import org.metadatacenter.spreadsheetvalidator.CedarService;
 import org.metadatacenter.spreadsheetvalidator.SpreadsheetSchemaGenerator;
+import org.metadatacenter.spreadsheetvalidator.TerminologyService;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -12,13 +14,13 @@ import org.metadatacenter.spreadsheetvalidator.SpreadsheetSchemaGenerator;
  */
 @Module(includes = {
     ArtifactReaderModule.class,
-    BioPortalServiceModule.class
+    TerminologyServiceModule.class
 })
 public class SchemaProcessingModule {
 
   @Provides
   public SpreadsheetSchemaGenerator getSpreadsheetSchemaGenerator(ArtifactReader artifactReader,
-                                                                  BioPortalService bioPortalService) {
-    return new SpreadsheetSchemaGenerator(artifactReader, bioPortalService);
+                                                                  TerminologyService terminologyService) {
+    return new SpreadsheetSchemaGenerator(artifactReader, terminologyService);
   }
 }

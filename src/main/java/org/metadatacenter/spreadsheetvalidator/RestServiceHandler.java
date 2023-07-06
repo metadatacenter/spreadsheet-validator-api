@@ -38,48 +38,51 @@ public class RestServiceHandler {
   }
 
   @Nonnull
+  public String writeJsonString(Object o) throws JsonProcessingException {
+    return objectMapper.writeValueAsString(o);
+  }
+
+  @Nonnull
+  public <T> T writeObject(String jsonString, Class<T> objectType) throws JsonProcessingException {
+    return objectMapper.readValue(jsonString, objectType);
+  }
+
+  @Nonnull
+  public <T> T writeObject(JsonNode jsonNode, Class<T> objectType) throws JsonProcessingException {
+    return objectMapper.treeToValue(jsonNode, objectType);
+  }
+
+  @Nonnull
   public Request createGetRequest(String uri) {
-    return createGetRequest(uri, Optional.empty());
+    return Request.Get(uri);
   }
 
   @Nonnull
   public Request createGetRequest(String uri, String apiKey) {
-    return createGetRequest(uri, Optional.of(apiKey));
+    return Request.Get(uri).addHeader("Authorization", apiKey);
   }
 
   @Nonnull
-  public Request createGetRequest(String uri, Optional<String> apiKey) {
-    var request = Request.Get(uri);
-    request = addAuthorization(apiKey, request);
-    return request;
-  }
-
-  @Nonnull
-  public Request createPostRequest(String uri, JsonNode payload)
+  public Request createPostRequest(String uri, Object payload)
       throws JsonProcessingException {
-    return createPostRequest(uri, payload, Optional.empty());
-  }
-
-  @Nonnull
-  public Request createPostRequest(String uri, JsonNode payload, String apiKey)
-      throws JsonProcessingException {
-    return createPostRequest(uri, payload, Optional.of(apiKey));
-  }
-
-  @Nonnull
-  public Request createPostRequest(String uri, JsonNode payload, Optional<String> apiKey)
-      throws JsonProcessingException {
-    var payloadString = writeJsonNode(payload);
+    var payloadString = writeJsonString(payload);
     var request = Request.Post(uri).bodyString(payloadString, ContentType.APPLICATION_JSON);
-    request = addAuthorization(apiKey, request);
     return request;
   }
 
-  private Request addAuthorization(Optional<String> apiKey, Request request) {
-    if (apiKey.isPresent()) {
-      request = request.addHeader("Authorization", apiKey.get());
-    }
+  @Nonnull
+  public Request createPostRequest(String uri, String apiKey, Object payload)
+      throws JsonProcessingException {
+    var payloadString = writeJsonString(payload);
+    var request = Request.Post(uri)
+        .bodyString(payloadString, ContentType.APPLICATION_JSON)
+        .addHeader("Authorization", apiKey);
     return request;
+  }
+
+  @Nonnull
+  private JsonNode parseObject(Object o) {
+    return objectMapper.valueToTree(o);
   }
 
   @Nonnull
