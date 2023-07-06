@@ -6,7 +6,7 @@
 
     <groupId>groupId</groupId>
     <artifactId>spreadsheet-validator-api</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -14,7 +14,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <mainClass>org.metadatacenter.spreadsheetvalidator.SpreadsheetValidatorApplication</mainClass>
-        <cedar.version>2.6.21</cedar.version>
+        <cedar.version>2.6.34-SNAPSHOT</cedar.version>
         <dagger.version>2.44.2</dagger.version>
         <dropwizard.version>2.1.4</dropwizard.version>
         <dropwizard.swagger.version>2.0.28-1</dropwizard.swagger.version>
@@ -43,7 +43,7 @@
     <dependencies>
         <dependency>
             <groupId>org.metadatacenter</groupId>
-            <artifactId>cedar-artifact-tools</artifactId>
+            <artifactId>cedar-artifact-library</artifactId>
             <version>${cedar.version}</version>
         </dependency>
         <dependency>
