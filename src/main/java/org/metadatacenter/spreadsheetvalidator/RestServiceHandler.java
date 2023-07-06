@@ -10,7 +10,6 @@ import org.apache.http.entity.ContentType;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.IOException;
-import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -30,11 +29,6 @@ public class RestServiceHandler {
   @Nonnull
   public JsonNode parseJsonString(String s) throws JsonProcessingException {
     return objectMapper.readTree(s);
-  }
-
-  @Nonnull
-  public String writeJsonNode(JsonNode json) throws JsonProcessingException {
-    return objectMapper.writeValueAsString(json);
   }
 
   @Nonnull
@@ -78,11 +72,6 @@ public class RestServiceHandler {
         .bodyString(payloadString, ContentType.APPLICATION_JSON)
         .addHeader("Authorization", apiKey);
     return request;
-  }
-
-  @Nonnull
-  private JsonNode parseObject(Object o) {
-    return objectMapper.valueToTree(o);
   }
 
   @Nonnull
