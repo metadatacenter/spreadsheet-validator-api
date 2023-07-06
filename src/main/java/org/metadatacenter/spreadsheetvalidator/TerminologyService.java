@@ -12,7 +12,7 @@ import org.apache.http.util.EntityUtils;
 import org.metadatacenter.artifacts.model.core.ValueConstraints;
 import org.metadatacenter.spreadsheetvalidator.validator.exception.BadConceptUriException;
 import org.metadatacenter.spreadsheetvalidator.validator.exception.BadValidatorRequestException;
-import org.metadatacenter.spreadsheetvalidator.validator.exception.RemoteAccessException;
+import org.metadatacenter.spreadsheetvalidator.validator.exception.TemplateAccessException;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -61,7 +61,7 @@ public class TerminologyService {
     try {
       response = restServiceHandler.execute(request);
     } catch (IOException e) {
-      throw new RemoteAccessException(""); // TODO: Revisit this
+      throw new TemplateAccessException(""); // TODO: Revisit this
     }
 
     // Process the response
@@ -92,7 +92,7 @@ public class TerminologyService {
           throw new BadConceptUriException(e.getLocalizedMessage());
         }
       default:
-        throw new RemoteAccessException(""); // TODO: Revisit this
+        throw new TemplateAccessException(""); // TODO: Revisit this
     }
   }
 }

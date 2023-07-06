@@ -7,7 +7,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.util.EntityUtils;
 import org.metadatacenter.spreadsheetvalidator.validator.exception.BadTemplateException;
 import org.metadatacenter.spreadsheetvalidator.validator.exception.BadValidatorRequestException;
-import org.metadatacenter.spreadsheetvalidator.validator.exception.RemoteAccessException;
+import org.metadatacenter.spreadsheetvalidator.validator.exception.TemplateAccessException;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -43,7 +43,7 @@ public class CedarService {
           "apiKey " + cedarConfig.getApiKey());
       response = restServiceHandler.execute(request);
     } catch (IOException e) {
-      throw new RemoteAccessException(iri);
+      throw new TemplateAccessException(iri);
     }
     // Process the response
     try {
@@ -53,7 +53,7 @@ public class CedarService {
     }
   }
 
-  private ObjectNode processResponse(HttpResponse response, String templateIri) throws RemoteAccessException {
+  private ObjectNode processResponse(HttpResponse response, String templateIri) throws TemplateAccessException {
     var statusLine = response.getStatusLine();
     switch (statusLine.getStatusCode()) {
       case HttpStatus.SC_OK:
@@ -64,7 +64,7 @@ public class CedarService {
           throw new BadTemplateException(e.getLocalizedMessage());
         }
       default:
-        throw new RemoteAccessException(templateIri);
+        throw new TemplateAccessException(templateIri);
     }
   }
 

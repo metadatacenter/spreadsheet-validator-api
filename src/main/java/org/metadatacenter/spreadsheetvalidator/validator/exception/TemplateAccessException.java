@@ -1,7 +1,5 @@
 package org.metadatacenter.spreadsheetvalidator.validator.exception;
 
-import org.jetbrains.annotations.NotNull;
-
 import javax.annotation.Nonnull;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -10,11 +8,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-public class RemoteAccessException extends BadValidatorRequestException {
+public class TemplateAccessException extends BadValidatorRequestException {
 
   private final String templateIri;
 
-  public RemoteAccessException(@Nonnull String templateIri) {
+  public TemplateAccessException(@Nonnull String templateIri) {
     super();
     this.templateIri = checkNotNull(templateIri);
   }
@@ -26,7 +24,7 @@ public class RemoteAccessException extends BadValidatorRequestException {
 
   @Override
   public String getErrorName() {
-    return "RemoteAccessException";
+    return "TemplateAccessException";
   }
 
   @Override

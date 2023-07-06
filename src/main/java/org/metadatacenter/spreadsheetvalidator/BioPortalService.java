@@ -6,7 +6,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.util.EntityUtils;
 import org.metadatacenter.spreadsheetvalidator.validator.exception.BadConceptUriException;
-import org.metadatacenter.spreadsheetvalidator.validator.exception.RemoteAccessException;
+import org.metadatacenter.spreadsheetvalidator.validator.exception.TemplateAccessException;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -67,7 +67,7 @@ public class BioPortalService {
     return request;
   }
 
-  private ObjectNode processResponse(HttpResponse response, URI branchUri) throws RemoteAccessException {
+  private ObjectNode processResponse(HttpResponse response, URI branchUri) throws TemplateAccessException {
     var statusLine = response.getStatusLine();
     switch (statusLine.getStatusCode()) {
       case HttpStatus.SC_OK:
@@ -78,7 +78,7 @@ public class BioPortalService {
           throw new BadConceptUriException(e.getLocalizedMessage());
         }
       default:
-        throw new RemoteAccessException(branchUri.toString());
+        throw new TemplateAccessException(branchUri.toString());
     }
   }
 }
