@@ -5,14 +5,15 @@ import com.google.common.base.Charsets;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.util.EntityUtils;
-import org.metadatacenter.spreadsheetvalidator.exception.BadValidatorRequestException;
+import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceException;
 
 import javax.inject.Inject;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.String.format;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -32,37 +33,30 @@ public class CedarService {
   }
 
   public ObjectNode getCedarTemplate(String iri) {
-    HttpResponse response = null;
+    // Prepare the request
+    var url = generateTemplateUrlFromIri(iri);
+    var request = restServiceHandler.createGetRequest(url, "apiKey " + cedarConfig.getApiKey());
+
     // Execute the request
+    HttpResponse response = null;
     try {
-      var url = generateTemplateUrlFromIri(iri);
-      var request = restServiceHandler.createGetRequest(
-          url,
-          "apiKey " + cedarConfig.getApiKey());
       response = restServiceHandler.execute(request);
+      var statusCode = response.getStatusLine().getStatusCode();
+      if (statusCode != HttpStatus.SC_OK) {
+        var causeMessage = new String(EntityUtils.toByteArray(response.getEntity()));
+        var cause = new IOException(causeMessage);
+        throw new ValidatorServiceException("Failed to retrieve the metadata specification used for the validation.", cause, statusCode);
+      }
     } catch (IOException e) {
-      throw new TemplateAccessException(iri);
+      throw new ValidatorServiceException("Error while connecting to CEDAR Resource server.",
+          e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
     // Process the response
     try {
-      return processResponse(response, iri);
-    } catch (BadValidatorRequestException e) {
-      throw e;
-    }
-  }
-
-  private ObjectNode processResponse(HttpResponse response, String templateIri) throws TemplateAccessException {
-    var statusLine = response.getStatusLine();
-    switch (statusLine.getStatusCode()) {
-      case HttpStatus.SC_OK:
-        try {
-          var jsonString = new String(EntityUtils.toByteArray(response.getEntity()));
-          return (ObjectNode) restServiceHandler.parseJsonString(jsonString);
-        } catch (IOException e) {
-          throw new BadTemplateException(e.getLocalizedMessage());
-        }
-      default:
-        throw new TemplateAccessException(templateIri);
+      return (ObjectNode) restServiceHandler.processResponse(response);
+    } catch (IOException e) {
+      throw new ValidatorServiceException("Failed to process response from CEDAR Resource server",
+          e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
   }
 
@@ -73,8 +67,9 @@ public class CedarService {
           .append("templates/")
           .append(URLEncoder.encode(iri, Charsets.UTF_8.toString()))
           .toString();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+    } catch (UnsupportedEncodingException e) {
+      throw new ValidatorServiceException("Unable to construct the template IRI",
+          e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
   }
 }

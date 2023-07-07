@@ -19,9 +19,10 @@ public class ValidatorUtils {
         .forEach(column -> {
           if (!spreadsheetSchema.containsColumn(column)) {
             additionalColumns.add(column);
-          }});
+          }
+        });
     if (!additionalColumns.isEmpty()) {
-      throw new UnexpectedColumnsException(additionalColumns, spreadsheetSchema.getColumnOrder());
+      throw new UnexpectedColumnsException(additionalColumns);
     }
     return spreadsheetRow;
   }

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
+import org.apache.http.util.EntityUtils;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -57,19 +58,15 @@ public class RestServiceHandler {
   }
 
   @Nonnull
-  public Request createPostRequest(String uri, Object payload)
-      throws JsonProcessingException {
-    var payloadString = writeJsonString(payload);
-    var request = Request.Post(uri).bodyString(payloadString, ContentType.APPLICATION_JSON);
+  public Request createPostRequest(String uri, String jsonPayload) {
+    var request = Request.Post(uri).bodyString(jsonPayload, ContentType.APPLICATION_JSON);
     return request;
   }
 
   @Nonnull
-  public Request createPostRequest(String uri, String apiKey, Object payload)
-      throws JsonProcessingException {
-    var payloadString = writeJsonString(payload);
+  public Request createPostRequest(String uri, String apiKey, String jsonPayload) {
     var request = Request.Post(uri)
-        .bodyString(payloadString, ContentType.APPLICATION_JSON)
+        .bodyString(jsonPayload, ContentType.APPLICATION_JSON)
         .addHeader("Authorization", apiKey);
     return request;
   }
@@ -77,5 +74,12 @@ public class RestServiceHandler {
   @Nonnull
   public HttpResponse execute(Request request) throws IOException {
     return request.execute().returnResponse();
+  }
+
+  @Nonnull
+  public JsonNode processResponse(HttpResponse response) throws IOException {
+    var responseEntity = response.getEntity();
+    var jsonString = new String(EntityUtils.toByteArray(responseEntity));
+    return parseJsonString(jsonString);
   }
 }

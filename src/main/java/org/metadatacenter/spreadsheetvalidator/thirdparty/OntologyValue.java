@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
-import org.metadatacenter.spreadsheetvalidator.AutoValue_OntologyValue;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

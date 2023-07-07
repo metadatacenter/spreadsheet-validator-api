@@ -7,10 +7,10 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
+import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
 import org.metadatacenter.spreadsheetvalidator.request.ValidateSpreadsheetRequest;
 import org.metadatacenter.spreadsheetvalidator.response.ErrorResponse;
 import org.metadatacenter.spreadsheetvalidator.response.ValidateResponse;
-import org.metadatacenter.spreadsheetvalidator.exception.BadValidatorRequestException;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.CedarService;
 
 import javax.annotation.Nonnull;
@@ -77,11 +77,11 @@ public class ServiceResource {
   @ApiResponse(
       responseCode = "400",
       description = "The request could not be understood by the server due to " +
-      "malformed syntax in the request body.")
+          "malformed syntax in the request body.")
   @ApiResponse(
       responseCode = "500",
       description = "The server encountered an unexpected condition that prevented " +
-      "it from fulfilling the request.")
+          "it from fulfilling the request.")
   public Response validate(@Nonnull ValidateSpreadsheetRequest request) {
     try {
       var cedarTemplateIri = request.getCedarTemplateIri();
@@ -94,9 +94,14 @@ public class ServiceResource {
           .collect(resultCollector);
       var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
       return Response.ok(response).build();
-    } catch (BadValidatorRequestException e) {
-      var response = ErrorResponse.create(e.getErrorCode(), e.getMessage(), e.getFixSuggestion());
-      return Response.status(Response.Status.BAD_REQUEST)
+    } catch (ValidatorRuntimeException e) {
+      var statusInfo = e.getResponse().getStatusInfo();
+      var statusCode = statusInfo.getStatusCode();
+      var response = ErrorResponse.create(e.getMessage(),
+          e.getCause().getMessage(),
+          statusCode + " " + statusInfo.getReasonPhrase(),
+          e.getFixSuggestion().orElse(null));
+      return Response.status(statusCode)
           .type(MediaType.APPLICATION_JSON_TYPE)
           .entity(response)
           .build();

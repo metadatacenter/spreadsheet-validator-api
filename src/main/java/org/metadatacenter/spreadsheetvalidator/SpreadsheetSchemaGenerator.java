@@ -104,7 +104,7 @@ public class SpreadsheetSchemaGenerator {
               fieldSchema.getValueConstraints().get().getMaxValue().orElse(null),
               fieldSchema.getValueConstraints().get().isRequiredValue(),
               fieldSchema.getDescription(),
-              getPermissibleValues(fieldSchema.getValueConstraints().get())
+              getPermissibleValues(fieldSchema.getName(), fieldSchema.getValueConstraints().get())
           ));
     }
 
@@ -133,9 +133,9 @@ public class SpreadsheetSchemaGenerator {
     }
 
     @Nonnull
-    private ImmutableList<PermissibleValue> getPermissibleValues(ValueConstraints valueConstraints) {
+    private ImmutableList<PermissibleValue> getPermissibleValues(String fieldName, ValueConstraints valueConstraints) {
       if (valueConstraints.hasOntologyValueBasedConstraints()) {
-        var ontologyValues = terminologyService.getOntologyValues(valueConstraints);
+        var ontologyValues = terminologyService.getOntologyValues(fieldName, valueConstraints);
         return ontologyValues.stream().collect(new OntologyValueCollector());
       } else {
         return valueConstraints.getLiterals().stream().collect(new LiteralValueCollector());

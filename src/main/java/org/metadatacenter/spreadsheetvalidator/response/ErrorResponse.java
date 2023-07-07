@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -13,29 +14,39 @@ import javax.annotation.Nonnull;
 @AutoValue
 public abstract class ErrorResponse {
 
-  private static final String CODE = "code";
-
   private static final String MESSAGE = "message";
-
-  private static final String SUGGESTION = "suggestion";
+  private static final String CAUSE = "cause";
+  private static final String STATUS_INFO = "statusInfo";
+  private static final String FIX_SUGGESTION = "fixSuggestion";
 
   @Nonnull
   @JsonCreator
-  public static ErrorResponse create(@Nonnull @JsonProperty(CODE) Integer errorCode,
-                                     @Nonnull @JsonProperty(MESSAGE) String message,
-                                     @Nonnull @JsonProperty(SUGGESTION) String suggestion) {
-    return new AutoValue_ErrorResponse(errorCode, message, suggestion);
+  public static ErrorResponse create(@Nonnull @JsonProperty(MESSAGE) String message,
+                                     @Nonnull @JsonProperty(CAUSE) String cause,
+                                     @Nonnull @JsonProperty(STATUS_INFO) String statusInfo,
+                                     @Nullable @JsonProperty(FIX_SUGGESTION) String fixSuggestion) {
+    return new AutoValue_ErrorResponse(message, cause, statusInfo, fixSuggestion);
   }
 
-  @Nonnull
-  @JsonProperty(CODE)
-  public abstract Integer getErrorCode();
+  public static ErrorResponse create(@Nonnull @JsonProperty(MESSAGE) String message,
+                                     @Nonnull @JsonProperty(CAUSE) String cause,
+                                     @Nonnull @JsonProperty(STATUS_INFO) String statusInfo) {
+    return new AutoValue_ErrorResponse(message, cause, statusInfo, null);
+  }
 
   @Nonnull
   @JsonProperty(MESSAGE)
   public abstract String getMessage();
 
   @Nonnull
-  @JsonProperty(SUGGESTION)
-  public abstract String getSuggestion();
+  @JsonProperty(CAUSE)
+  public abstract String getCause();
+
+  @Nullable
+  @JsonProperty(STATUS_INFO)
+  public abstract String getStatusInfo();
+
+  @Nullable
+  @JsonProperty(FIX_SUGGESTION)
+  public abstract String getFixSuggestion();
 }

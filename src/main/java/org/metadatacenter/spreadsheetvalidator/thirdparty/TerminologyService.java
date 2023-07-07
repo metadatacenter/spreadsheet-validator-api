@@ -3,18 +3,16 @@ package org.metadatacenter.spreadsheetvalidator.thirdparty;
 import autovalue.shaded.com.google.common.collect.ImmutableList;
 import autovalue.shaded.com.google.common.collect.ImmutableMap;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Streams;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
-import org.apache.http.util.EntityUtils;
 import org.metadatacenter.artifacts.model.core.ValueConstraints;
-import org.metadatacenter.spreadsheetvalidator.exception.BadValidatorRequestException;
+import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceException;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import javax.ws.rs.BadRequestException;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -37,60 +35,60 @@ public class TerminologyService {
   }
 
   @Nonnull
-  public ImmutableList<OntologyValue> getOntologyValues(@Nonnull ValueConstraints valueConstraints) {
+  public ImmutableList<OntologyValue> getOntologyValues(@Nonnull String fieldName,
+                                                        @Nonnull ValueConstraints valueConstraints) {
     // Prepare the request
     Request request = null;
+    String payloadString = "";
     try {
-      var payload =
-          ImmutableMap.of(
-              "parameterObject", ImmutableMap.of("valueConstraints", valueConstraints),
-              "pageSize", 5000,
-              "page", 1);
+      var payload = ImmutableMap.of(
+          "parameterObject", ImmutableMap.of("valueConstraints", valueConstraints),
+          "pageSize", 5000,
+          "page", 1);
+      payloadString = restServiceHandler.writeJsonString(payload);
       request = restServiceHandler.createPostRequest(
           cedarConfig.getTerminologyEndpoint(),
           "apiKey " + cedarConfig.getApiKey(),
-          payload);
+          payloadString);
     } catch (JsonProcessingException e) {
-      throw new BadRequestException(e);
+      throw new ValidatorServiceException("Failed to prepare the request payload.",
+          e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     // Execute the request
     HttpResponse response = null;
     try {
       response = restServiceHandler.execute(request);
+      var statusCode = response.getStatusLine().getStatusCode();
+      if (statusCode != HttpStatus.SC_OK) {
+        var responseMessage = String.format("Bad request to /bioportal/integrated-search.\n%s\n%s",
+            request, payloadString);
+        var cause = new IOException(responseMessage);
+        throw new ValidatorServiceException(String.format(
+            "Failed to populate categorical values for the '%s' field.", fieldName),
+            cause, response.getStatusLine().getStatusCode());
+      }
     } catch (IOException e) {
-      throw new TemplateAccessException(""); // TODO: Revisit this
+      throw new ValidatorServiceException("Error while connecting to CEDAR Terminology server.",
+          e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     // Process the response
     try {
-      var responseObject = processResponse(response);
+      var responseObject = restServiceHandler.processResponse(response);
       return Streams.stream(responseObject.withArray("collection").elements())
-          .map(item -> {
+          .map(ontologyValue -> {
             try {
-              return restServiceHandler.writeObject(item, OntologyValue.class);
+              return restServiceHandler.writeObject(ontologyValue, OntologyValue.class);
             } catch (JsonProcessingException e) {
-              throw new RuntimeException(e); // TODO: Revisit this
+              throw new ValidatorServiceException("Failed to process response from CEDAR Terminology server.",
+                  e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
             }
           })
           .collect(ImmutableList.toImmutableList());
-    } catch (BadValidatorRequestException e) { // TODO: Revisit this
-      throw e;
-    }
-  }
-
-  private ObjectNode processResponse(HttpResponse response) {
-    var statusLine = response.getStatusLine();
-    switch (statusLine.getStatusCode()) {
-      case HttpStatus.SC_OK:
-        try {
-          var jsonString = new String(EntityUtils.toByteArray(response.getEntity()));
-          return (ObjectNode) restServiceHandler.parseJsonString(jsonString);
-        } catch (IOException e) {
-          throw new BadConceptUriException(e.getLocalizedMessage());
-        }
-      default:
-        throw new TemplateAccessException(""); // TODO: Revisit this
+    } catch (IOException e) {
+      throw new ValidatorServiceException("Failed to process response from CEDAR Terminology server.",
+          e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
   }
 }

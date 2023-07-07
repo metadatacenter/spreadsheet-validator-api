@@ -1,13 +1,13 @@
 package org.metadatacenter.spreadsheetvalidator.thirdparty;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.fluent.Request;
 import org.apache.http.util.EntityUtils;
+import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceException;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -36,10 +36,30 @@ public class BioPortalService {
   }
 
   public Map<String, String> getDescendantsFromBranch(@Nonnull String ontologyAcronym, @Nonnull URI branchUri) {
+    // Prepare the request
+    var url = generateRequestUrl(ontologyAcronym, branchUri);
+    var request = restServiceHandler.createGetRequest(url, "apiKey token=" + bioPortalConfig.getApiKey());
+
+    // Execute the request
+    HttpResponse response = null;
     try {
-      var request = makeGetDescendantsFromBranchRequest(ontologyAcronym, branchUri);
-      var response = restServiceHandler.execute(request);
-      var responseObject = processResponse(response, branchUri);
+      response = restServiceHandler.execute(request);
+      var statusCode = response.getStatusLine().getStatusCode();
+      if (statusCode != HttpStatus.SC_OK) {
+        var causeMessage = new String(EntityUtils.toByteArray(response.getEntity()));
+        var cause = new IOException(causeMessage);
+        throw new ValidatorServiceException(
+            "Failed to retrieve categorical values from ontology branch: " + branchUri + " (" + ontologyAcronym + ").",
+            cause, statusCode);
+      }
+    } catch (IOException e) {
+      throw new ValidatorServiceException("Error while connecting to BioPortal.",
+          e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    // Process the response
+    try {
+      var responseObject = restServiceHandler.processResponse(response);
       var collectionItems = responseObject.get("collection").spliterator();
       var collectionStream = StreamSupport.stream(collectionItems, false);
       return collectionStream.collect(Collectors.toMap(
@@ -47,36 +67,19 @@ public class BioPortalService {
           item -> item.get("@id").asText()
       ));
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new ValidatorServiceException("Failed to process response from BioPortal.",
+          e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
   }
 
-  private Request makeGetDescendantsFromBranchRequest(@Nonnull String ontologyAcronym, @Nonnull URI branchUri) throws IOException {
+  private String generateRequestUrl(@Nonnull String ontologyAcronym, @Nonnull URI branchUri) {
     var baseUrl = bioPortalConfig.getBaseUrl();
-    var url = new StringBuilder(baseUrl)
+    return new StringBuilder(baseUrl)
         .append("/ontologies/")
         .append(ontologyAcronym)
         .append("/classes/")
         .append(URLEncoder.encode(branchUri.toString(), StandardCharsets.UTF_8))
-        .append("/descendants");
-    var request = restServiceHandler.createGetRequest(
-        url.toString(),
-        "apiKey token=" + bioPortalConfig.getApiKey());
-    return request;
-  }
-
-  private ObjectNode processResponse(HttpResponse response, URI branchUri) throws TemplateAccessException {
-    var statusLine = response.getStatusLine();
-    switch (statusLine.getStatusCode()) {
-      case HttpStatus.SC_OK:
-        try {
-          var jsonString = new String(EntityUtils.toByteArray(response.getEntity()));
-          return (ObjectNode) restServiceHandler.parseJsonString(jsonString);
-        } catch (IOException e) {
-          throw new BadConceptUriException(e.getLocalizedMessage());
-        }
-      default:
-        throw new TemplateAccessException(branchUri.toString());
-    }
+        .append("/descendants")
+        .toString();
   }
 }
