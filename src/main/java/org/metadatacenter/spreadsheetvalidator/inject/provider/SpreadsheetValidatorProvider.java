@@ -9,6 +9,7 @@ import org.metadatacenter.spreadsheetvalidator.validator.NumberTypeValidator;
 import org.metadatacenter.spreadsheetvalidator.validator.PermissibleValueValidator;
 import org.metadatacenter.spreadsheetvalidator.validator.RequiredFieldValidator;
 import org.metadatacenter.spreadsheetvalidator.validator.StringTypeValidator;
+import org.metadatacenter.spreadsheetvalidator.validator.UrlValidator;
 import org.metadatacenter.spreadsheetvalidator.validator.closure.NumberExtractor;
 import org.metadatacenter.spreadsheetvalidator.validator.closure.SimpleSimilarityChecker;
 
@@ -44,6 +45,7 @@ public class SpreadsheetValidatorProvider implements Provider<SpreadsheetValidat
     validator.registerValidator(new IntegerNumberRangeValidator());
     validator.registerValidator(new DecimalNumberRangeValidator());
     validator.registerValidator(new PermissibleValueValidator());
+    validator.registerValidator(new UrlValidator());
     return validator;
   }
 }

@@ -13,7 +13,8 @@ public enum ValueType {
   STRING("string"),
   NUMBER("number"),
   DECIMAL("decimal"),
-  INTEGER("integer");
+  INTEGER("integer"),
+  URL("url");
 
   private final String canonicalName;
 

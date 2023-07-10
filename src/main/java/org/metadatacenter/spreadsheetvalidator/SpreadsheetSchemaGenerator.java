@@ -113,6 +113,8 @@ public class SpreadsheetSchemaGenerator {
       var inputTypeText = inputType.getText();
       if ("numeric".equals(inputTypeText)) {
         return ValueType.NUMBER;
+      } else if ("link".equals(inputTypeText)) {
+        return ValueType.URL;
       } else {
         return ValueType.STRING;
       }
