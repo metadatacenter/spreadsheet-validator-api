@@ -32,7 +32,20 @@ public class CedarService {
     this.restServiceHandler = checkNotNull(restServiceHandler);
   }
 
-  public ObjectNode getCedarTemplate(String iri) {
+  public ObjectNode getCedarTemplateFromId(String id) {
+    var iri = generateTemplateIriFromId(id);
+    return getCedarTemplateFromIri(iri);
+  }
+
+  private String generateTemplateIriFromId(String id) {
+    return new StringBuilder()
+        .append(cedarConfig.getRepoBaseUrl())
+        .append("templates/")
+        .append(id)
+        .toString();
+  }
+
+  public ObjectNode getCedarTemplateFromIri(String iri) {
     // Prepare the request
     var url = generateTemplateUrlFromIri(iri);
     var request = restServiceHandler.createGetRequest(url, "apiKey " + cedarConfig.getApiKey());
@@ -63,7 +76,7 @@ public class CedarService {
   private String generateTemplateUrlFromIri(String iri) {
     try {
       return new StringBuilder()
-          .append(cedarConfig.getBaseUrl())
+          .append(cedarConfig.getResourceBaseUrl())
           .append("templates/")
           .append(URLEncoder.encode(iri, Charsets.UTF_8.toString()))
           .toString();

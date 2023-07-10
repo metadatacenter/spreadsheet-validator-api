@@ -1,8 +1,10 @@
 package org.metadatacenter.spreadsheetvalidator.thirdparty;
 
+import autovalue.shaded.com.google.common.collect.ImmutableList;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
@@ -11,6 +13,8 @@ import org.apache.http.util.EntityUtils;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -22,14 +26,25 @@ public class RestServiceHandler {
 
   private final ObjectMapper objectMapper;
 
+  private final ObjectReader tsvReader;
+
   @Inject
-  public RestServiceHandler(@Nonnull ObjectMapper objectMapper) {
+  public RestServiceHandler(@Nonnull ObjectMapper objectMapper,
+                            @Nonnull ObjectReader tsvReader) {
     this.objectMapper = checkNotNull(objectMapper);
+    this.tsvReader = checkNotNull(tsvReader);
   }
 
   @Nonnull
   public JsonNode parseJsonString(String s) throws JsonProcessingException {
     return objectMapper.readTree(s);
+  }
+
+  @Nonnull
+  public List<Map<String, Object>> parseTsvString(String s) throws IOException {
+    return tsvReader.readValues(s).readAll().stream()
+        .map(item -> (Map<String, Object>) item)
+        .collect(ImmutableList.toImmutableList());
   }
 
   @Nonnull

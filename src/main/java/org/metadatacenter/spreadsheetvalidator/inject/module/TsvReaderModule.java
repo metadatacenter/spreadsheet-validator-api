@@ -1,11 +1,9 @@
 package org.metadatacenter.spreadsheetvalidator.inject.module;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import dagger.Module;
 import dagger.Provides;
-import org.metadatacenter.spreadsheetvalidator.inject.provider.ObjectMapperProvider;
-import org.metadatacenter.spreadsheetvalidator.inject.scope.ServiceSessionScope;
+import org.metadatacenter.spreadsheetvalidator.inject.provider.TsvReaderProvider;
 
 import javax.inject.Singleton;
 
@@ -14,11 +12,12 @@ import javax.inject.Singleton;
  * Stanford Center for Biomedical Informatics Research
  */
 @Module
-public class ObjectMapperModule {
+public class TsvReaderModule {
 
   @Provides
   @Singleton
-  ObjectMapper provideObjectMapper() {
-    return new ObjectMapperProvider().get();
+  ObjectReader providesObjectReader() {
+    return new TsvReaderProvider().get();
   }
+
 }

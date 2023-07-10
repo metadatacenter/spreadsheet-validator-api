@@ -14,15 +14,17 @@ import javax.annotation.Nonnull;
 public abstract class CedarConfig {
 
   private static final String API_KEY = "apiKey";
-  private static final String BASE_URL = "baseUrl";
+  private static final String REPO_BASE_URL = "repoBaseUrl";
+  private static final String RESOURCE_BASE_URL = "resourceBaseUrl";
   private static final String TERMINOLOGY_ENDPOINT = "terminologyEndpoint";
 
   @Nonnull
   @JsonCreator
   public static CedarConfig create(@Nonnull @JsonProperty(API_KEY) String apiKey,
-                                   @Nonnull @JsonProperty(BASE_URL) String baseUrl,
+                                   @Nonnull @JsonProperty(REPO_BASE_URL) String repoBaseUrl,
+                                   @Nonnull @JsonProperty(RESOURCE_BASE_URL) String resourceBaseUrl,
                                    @Nonnull @JsonProperty(TERMINOLOGY_ENDPOINT) String terminologyEndpoint) {
-    return new AutoValue_CedarConfig(apiKey, baseUrl, terminologyEndpoint);
+    return new AutoValue_CedarConfig(apiKey, repoBaseUrl, resourceBaseUrl, terminologyEndpoint);
   }
 
   @Nonnull
@@ -30,8 +32,12 @@ public abstract class CedarConfig {
   public abstract String getApiKey();
 
   @Nonnull
-  @JsonProperty(BASE_URL)
-  public abstract String getBaseUrl();
+  @JsonProperty(REPO_BASE_URL)
+  public abstract String getRepoBaseUrl();
+
+  @Nonnull
+  @JsonProperty(RESOURCE_BASE_URL)
+  public abstract String getResourceBaseUrl();
 
   @Nonnull
   @JsonProperty(TERMINOLOGY_ENDPOINT)
