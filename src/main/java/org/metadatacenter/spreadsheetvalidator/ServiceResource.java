@@ -52,7 +52,7 @@ public class ServiceResource {
   }
 
   @POST
-  @Operation(summary = "Validate an Excel spreadsheet against a CEDAR template.")
+  @Operation(summary = "Validate a set of metadata objects according to a metadata specification.")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/validate")
