@@ -8,6 +8,7 @@ import org.metadatacenter.artifacts.model.core.FieldInputType;
 import org.metadatacenter.artifacts.model.core.FieldSchemaArtifact;
 import org.metadatacenter.artifacts.model.core.LiteralValueConstraint;
 import org.metadatacenter.artifacts.model.core.NumberType;
+import org.metadatacenter.artifacts.model.core.SchemaArtifact;
 import org.metadatacenter.artifacts.model.core.TemplateSchemaArtifact;
 import org.metadatacenter.artifacts.model.core.ValueConstraints;
 import org.metadatacenter.artifacts.model.core.Version;
@@ -61,9 +62,9 @@ public class SpreadsheetSchemaGenerator {
     var columnDescription = fieldSchemas.values()
         .stream()
         .collect(new ColumnDescriptionCollector());
-    var templateUi = templateSchema.getTemplateUI();
-    var columnOrder = templateUi.getOrder()
+    var columnOrder = fieldSchemas.values()
         .stream()
+        .map(SchemaArtifact::getName)
         .collect(ImmutableList.toImmutableList());
     return SpreadsheetSchema.create(templateName, templateVersion, columnDescription, columnOrder, templateIri, templateAccessUrl);
   }
