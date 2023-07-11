@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jetbrains.annotations.NotNull;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
@@ -25,6 +27,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +45,8 @@ public class ServiceResource {
 
   private final RestServiceHandler restServiceHandler;
 
+  private final ExcelFileHandler excelFileHandler;
+
   private final SpreadsheetSchemaGenerator spreadsheetSchemaGenerator;
 
   private final SpreadsheetValidator spreadsheetValidator;
@@ -51,11 +56,13 @@ public class ServiceResource {
   @Inject
   public ServiceResource(@Nonnull CedarService cedarService,
                          @Nonnull RestServiceHandler restServiceHandler,
+                         @Nonnull ExcelFileHandler excelFileHandler,
                          @Nonnull SpreadsheetSchemaGenerator spreadsheetSchemaGenerator,
                          @Nonnull SpreadsheetValidator spreadsheetValidator,
                          @Nonnull ResultCollector resultCollector) {
     this.cedarService = checkNotNull(cedarService);
     this.restServiceHandler = checkNotNull(restServiceHandler);
+    this.excelFileHandler = checkNotNull(excelFileHandler);
     this.spreadsheetSchemaGenerator = checkNotNull(spreadsheetSchemaGenerator);
     this.spreadsheetValidator = checkNotNull(spreadsheetValidator);
     this.resultCollector = checkNotNull(resultCollector);
@@ -149,6 +156,103 @@ public class ServiceResource {
     } catch (ValidatorRuntimeException e) {
       return responseErrorMessage(e);
     }
+  }
+
+  @POST
+  @Operation(summary = "Validate a metadata Excel file according to a metadata specification.")
+  @Consumes("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("/validate-xlsx")
+  @Tag(name = "Validation")
+  @RequestBody(
+      description = "An Excel (.xlsx) file with a mandatory `.metadata` sheet that contains the CEDAR template ID.",
+      required = true)
+  @ApiResponse(
+      responseCode = "200",
+      description = "A JSON object showing the validation report and other properties such as the" +
+          "extracted schema and the original spreadsheet data.",
+      content = @Content(
+          schema = @Schema(implementation = ValidateResponse.class),
+          mediaType = "application/json"
+      ))
+  @ApiResponse(
+      responseCode = "400",
+      description = "The request could not be understood by the server due to " +
+          "malformed syntax in the request body.")
+  @ApiResponse(
+      responseCode = "500",
+      description = "The server encountered an unexpected condition that prevented " +
+          "it from fulfilling the request.")
+  public Response validateXlsx(@Nonnull InputStream is) {
+    try {
+      var workbook = getWorkbook(is);
+      var metadataSheet = getMetadataSheet(workbook);
+      var cedarTemplateIri = getTemplateIri(metadataSheet);
+      var cedarTemplate = cedarService.getCedarTemplateFromIri(cedarTemplateIri);
+      var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
+      var mainSheet = getMainSheet(workbook);
+      var spreadsheetData = excelFileHandler.getTableData(mainSheet);
+      var spreadsheet = Spreadsheet.create(spreadsheetData);
+      var reporting = spreadsheetValidator
+          .validate(spreadsheet, spreadsheetSchema)
+          .collect(resultCollector);
+      var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
+      return Response.ok(response).build();
+    } catch (ValidatorRuntimeException e) {
+      return responseErrorMessage(e);
+    }
+  }
+
+  @NotNull
+  private XSSFWorkbook getWorkbook(@NotNull InputStream is) {
+    try {
+      return excelFileHandler.getWorkbookFromInputStream(is);
+    } catch (IOException e) {
+      throw new ValidatorServiceException("Invalid metadata Excel file.", e,
+          Response.Status.BAD_REQUEST.getStatusCode());
+    }
+  }
+
+  private XSSFSheet getMainSheet(XSSFWorkbook workbook) {
+    var sheet = excelFileHandler.getSheet(workbook, "MAIN");
+    if (sheet == null) {
+      sheet = excelFileHandler.getSheet(workbook, 0);
+    }
+    return sheet;
+  }
+
+  private XSSFSheet getMetadataSheet(XSSFWorkbook workbook) {
+    var sheet = excelFileHandler.getSheet(workbook, ".metadata");
+    if (sheet == null) {
+      throw new ValidatorServiceException(
+          "Invalid metadata Excel file.",
+          new IllegalArgumentException("Missing .metadata sheet."),
+          Response.Status.BAD_REQUEST.getStatusCode());
+    }
+    return sheet;
+  }
+
+  private String getTemplateIri(XSSFSheet metadataSheet) {
+    var columnIndex = getDerivedFromColumnLocation(metadataSheet);
+    var templateIri = excelFileHandler.getStringCellValue(metadataSheet, 1, columnIndex);
+    if (templateIri.trim().isEmpty()) {
+      throw new ValidatorServiceException(
+          "Invalid metadata Excel file.",
+          new IllegalArgumentException("Missing value in 'pav:derivedFrom' column in the .metadata sheet."),
+          Response.Status.BAD_REQUEST.getStatusCode());
+    }
+    return templateIri;
+  }
+
+  private int getDerivedFromColumnLocation(XSSFSheet metadataSheet) {
+    var derivedFromColumnLocation = excelFileHandler.findColumnLocation(metadataSheet, "pav:derivedFrom");
+    if (!derivedFromColumnLocation.isPresent()) {
+      throw new ValidatorServiceException(
+          "Invalid metadata Excel file.",
+          new IllegalArgumentException("Missing 'pav:derivedFrom' column in the .metadata sheet."),
+          Response.Status.BAD_REQUEST.getStatusCode());
+    }
+    return derivedFromColumnLocation.get();
   }
 
   private List<Map<String, Object>> parseTsvString(@NotNull String tsvString) {
