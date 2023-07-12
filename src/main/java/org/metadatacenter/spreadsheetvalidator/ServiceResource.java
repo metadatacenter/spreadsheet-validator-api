@@ -208,8 +208,7 @@ public class ServiceResource {
     try {
       return excelFileHandler.getWorkbookFromInputStream(is);
     } catch (IOException e) {
-      throw new ValidatorServiceException("Invalid metadata Excel file.", e,
-          Response.Status.BAD_REQUEST.getStatusCode());
+      throw new InvalidInputFileException("Invalid metadata Excel file.", e);
     }
   }
 
@@ -218,16 +217,20 @@ public class ServiceResource {
     if (sheet == null) {
       sheet = excelFileHandler.getSheet(workbook, 0);
     }
+    if (sheet == null) {
+      throw new InvalidInputFileException(
+          "Invalid metadata Excel file.",
+          new IllegalArgumentException("The [MAIN] sheet is missing."));
+    }
     return sheet;
   }
 
   private XSSFSheet getMetadataSheet(XSSFWorkbook workbook) {
     var sheet = excelFileHandler.getSheet(workbook, ".metadata");
     if (sheet == null) {
-      throw new ValidatorServiceException(
+      throw new InvalidInputFileException(
           "Invalid metadata Excel file.",
-          new IllegalArgumentException("Missing .metadata sheet."),
-          Response.Status.BAD_REQUEST.getStatusCode());
+          new IllegalArgumentException("The [.metadata] sheet is missing."));
     }
     return sheet;
   }
@@ -236,10 +239,9 @@ public class ServiceResource {
     var columnIndex = getDerivedFromColumnLocation(metadataSheet);
     var templateIri = excelFileHandler.getStringCellValue(metadataSheet, 1, columnIndex);
     if (templateIri.trim().isEmpty()) {
-      throw new ValidatorServiceException(
+      throw new InvalidInputFileException(
           "Invalid metadata Excel file.",
-          new IllegalArgumentException("Missing value in 'pav:derivedFrom' column in the .metadata sheet."),
-          Response.Status.BAD_REQUEST.getStatusCode());
+          new IllegalArgumentException("The schema IRI is missing in the [.metadata] sheet."));
     }
     return templateIri;
   }
@@ -247,10 +249,9 @@ public class ServiceResource {
   private int getDerivedFromColumnLocation(XSSFSheet metadataSheet) {
     var derivedFromColumnLocation = excelFileHandler.findColumnLocation(metadataSheet, "pav:derivedFrom");
     if (!derivedFromColumnLocation.isPresent()) {
-      throw new ValidatorServiceException(
+      throw new InvalidInputFileException(
           "Invalid metadata Excel file.",
-          new IllegalArgumentException("Missing 'pav:derivedFrom' column in the .metadata sheet."),
-          Response.Status.BAD_REQUEST.getStatusCode());
+          new IllegalArgumentException("The schema IRI is missing in the [.metadata] sheet."));
     }
     return derivedFromColumnLocation.get();
   }
@@ -259,24 +260,21 @@ public class ServiceResource {
     try {
       return restServiceHandler.parseTsvString(tsvString);
     } catch (IOException e) {
-      throw new ValidatorServiceException("Invalid metadata TSV file.", e,
-          Response.Status.BAD_REQUEST.getStatusCode());
+      throw new InvalidInputFileException("Invalid metadata TSV file.", e);
     }
   }
 
   private String getTemplateId(List<Map<String, Object>> spreadsheetData) {
     var metadataRow = spreadsheetData.stream()
         .findAny()
-        .orElseThrow(() -> new ValidatorServiceException(
+        .orElseThrow(() -> new InvalidInputFileException(
             "Invalid metadata TSV file.",
-            new IllegalArgumentException("No metadata found."),
-            Response.Status.BAD_REQUEST.getStatusCode()));
+            new IllegalArgumentException("The file is empty")));
     var templateId = metadataRow.get("metadata_schema_id").toString();
     if (templateId.trim().isEmpty()) {
-      throw new ValidatorServiceException(
+      throw new InvalidInputFileException(
           "Invalid metadata TSV file.",
-          new IllegalArgumentException("Missing value in the 'metadata_schema_id' column."),
-          Response.Status.BAD_REQUEST.getStatusCode());
+          new IllegalArgumentException("The metadata_schema_id is missing in the file."));
     }
     return templateId;
   }
