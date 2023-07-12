@@ -77,7 +77,7 @@ public class SpreadsheetSchemaGenerator {
 
   @Nonnull
   private String getTemplateAccessUrl(TemplateSchemaArtifact templateSchema) {
-    var templateIri = templateSchema.getJsonLdId().toString();
+    var templateIri = templateSchema.getJsonLdId().get().toString();
     return String.format(
         "https://openview.metadatacenter.org/templates/%s",
         URLEncoder.encode(templateIri, StandardCharsets.UTF_8));
