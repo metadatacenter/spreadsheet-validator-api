@@ -14,7 +14,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <mainClass>org.metadatacenter.spreadsheetvalidator.SpreadsheetValidatorApplication</mainClass>
-        <cedar.version>2.6.37-SNAPSHOT</cedar.version>
+        <cedar.version>2.6.36</cedar.version>
         <dagger.version>2.44.2</dagger.version>
         <dropwizard.version>4.0.0</dropwizard.version>
         <smoketurner.version>4.0.0-1</smoketurner.version>
