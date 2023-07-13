@@ -37,7 +37,13 @@ logging:
 
 cedarConfig:
   apiKey: ''
-  baseUrl: 'https://resource.metadatacenter.org/'
+  repoBaseUrl: 'https://repo.metadatacenter.org/'
+  resourceBaseUrl: 'https://resource.metadatacenter.org/'
+  terminologyEndpoint: 'https://terminology.metadatacenter.org/bioportal/integrated-search/'
+
+bioPortalConfig:
+  apiKey: ''
+  baseUrl: 'https://data.bioontology.org/'
 
 swagger:
   resourcePackage: org.metadatacenter.spreadsheetvalidator
