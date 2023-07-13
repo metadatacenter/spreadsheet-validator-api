@@ -1,17 +1,24 @@
 package org.metadatacenter.spreadsheetvalidator;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.jetbrains.annotations.NotNull;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
-import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceException;
 import org.metadatacenter.spreadsheetvalidator.request.ValidateSpreadsheetRequest;
 import org.metadatacenter.spreadsheetvalidator.response.ErrorResponse;
 import org.metadatacenter.spreadsheetvalidator.response.ValidateResponse;
@@ -20,14 +27,9 @@ import org.metadatacenter.spreadsheetvalidator.thirdparty.RestServiceHandler;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -89,7 +91,7 @@ public class ServiceResource {
           "extracted schema and the original spreadsheet data.",
       content = @Content(
           schema = @Schema(implementation = ValidateResponse.class),
-          mediaType = "application/json"
+          mediaType = MediaType.APPLICATION_JSON
       ))
   @ApiResponse(
       responseCode = "400",
@@ -118,20 +120,17 @@ public class ServiceResource {
 
   @POST
   @Operation(summary = "Validate a metadata TSV file according to a metadata specification.")
-  @Consumes("text/tab-separated-values")
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/validate-tsv")
   @Tag(name = "Validation")
-  @RequestBody(
-      description = "A TSV file with a mandatory column `metadata_schema_id` that contains the CEDAR template ID.",
-      required = true)
   @ApiResponse(
       responseCode = "200",
       description = "A JSON object showing the validation report and other properties such as the" +
           "extracted schema and the original spreadsheet data.",
       content = @Content(
           schema = @Schema(implementation = ValidateResponse.class),
-          mediaType = "application/json"
+          mediaType = MediaType.APPLICATION_JSON
       ))
   @ApiResponse(
       responseCode = "400",
@@ -141,8 +140,15 @@ public class ServiceResource {
       responseCode = "500",
       description = "The server encountered an unexpected condition that prevented " +
           "it from fulfilling the request.")
-  public Response validateTsv(@Nonnull String tsvString) {
+  public Response validateTsv(
+      @Parameter(schema = @Schema(
+          type = "string",
+          format = "binary",
+          description = "A TSV file with a mandatory column `metadata_schema_id` that contains the CEDAR template ID.",
+          requiredMode = Schema.RequiredMode.REQUIRED)) @FormDataParam("input_file") InputStream inputStream,
+      @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail) {
     try {
+      var tsvString = getTsvString(inputStream);
       var spreadsheetData = parseTsvString(tsvString);
       var templateId = getTemplateId(spreadsheetData);
       var cedarTemplate = cedarService.getCedarTemplateFromId(templateId);
@@ -158,22 +164,50 @@ public class ServiceResource {
     }
   }
 
+  private String getTsvString(InputStream inputStream) {
+    try {
+      return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new InvalidInputFileException("Invalid metadata TSV file.", e);
+    }
+  }
+
+  private List<Map<String, Object>> parseTsvString(String tsvString) {
+    try {
+      return restServiceHandler.parseTsvString(tsvString);
+    } catch (IOException e) {
+      throw new InvalidInputFileException("Invalid metadata TSV file.", e);
+    }
+  }
+
+  private String getTemplateId(List<Map<String, Object>> spreadsheetData) {
+    var metadataRow = spreadsheetData.stream()
+        .findAny()
+        .orElseThrow(() -> new InvalidInputFileException(
+            "Invalid metadata TSV file.",
+            new IllegalArgumentException("The file is empty")));
+    var templateId = metadataRow.get("metadata_schema_id").toString();
+    if (templateId.trim().isEmpty()) {
+      throw new InvalidInputFileException(
+          "Invalid metadata TSV file.",
+          new IllegalArgumentException("The metadata_schema_id is missing in the file."));
+    }
+    return templateId;
+  }
+  
   @POST
   @Operation(summary = "Validate a metadata Excel file according to a metadata specification.")
-  @Consumes("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/validate-xlsx")
   @Tag(name = "Validation")
-  @RequestBody(
-      description = "An Excel (.xlsx) file with a mandatory `.metadata` sheet that contains the CEDAR template ID.",
-      required = true)
   @ApiResponse(
       responseCode = "200",
       description = "A JSON object showing the validation report and other properties such as the" +
           "extracted schema and the original spreadsheet data.",
       content = @Content(
           schema = @Schema(implementation = ValidateResponse.class),
-          mediaType = "application/json"
+          mediaType = MediaType.APPLICATION_JSON
       ))
   @ApiResponse(
       responseCode = "400",
@@ -183,9 +217,15 @@ public class ServiceResource {
       responseCode = "500",
       description = "The server encountered an unexpected condition that prevented " +
           "it from fulfilling the request.")
-  public Response validateXlsx(@Nonnull InputStream is) {
+  public Response validateXlsx(
+      @Parameter(schema = @Schema(
+          type = "string",
+          format = "binary",
+          description = "An Excel (.xlsx) file with a mandatory `.metadata` sheet that contains the CEDAR template ID.",
+          requiredMode = Schema.RequiredMode.REQUIRED)) @FormDataParam("input_file") InputStream inputStream,
+      @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail) {
     try {
-      var workbook = getWorkbook(is);
+      var workbook = getWorkbook(inputStream);
       var metadataSheet = getMetadataSheet(workbook);
       var cedarTemplateIri = getTemplateIri(metadataSheet);
       var cedarTemplate = cedarService.getCedarTemplateFromIri(cedarTemplateIri);
@@ -203,8 +243,7 @@ public class ServiceResource {
     }
   }
 
-  @NotNull
-  private XSSFWorkbook getWorkbook(@NotNull InputStream is) {
+  private XSSFWorkbook getWorkbook(InputStream is) {
     try {
       return excelFileHandler.getWorkbookFromInputStream(is);
     } catch (IOException e) {
@@ -254,29 +293,6 @@ public class ServiceResource {
           new IllegalArgumentException("The schema IRI is missing in the [.metadata] sheet."));
     }
     return derivedFromColumnLocation.get();
-  }
-
-  private List<Map<String, Object>> parseTsvString(@NotNull String tsvString) {
-    try {
-      return restServiceHandler.parseTsvString(tsvString);
-    } catch (IOException e) {
-      throw new InvalidInputFileException("Invalid metadata TSV file.", e);
-    }
-  }
-
-  private String getTemplateId(List<Map<String, Object>> spreadsheetData) {
-    var metadataRow = spreadsheetData.stream()
-        .findAny()
-        .orElseThrow(() -> new InvalidInputFileException(
-            "Invalid metadata TSV file.",
-            new IllegalArgumentException("The file is empty")));
-    var templateId = metadataRow.get("metadata_schema_id").toString();
-    if (templateId.trim().isEmpty()) {
-      throw new InvalidInputFileException(
-          "Invalid metadata TSV file.",
-          new IllegalArgumentException("The metadata_schema_id is missing in the file."));
-    }
-    return templateId;
   }
 
   private Response responseErrorMessage(ValidatorRuntimeException e) {
