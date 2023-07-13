@@ -31,6 +31,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collector;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -43,6 +44,8 @@ public class SpreadsheetSchemaGenerator {
 
   private final ArtifactReader artifactReader;
   private final TerminologyService terminologyService;
+
+  private static final String DESCRIPTION_WITH_EXAMPLE = "^(.*)\\s*(?=Example:\\s+(.*)$)";
 
   @Inject
   public SpreadsheetSchemaGenerator(@Nonnull ArtifactReader artifactReader,
@@ -104,7 +107,8 @@ public class SpreadsheetSchemaGenerator {
               fieldSchema.getValueConstraints().get().getMinValue().orElse(null),
               fieldSchema.getValueConstraints().get().getMaxValue().orElse(null),
               fieldSchema.getValueConstraints().get().isRequiredValue(),
-              fieldSchema.getDescription(),
+              getDescription(fieldSchema.getDescription()),
+              getValueExample(fieldSchema.getDescription()),
               getPermissibleValues(fieldSchema.getName(), fieldSchema.getValueConstraints().get())
           ));
     }
@@ -133,6 +137,18 @@ public class SpreadsheetSchemaGenerator {
       } else {
         return null;
       }
+    }
+
+    @Nonnull
+    private String getDescription(@Nonnull String text) {
+      var matcher = Pattern.compile(DESCRIPTION_WITH_EXAMPLE).matcher(text);
+      return matcher.find() ? matcher.group(1) : text;
+    }
+
+    @Nullable
+    private String getValueExample(@Nonnull String text) {
+      var matcher = Pattern.compile(DESCRIPTION_WITH_EXAMPLE).matcher(text);
+      return matcher.find() ? matcher.group(2) : null;
     }
 
     @Nonnull

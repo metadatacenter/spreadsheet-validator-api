@@ -25,6 +25,7 @@ public abstract class ColumnDescription {
   private static final String REQUIRED = "required";
   private static final String PERMISSIBLE_VALUES = "permissibleValues";
   private static final String DESCRIPTION = "description";
+  private static final String EXAMPLE = "example";
 
   @Nonnull
   @JsonCreator
@@ -36,9 +37,10 @@ public abstract class ColumnDescription {
                                          @Nullable @JsonProperty(MAX) Number maxValue,
                                          @Nonnull @JsonProperty(REQUIRED) Boolean isRequiredColumn,
                                          @Nonnull @JsonProperty(DESCRIPTION) String columnDescription,
+                                         @Nullable @JsonProperty(EXAMPLE) String valueExample,
                                          @Nonnull @JsonProperty(PERMISSIBLE_VALUES) ImmutableList<PermissibleValue> permissibleValues) {
     return new AutoValue_ColumnDescription(columnName, columnLabel, valueType, valueSubType, minValue, maxValue,
-        isRequiredColumn, columnDescription, permissibleValues);
+        isRequiredColumn, columnDescription, valueExample, permissibleValues);
   }
 
   @Nonnull
@@ -87,6 +89,15 @@ public abstract class ColumnDescription {
   @Nonnull
   @JsonProperty(DESCRIPTION)
   public abstract String getColumnDescription();
+
+  @Nullable
+  @JsonProperty(EXAMPLE)
+  public abstract String getValueExample();
+
+  @JsonIgnore
+  public boolean hasValueExample() {
+    return getValueExample() != null;
+  }
 
   @Nonnull
   @JsonProperty(PERMISSIBLE_VALUES)
