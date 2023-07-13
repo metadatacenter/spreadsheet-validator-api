@@ -3,8 +3,8 @@ package org.metadatacenter.spreadsheetvalidator;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
-import in.vectorpro.dropwizard.swagger.SwaggerBundleConfiguration;
-import io.dropwizard.Configuration;
+import io.dropwizard.core.Configuration;
+import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.BioPortalConfig;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.CedarConfig;
 

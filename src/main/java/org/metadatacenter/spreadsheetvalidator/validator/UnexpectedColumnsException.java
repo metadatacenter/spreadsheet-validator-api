@@ -1,9 +1,9 @@
 package org.metadatacenter.spreadsheetvalidator.validator;
 
+import jakarta.ws.rs.core.Response;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
 
 import javax.annotation.Nonnull;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;

@@ -1,5 +1,6 @@
 package org.metadatacenter.spreadsheetvalidator.thirdparty;
 
+import jakarta.ws.rs.core.Response;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.util.EntityUtils;
@@ -7,7 +8,6 @@ import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceExcepti
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;

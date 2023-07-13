@@ -1,15 +1,16 @@
 package org.metadatacenter.spreadsheetvalidator;
 
-import in.vectorpro.dropwizard.swagger.SwaggerBundle;
-import in.vectorpro.dropwizard.swagger.SwaggerBundleConfiguration;
-import io.dropwizard.Application;
-import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.setup.Environment;
+import io.dropwizard.core.Application;
+import io.dropwizard.core.setup.Bootstrap;
+import io.dropwizard.core.setup.Environment;
+import io.dropwizard.forms.MultiPartBundle;
+import io.federecio.dropwizard.swagger.SwaggerBundle;
+import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
+import jakarta.servlet.DispatcherType;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.metadatacenter.spreadsheetvalidator.inject.component.DaggerWebappComponent;
 import org.metadatacenter.spreadsheetvalidator.inject.module.WebResourceModule;
 
-import javax.servlet.DispatcherType;
 import java.util.EnumSet;
 
 /**
@@ -31,6 +32,7 @@ public class SpreadsheetValidatorApplication extends Application<SpreadsheetVali
         return configuration.getSwaggerBundleConfiguration();
       }
     });
+    bootstrap.addBundle(new MultiPartBundle());
   }
 
   @Override

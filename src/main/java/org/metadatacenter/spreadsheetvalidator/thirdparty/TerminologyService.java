@@ -4,6 +4,7 @@ import autovalue.shaded.com.google.common.collect.ImmutableList;
 import autovalue.shaded.com.google.common.collect.ImmutableMap;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Streams;
+import jakarta.ws.rs.core.Response;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
@@ -12,7 +13,6 @@ import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceExcepti
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 
 import static com.google.common.base.Preconditions.checkNotNull;

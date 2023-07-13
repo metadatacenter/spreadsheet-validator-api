@@ -2,13 +2,13 @@ package org.metadatacenter.spreadsheetvalidator.thirdparty;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Charsets;
+import jakarta.ws.rs.core.Response;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.util.EntityUtils;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceException;
 
 import javax.inject.Inject;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;

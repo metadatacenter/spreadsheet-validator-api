@@ -14,10 +14,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <mainClass>org.metadatacenter.spreadsheetvalidator.SpreadsheetValidatorApplication</mainClass>
-        <cedar.version>2.6.34-SNAPSHOT</cedar.version>
+        <cedar.version>2.6.37-SNAPSHOT</cedar.version>
         <dagger.version>2.44.2</dagger.version>
-        <dropwizard.version>2.1.4</dropwizard.version>
-        <dropwizard.swagger.version>2.0.28-1</dropwizard.swagger.version>
+        <dropwizard.version>4.0.0</dropwizard.version>
+        <smoketurner.version>4.0.0-1</smoketurner.version>
         <jackson.version>2.14.1</jackson.version>
         <fuzzywuzzy.version>1.4.0</fuzzywuzzy.version>
         <httpcomponents.version>4.5.14</httpcomponents.version>
@@ -79,9 +79,14 @@
             <artifactId>dropwizard-assets</artifactId>
         </dependency>
         <dependency>
-            <groupId>in.vectorpro.dropwizard</groupId>
+            <groupId>com.smoketurner</groupId>
             <artifactId>dropwizard-swagger</artifactId>
-            <version>${dropwizard.swagger.version}</version>
+            <version>${smoketurner.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-forms</artifactId>
+            <version>${dropwizard.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

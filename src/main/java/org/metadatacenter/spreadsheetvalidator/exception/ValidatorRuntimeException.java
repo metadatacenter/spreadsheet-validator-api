@@ -1,7 +1,8 @@
 package org.metadatacenter.spreadsheetvalidator.exception;
 
+import jakarta.ws.rs.WebApplicationException;
+
 import javax.annotation.Nonnull;
-import javax.ws.rs.WebApplicationException;
 import java.util.Optional;
 
 /**
