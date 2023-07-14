@@ -21,6 +21,7 @@ import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
 import org.metadatacenter.spreadsheetvalidator.request.ValidateSpreadsheetRequest;
 import org.metadatacenter.spreadsheetvalidator.response.ErrorResponse;
+import org.metadatacenter.spreadsheetvalidator.response.UrlCheckResponse;
 import org.metadatacenter.spreadsheetvalidator.response.ValidateResponse;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.CedarService;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.RestServiceHandler;
@@ -29,6 +30,8 @@ import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -194,7 +197,7 @@ public class ServiceResource {
     }
     return templateId;
   }
-  
+
   @POST
   @Operation(summary = "Validate a metadata Excel file according to a metadata specification.")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -306,5 +309,40 @@ public class ServiceResource {
         .type(MediaType.APPLICATION_JSON_TYPE)
         .entity(response)
         .build();
+  }
+
+  @POST
+  @Operation(summary = "Check if a URL exists or not.")
+  @Consumes(MediaType.TEXT_PLAIN)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("/url-checker")
+  @Tag(name = "Utility")
+  @ApiResponse(
+      responseCode = "200",
+      description = "A JSON object showing the answer.",
+      content = @Content(
+          schema = @Schema(implementation = UrlCheckResponse.class),
+          mediaType = MediaType.APPLICATION_JSON
+      ))
+  @ApiResponse(
+      responseCode = "400",
+      description = "The request could not be understood by the server due to " +
+          "malformed syntax in the request body.")
+  @ApiResponse(
+      responseCode = "500",
+      description = "The server encountered an unexpected condition that prevented " +
+          "it from fulfilling the request.")
+  public Response urlChecker(@Nonnull String urlString) {
+    try {
+      var url = new URL(urlString);
+      var conn = (HttpURLConnection) url.openConnection();
+      conn.setRequestMethod("GET");
+      int responseCode = conn.getResponseCode();
+      var answer = UrlCheckResponse.create(urlString, responseCode == HttpURLConnection.HTTP_OK);
+      return Response.ok(answer).build();
+    } catch (IOException e) {
+      var answer = UrlCheckResponse.create(urlString, false);
+      return Response.ok(answer).build();
+    }
   }
 }
