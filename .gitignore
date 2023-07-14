@@ -1,8 +1,9 @@
 # Maven
 target/
+dependency-reduced-pom.xml
 
 # Dropwizard config file
-/config.yml
+src/main/resources/config.yml
 
 # Compiled class file
 *.class
