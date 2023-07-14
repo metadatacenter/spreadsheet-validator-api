@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import io.dropwizard.core.Configuration;
+import io.dropwizard.web.conf.WebConfiguration;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.BioPortalConfig;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.CedarConfig;
@@ -17,6 +18,8 @@ import javax.annotation.Nonnull;
 @AutoValue
 public abstract class SpreadsheetValidatorConfiguration extends Configuration {
 
+  private static final String WEB = "web";
+
   private static final String CEDAR_CONFIG = "cedarConfig";
 
   private static final String BIO_PORTAL_CONFIG = "bioPortalConfig";
@@ -25,11 +28,16 @@ public abstract class SpreadsheetValidatorConfiguration extends Configuration {
 
   @Nonnull
   @JsonCreator
-  public static SpreadsheetValidatorConfiguration create(@Nonnull @JsonProperty(CEDAR_CONFIG) CedarConfig cedarConfig,
+  public static SpreadsheetValidatorConfiguration create(@Nonnull @JsonProperty(WEB) WebConfiguration webConfiguration,
+                                                         @Nonnull @JsonProperty(CEDAR_CONFIG) CedarConfig cedarConfig,
                                                          @Nonnull @JsonProperty(BIO_PORTAL_CONFIG) BioPortalConfig bioPortalConfig,
                                                          @Nonnull @JsonProperty(SWAGGER) SwaggerBundleConfiguration swaggerBundleConfiguration) {
-    return new AutoValue_SpreadsheetValidatorConfiguration(cedarConfig, bioPortalConfig, swaggerBundleConfiguration);
+    return new AutoValue_SpreadsheetValidatorConfiguration(webConfiguration, cedarConfig, bioPortalConfig, swaggerBundleConfiguration);
   }
+
+  @Nonnull
+  @JsonProperty(WEB)
+  public abstract WebConfiguration getWebConfiguration();
 
   @Nonnull
   @JsonProperty(CEDAR_CONFIG)

@@ -2,6 +2,7 @@ package org.metadatacenter.spreadsheetvalidator.inject.module;
 
 import dagger.Module;
 import dagger.Provides;
+import io.dropwizard.web.conf.WebConfiguration;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.BioPortalConfig;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.CedarConfig;
 import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidatorConfiguration;
@@ -21,6 +22,11 @@ public class WebResourceModule {
 
   public WebResourceModule(@Nonnull SpreadsheetValidatorConfiguration appConfiguration) {
     this.appConfiguration = checkNotNull(appConfiguration);
+  }
+
+  @Provides
+  WebConfiguration provideWebConfiguration() {
+    return appConfiguration.getWebConfiguration();
   }
 
   @Provides

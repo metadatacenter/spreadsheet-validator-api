@@ -35,6 +35,22 @@ logging:
       archivedFileCount: 5
       timeZone: UTC
 
+web:
+  uriPath: /service
+  hsts:
+    enabled: true
+  frame-options:
+    enabled: true
+  content-type-options:
+    enabled: true
+  xss-protection:
+    enabled: true
+  cors:
+    allowedOrigins: [ "https://metadatavalidator.metadatacenter.org" ]
+    allowedMethods: [ "DELETE","GET","HEAD","POST","PUT" ]
+    allowedHeaders: [ "Accept","Authorization","Content-Type","Origin","X-Requested-With" ]
+    preflightMaxAge: 30 minutes
+
 cedarConfig:
   apiKey: ''
   repoBaseUrl: 'https://repo.metadatacenter.org/'

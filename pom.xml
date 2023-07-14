@@ -17,6 +17,7 @@
         <cedar.version>2.6.36</cedar.version>
         <dagger.version>2.44.2</dagger.version>
         <dropwizard.version>4.0.0</dropwizard.version>
+        <dropwizard-web.version>3.0.0</dropwizard-web.version>
         <smoketurner.version>4.0.0-1</smoketurner.version>
         <jackson.version>2.14.1</jackson.version>
         <fuzzywuzzy.version>1.4.0</fuzzywuzzy.version>
@@ -77,6 +78,11 @@
         <dependency>
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-assets</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard.modules</groupId>
+            <artifactId>dropwizard-web</artifactId>
+            <version>${dropwizard-web.version}</version>
         </dependency>
         <dependency>
             <groupId>com.smoketurner</groupId>
