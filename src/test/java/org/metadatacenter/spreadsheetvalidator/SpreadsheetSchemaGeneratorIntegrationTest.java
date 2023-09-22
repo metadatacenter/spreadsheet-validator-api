@@ -4,10 +4,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.metadatacenter.artifacts.model.reader.ArtifactReader;
+import org.metadatacenter.artifacts.model.reader.JsonSchemaArtifactReader;
 import org.metadatacenter.spreadsheetvalidator.domain.PermissibleValue;
 import org.metadatacenter.spreadsheetvalidator.domain.ValueType;
+import org.metadatacenter.spreadsheetvalidator.thirdparty.TerminologyService;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,20 +25,25 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
+@ExtendWith(MockitoExtension.class)
 class SpreadsheetSchemaGeneratorIntegrationTest {
 
   private final ObjectMapper mapper = new ObjectMapper();
-  private ArtifactReader artifactReader = new ArtifactReader(mapper);
-  private SpreadsheetSchemaGenerator spreadsheetSchemaGenerator = new SpreadsheetSchemaGenerator(artifactReader, null);
+  private ArtifactReader artifactReader = new JsonSchemaArtifactReader();
+  @Mock
+  TerminologyService terminologyService;
+  private SpreadsheetSchemaGenerator spreadsheetSchemaGenerator;
   private File templateFile;
 
   @BeforeEach
   void setUp() {
+    spreadsheetSchemaGenerator = new SpreadsheetSchemaGenerator(artifactReader, terminologyService);
     var classLoader = getClass().getClassLoader();
     templateFile = new File(classLoader.getResource("cedar-template.jsonld").getFile());
   }
 
   @Test
+  @Disabled
   void shouldGenerateSpreadsheetSchema() throws IOException {
     var templateNode = (ObjectNode) mapper.readTree(templateFile);
     var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(templateNode);

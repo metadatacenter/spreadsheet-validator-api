@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableSet;
 import org.metadatacenter.artifacts.model.core.FieldInputType;
 import org.metadatacenter.artifacts.model.core.FieldSchemaArtifact;
 import org.metadatacenter.artifacts.model.core.LiteralValueConstraint;
-import org.metadatacenter.artifacts.model.core.NumberType;
 import org.metadatacenter.artifacts.model.core.SchemaArtifact;
 import org.metadatacenter.artifacts.model.core.TemplateSchemaArtifact;
 import org.metadatacenter.artifacts.model.core.ValueConstraints;
@@ -25,7 +24,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
@@ -56,31 +54,37 @@ public class SpreadsheetSchemaGenerator {
 
   @Nonnull
   public SpreadsheetSchema generateFrom(@Nonnull ObjectNode templateNode) {
-    var templateSchema = artifactReader.readTemplateSchemaArtifact(templateNode);
-    var templateName = templateSchema.getName();
+    var templateSchema = getTemplateSchemaArtifact(templateNode);
+    var templateName = templateSchema.name();
     var templateVersion = getTemplateVersion(templateSchema);
-    var templateIri = templateSchema.getJsonLdId().toString();
+    var templateIri = templateSchema.jsonLdId().toString();
     var templateAccessUrl = getTemplateAccessUrl(templateSchema);
-    var fieldSchemas = templateSchema.getFieldSchemas();
+    var fieldSchemas = templateSchema.fieldSchemas();
     var columnDescription = fieldSchemas.values()
         .stream()
+        .filter((fieldSchema) -> !fieldSchema.isStatic())
         .collect(new ColumnDescriptionCollector());
     var columnOrder = fieldSchemas.values()
         .stream()
-        .map(SchemaArtifact::getName)
+        .filter((fieldSchema) -> !fieldSchema.fieldUi().isRichText())
+        .map(SchemaArtifact::name)
         .collect(ImmutableList.toImmutableList());
     return SpreadsheetSchema.create(templateName, templateVersion, columnDescription, columnOrder, templateIri, templateAccessUrl);
+  }
+
+  private TemplateSchemaArtifact getTemplateSchemaArtifact(ObjectNode templateNode) {
+    return artifactReader.readTemplateSchemaArtifact(templateNode);
   }
 
   @Nonnull
   private String getTemplateVersion(TemplateSchemaArtifact templateSchema) {
     var defaultVersion = Version.fromString("0.0.1");
-    return templateSchema.getVersion().orElse(defaultVersion).toString();
+    return templateSchema.version().orElse(defaultVersion).toString();
   }
 
   @Nonnull
   private String getTemplateAccessUrl(TemplateSchemaArtifact templateSchema) {
-    var templateIri = templateSchema.getJsonLdId().get().toString();
+    var templateIri = templateSchema.jsonLdId().get().toString();
     return String.format(
         "https://openview.metadatacenter.org/templates/%s",
         URLEncoder.encode(templateIri, StandardCharsets.UTF_8));
@@ -98,18 +102,18 @@ public class SpreadsheetSchemaGenerator {
 
     @Override
     public BiConsumer<ImmutableMap.Builder<String, ColumnDescription>, FieldSchemaArtifact> accumulator() {
-      return (builder, fieldSchema) -> builder.put(fieldSchema.getName(),
+      return (builder, fieldSchema) -> builder.put(fieldSchema.name(),
           ColumnDescription.create(
-              fieldSchema.getName(),
-              fieldSchema.getSkosPrefLabel().orElse(fieldSchema.getName()),
-              getColumnType(fieldSchema.getFieldUI().getInputType()),
-              getColumnSubType(fieldSchema.getValueConstraints().get().getNumberType()),
-              fieldSchema.getValueConstraints().get().getMinValue().orElse(null),
-              fieldSchema.getValueConstraints().get().getMaxValue().orElse(null),
-              fieldSchema.getValueConstraints().get().isRequiredValue(),
-              getDescription(fieldSchema.getDescription()),
-              getValueExample(fieldSchema.getDescription()),
-              getPermissibleValues(fieldSchema.getName(), fieldSchema.getValueConstraints().get())
+              fieldSchema.name(),
+              fieldSchema.skosPrefLabel().orElse(fieldSchema.name()),
+              getColumnType(fieldSchema.fieldUi().inputType()),
+              getColumnSubType(fieldSchema.valueConstraints().get()),
+              getMinValueConstraint(fieldSchema.valueConstraints().get()),
+              getMaxValueConstraint(fieldSchema.valueConstraints().get()),
+              fieldSchema.valueConstraints().get().requiredValue(),
+              getDescription(fieldSchema.description()),
+              getValueExample(fieldSchema.description()),
+              getPermissibleValues(fieldSchema.name(), fieldSchema.valueConstraints().get())
           ));
     }
 
@@ -126,14 +130,35 @@ public class SpreadsheetSchemaGenerator {
     }
 
     @Nullable
-    private ValueType getColumnSubType(Optional<NumberType> numberType) {
-      if (numberType.isPresent()) {
-        var numberTypeText = numberType.get().getText();
+    private ValueType getColumnSubType(ValueConstraints valueConstraints) {
+      if (valueConstraints.isNumericValueConstraint()) {
+        var numericValueConstraints = valueConstraints.asNumericValueConstraints();
+        var numberTypeText = numericValueConstraints.numberType().getText();
         if ("xsd:int".equals(numberTypeText)) {
           return ValueType.INTEGER;
         } else {
           return ValueType.DECIMAL;
         }
+      } else {
+        return null;
+      }
+    }
+
+    @Nullable
+    private Number getMinValueConstraint(ValueConstraints valueConstraints) {
+      if (valueConstraints.isNumericValueConstraint()) {
+        var numericValueConstraints = valueConstraints.asNumericValueConstraints();
+        return numericValueConstraints.minValue().orElse(null);
+      } else {
+        return null;
+      }
+    }
+
+    @Nullable
+    private Number getMaxValueConstraint(ValueConstraints valueConstraints) {
+      if (valueConstraints.isNumericValueConstraint()) {
+        var numericValueConstraints = valueConstraints.asNumericValueConstraints();
+        return numericValueConstraints.maxValue().orElse(null);
       } else {
         return null;
       }
@@ -153,11 +178,13 @@ public class SpreadsheetSchemaGenerator {
 
     @Nonnull
     private ImmutableList<PermissibleValue> getPermissibleValues(String fieldName, ValueConstraints valueConstraints) {
-      if (valueConstraints.hasOntologyValueBasedConstraints()) {
+      if (valueConstraints.isControlledTermValueConstraint()) {
         var ontologyValues = terminologyService.getOntologyValues(fieldName, valueConstraints);
         return ontologyValues.stream().collect(new OntologyValueCollector());
+      } else if (valueConstraints.isTextValueConstraint()) {
+        return valueConstraints.asTextValueConstraints().literals().stream().collect(new LiteralValueCollector());
       } else {
-        return valueConstraints.getLiterals().stream().collect(new LiteralValueCollector());
+        return ImmutableList.of();
       }
     }
 
@@ -180,7 +207,7 @@ public class SpreadsheetSchemaGenerator {
     }
   }
 
-  class OntologyValueCollector implements Collector<
+  static class OntologyValueCollector implements Collector<
       OntologyValue,
       ImmutableList.Builder<PermissibleValue>,
       ImmutableList<PermissibleValue>> {
@@ -218,7 +245,7 @@ public class SpreadsheetSchemaGenerator {
     }
   }
 
-  class LiteralValueCollector implements Collector<
+  static class LiteralValueCollector implements Collector<
       LiteralValueConstraint,
       ImmutableList.Builder<PermissibleValue>,
       ImmutableList<PermissibleValue>> {
@@ -231,7 +258,7 @@ public class SpreadsheetSchemaGenerator {
     @Override
     public BiConsumer<ImmutableList.Builder<PermissibleValue>, LiteralValueConstraint> accumulator() {
       return (builder, valueConstraint) -> builder.add(
-          PermissibleValue.create(valueConstraint.getLabel(), null)
+          PermissibleValue.create(valueConstraint.label(), null)
       );
     }
 

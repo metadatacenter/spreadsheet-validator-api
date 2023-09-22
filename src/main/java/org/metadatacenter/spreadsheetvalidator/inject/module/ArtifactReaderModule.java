@@ -5,9 +5,6 @@ import dagger.Module;
 import dagger.Provides;
 import org.metadatacenter.artifacts.model.reader.ArtifactReader;
 import org.metadatacenter.spreadsheetvalidator.inject.provider.ArtifactReaderProvider;
-import org.metadatacenter.spreadsheetvalidator.inject.scope.ServiceSessionScope;
-
-import javax.inject.Singleton;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
