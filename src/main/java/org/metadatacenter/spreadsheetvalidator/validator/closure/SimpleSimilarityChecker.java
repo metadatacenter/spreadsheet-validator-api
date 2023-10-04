@@ -14,7 +14,7 @@ public class SimpleSimilarityChecker implements Closure<String> {
 
   @Override
   public String execute(Object... inputs) {
-    var userInput = (String) inputs[0];
+    var userInput = String.valueOf(inputs[0]);
     var permissibleValues = (List<String>) inputs[1];
     var maxDistance = 0;
     var outputList = Lists.<String>newArrayList();

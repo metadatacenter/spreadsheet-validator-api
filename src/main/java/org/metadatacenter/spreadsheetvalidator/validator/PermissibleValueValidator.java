@@ -26,8 +26,8 @@ public class PermissibleValueValidator extends InputValueValidator {
                                  @Nonnull ValueContext valueContext,
                                  @Nonnull ValidatorContext validatorContext) {
     var columnDescription = valueContext.getColumnDescription();
-    if (columnDescription.hasPermissibleValues() && Assert.that(value, isString())) {
-      var label = (String) value;
+    if (columnDescription.hasPermissibleValues()) {
+      var label = String.valueOf(value);
       var permissibleValues = columnDescription.getPermissibleValues();
       var permissibleValueLabels = getPermissibleValueLabels(permissibleValues);
       if (Assert.that(label, not(isIgnoreCaseMemberOf(permissibleValueLabels)))) {
