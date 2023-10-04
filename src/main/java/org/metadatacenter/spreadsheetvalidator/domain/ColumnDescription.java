@@ -107,7 +107,7 @@ public abstract class ColumnDescription {
 
   @JsonIgnore
   public boolean hasRegexString() {
-    return getRegexString() != null;
+    return getRegexString() != null && !getRegexString().isBlank();
   }
 
   @Nonnull
