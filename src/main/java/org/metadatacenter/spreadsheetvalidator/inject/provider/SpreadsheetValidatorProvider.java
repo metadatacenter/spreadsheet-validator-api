@@ -41,7 +41,6 @@ public class SpreadsheetValidatorProvider implements Provider<SpreadsheetValidat
     validator.setClosure("numberExtractor", new NumberExtractor());
     validator.setClosure("similarityChecker", new SimpleSimilarityChecker());
     validator.registerValidator(new RequiredFieldValidator());
-    validator.registerValidator(new StringTypeValidator());
     validator.registerValidator(new NumberTypeValidator());
     validator.registerValidator(new IntegerNumberRangeValidator());
     validator.registerValidator(new DecimalNumberRangeValidator());
