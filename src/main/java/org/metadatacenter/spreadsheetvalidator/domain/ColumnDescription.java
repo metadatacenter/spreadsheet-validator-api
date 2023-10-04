@@ -26,6 +26,7 @@ public abstract class ColumnDescription {
   private static final String PERMISSIBLE_VALUES = "permissibleValues";
   private static final String DESCRIPTION = "description";
   private static final String EXAMPLE = "example";
+  private static final String REGEX = "regex";
 
   @Nonnull
   @JsonCreator
@@ -38,9 +39,10 @@ public abstract class ColumnDescription {
                                          @Nonnull @JsonProperty(REQUIRED) Boolean isRequiredColumn,
                                          @Nonnull @JsonProperty(DESCRIPTION) String columnDescription,
                                          @Nullable @JsonProperty(EXAMPLE) String valueExample,
+                                         @Nullable @JsonProperty(REGEX) String regexString,
                                          @Nonnull @JsonProperty(PERMISSIBLE_VALUES) ImmutableList<PermissibleValue> permissibleValues) {
     return new AutoValue_ColumnDescription(columnName, columnLabel, valueType, valueSubType, minValue, maxValue,
-        isRequiredColumn, columnDescription, valueExample, permissibleValues);
+        isRequiredColumn, columnDescription, valueExample, regexString, permissibleValues);
   }
 
   @Nonnull
@@ -97,6 +99,15 @@ public abstract class ColumnDescription {
   @JsonIgnore
   public boolean hasValueExample() {
     return getValueExample() != null;
+  }
+
+  @Nullable
+  @JsonProperty(REGEX)
+  public abstract String getRegexString();
+
+  @JsonIgnore
+  public boolean hasRegexString() {
+    return getRegexString() != null;
   }
 
   @Nonnull

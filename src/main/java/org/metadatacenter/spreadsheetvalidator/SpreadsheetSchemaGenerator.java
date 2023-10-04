@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import jakarta.validation.constraints.Null;
 import org.metadatacenter.artifacts.model.core.FieldInputType;
 import org.metadatacenter.artifacts.model.core.FieldSchemaArtifact;
 import org.metadatacenter.artifacts.model.core.LiteralValueConstraint;
@@ -66,7 +67,7 @@ public class SpreadsheetSchemaGenerator {
         .collect(new ColumnDescriptionCollector());
     var columnOrder = fieldSchemas.values()
         .stream()
-        .filter((fieldSchema) -> !fieldSchema.fieldUi().isRichText())
+        .filter((fieldSchema) -> !fieldSchema.isStatic())
         .map(SchemaArtifact::name)
         .collect(ImmutableList.toImmutableList());
     return SpreadsheetSchema.create(templateName, templateVersion, columnDescription, columnOrder, templateIri, templateAccessUrl);
@@ -113,6 +114,7 @@ public class SpreadsheetSchemaGenerator {
               fieldSchema.valueConstraints().get().requiredValue(),
               getDescription(fieldSchema.description()),
               getValueExample(fieldSchema.description()),
+              getRegexString(fieldSchema.valueConstraints().get()),
               getPermissibleValues(fieldSchema.name(), fieldSchema.valueConstraints().get())
           ));
     }
@@ -174,6 +176,15 @@ public class SpreadsheetSchemaGenerator {
     private String getValueExample(@Nonnull String text) {
       var matcher = Pattern.compile(DESCRIPTION_WITH_EXAMPLE).matcher(text);
       return matcher.find() ? matcher.group(2) : null;
+    }
+
+    @Nullable
+    private String getRegexString(@Nonnull ValueConstraints valueConstraints) {
+      if (valueConstraints.isTextValueConstraint()) {
+        var textValueConstraints = valueConstraints.asTextValueConstraints();
+        return textValueConstraints.regex().orElse(null);
+      }
+      return null;
     }
 
     @Nonnull
