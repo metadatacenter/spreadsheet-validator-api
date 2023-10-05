@@ -189,7 +189,7 @@ public class SpreadsheetSchemaGenerator {
 
     @Nonnull
     private ImmutableList<PermissibleValue> getPermissibleValues(String fieldName, ValueConstraints valueConstraints) {
-      if (valueConstraints.isControlledTermValueConstraint()) {
+      if (valueConstraints.isControlledTermValueConstraint() && valueConstraints.asControlledTermValueConstraints().hasValues()) {
         var ontologyValues = terminologyService.getOntologyValues(fieldName, valueConstraints);
         return ontologyValues.stream().collect(new OntologyValueCollector());
       } else if (valueConstraints.isTextValueConstraint()) {
