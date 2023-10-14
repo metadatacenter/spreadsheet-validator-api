@@ -65,7 +65,7 @@ public class SpreadsheetSchemaGenerator {
         .stream()
         .filter((fieldSchema) -> !fieldSchema.isStatic())
         .collect(new ColumnDescriptionCollector());
-    var columnOrder = fieldSchemas.values()
+    var columnOrder = templateSchema.orderedFieldSchemas().values()
         .stream()
         .filter((fieldSchema) -> !fieldSchema.isStatic())
         .map(SchemaArtifact::name)
