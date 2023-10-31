@@ -45,9 +45,9 @@ public class UrlValidator extends InputValueValidator {
   private boolean isResolvable(URL url) {
     try {
       var conn = (HttpURLConnection) url.openConnection();
-      conn.setRequestMethod("GET");
+      conn.setRequestMethod("HEAD");
       int responseCode = conn.getResponseCode();
-      return responseCode == HttpURLConnection.HTTP_OK;
+      return responseCode != HttpURLConnection.HTTP_NOT_FOUND;
     } catch (IOException e) {
       return false;
     }
