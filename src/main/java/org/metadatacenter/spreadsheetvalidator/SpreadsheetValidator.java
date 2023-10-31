@@ -43,10 +43,9 @@ public class SpreadsheetValidator {
   public SpreadsheetValidator validate(Spreadsheet spreadsheet,
                                        SpreadsheetSchema spreadsheetSchema) {
     validatorContext = new ValidatorContext(repairClosures, validationResultProvider.get());
-    validatorList.forEach(
-        validator -> spreadsheet.getRowStream().forEach(
-            spreadsheetRow -> validator.validate(validatorContext, spreadsheetSchema, spreadsheetRow))
-    );
+    spreadsheet.getRowStream().forEach(
+        spreadsheetRow -> validatorList.forEach(
+            validator -> validator.validate(validatorContext, spreadsheetSchema, spreadsheetRow)));
     return this;
   }
 
