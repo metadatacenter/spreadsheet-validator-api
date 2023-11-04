@@ -12,6 +12,7 @@ src/main/resources/config.yml
 *.log
 logs/
 log/
+usage-logs/
 
 # BlueJ files
 *.ctxt
