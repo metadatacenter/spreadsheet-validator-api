@@ -2,6 +2,7 @@ package org.metadatacenter.spreadsheetvalidator.thirdparty;
 
 import autovalue.shaded.com.google.common.collect.ImmutableList;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -12,6 +13,7 @@ import org.apache.http.util.EntityUtils;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +62,11 @@ public class RestServiceHandler {
   @Nonnull
   public <T> T writeObject(JsonNode jsonNode, Class<T> objectType) throws JsonProcessingException {
     return objectMapper.treeToValue(jsonNode, objectType);
+  }
+
+  public void writeObjectToFile(Object o, File outputFile) throws IOException {
+    var writer = objectMapper.writer(new DefaultPrettyPrinter());
+    writer.writeValue(outputFile, o);
   }
 
   @Nonnull
