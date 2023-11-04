@@ -1,5 +1,6 @@
 package org.metadatacenter.spreadsheetvalidator;
 
+import jakarta.ws.rs.core.Response;
 import org.jetbrains.annotations.NotNull;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
 
@@ -14,7 +15,7 @@ public class InvalidInputFileException extends ValidatorRuntimeException {
 
   public InvalidInputFileException(@Nonnull String message,
                                    @Nonnull Throwable cause) {
-    super(message, cause, 400);
+    super(message, cause, Response.Status.BAD_REQUEST.getStatusCode());
   }
 
   @Override
