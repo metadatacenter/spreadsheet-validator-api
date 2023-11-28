@@ -9,7 +9,6 @@ import org.metadatacenter.spreadsheetvalidator.util.Assert;
 import javax.annotation.Nonnull;
 
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isIgnoreCaseMemberOf;
-import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isString;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.not;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
@@ -27,12 +26,13 @@ public class PermissibleValueValidator extends InputValueValidator {
                                  @Nonnull ValidatorContext validatorContext) {
     var columnDescription = valueContext.getColumnDescription();
     if (columnDescription.hasPermissibleValues()) {
+      var fieldName = columnDescription.getColumnLabel();
       var label = String.valueOf(value);
       var permissibleValues = columnDescription.getPermissibleValues();
       var permissibleValueLabels = getPermissibleValueLabels(permissibleValues);
       if (Assert.that(label, not(isIgnoreCaseMemberOf(permissibleValueLabels)))) {
         var similarityChecker = validatorContext.getClosure("similarityChecker");
-        var suggestion = similarityChecker.execute(value, permissibleValueLabels);
+        var suggestion = similarityChecker.execute(fieldName, value, permissibleValueLabels);
         validatorContext.getValidationResult().add(
             ValidationError.builder()
                 .setColumnName(valueContext.getColumn())

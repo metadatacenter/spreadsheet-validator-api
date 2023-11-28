@@ -61,5 +61,10 @@ bioPortalConfig:
   apiKey: ''
   baseUrl: 'https://data.bioontology.org/'
 
+chatGptConfig:
+  apiKey: ''
+  baseUrl: 'https://api.openai.com/v1/chat/completions'
+  model: 'gpt-3.5-turbo'
+
 swagger:
   resourcePackage: org.metadatacenter.spreadsheetvalidator
