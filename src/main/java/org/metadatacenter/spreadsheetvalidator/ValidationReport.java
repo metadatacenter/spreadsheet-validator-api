@@ -32,6 +32,10 @@ public abstract class ValidationReport {
   @JsonValue
   public abstract ImmutableList<Map<String, Object>> getItems();
 
+  public boolean isEmpty() {
+    return getItems().isEmpty();
+  }
+
   public static class Builder {
 
     private final List<Map<String, Object>> reportItems = Lists.newArrayList();

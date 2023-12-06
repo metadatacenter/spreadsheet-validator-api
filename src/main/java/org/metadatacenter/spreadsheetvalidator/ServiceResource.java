@@ -124,14 +124,14 @@ public class ServiceResource {
             .validate(spreadsheet, spreadsheetSchema)
             .collect(resultCollector);
         var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
-        logSuccessReport(headers, cedarTemplateIri, reporting);
+        logUsage(headers, cedarTemplateIri, reporting);
         return Response.ok(response).build();
       } catch (ValidatorRuntimeException e) {
-        logErrorReport(headers, cedarTemplateIri, e.getResponse().getStatus(), e.getCause().getMessage());
+        logError(headers, cedarTemplateIri, e.getResponse().getStatus(), e.getCause().getMessage());
         return responseErrorMessage(e);
       }
     } catch (SchemaIdNotFoundException e) {
-      logErrorReport(headers, null, e.getResponse().getStatus(), e.getCause().getMessage());
+      logError(headers, null, e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
     }
   }
@@ -147,7 +147,7 @@ public class ServiceResource {
     return templateIri;
   }
 
-  private void logSuccessReport(HttpHeaders headers, String cedarTemplateIri, ValidationReport reporting) {
+  private void logUsage(HttpHeaders headers, String cedarTemplateIri, ValidationReport reporting) {
     var usageReport = UsageLog.create(
         ((ContainerRequest) headers).getAbsolutePath().toString(),
         Instant.now().toString(),
@@ -158,10 +158,14 @@ public class ServiceResource {
         cedarTemplateIri,
         reporting
     );
-    writeToFile(usageReport, "success");
+    if (reporting.isEmpty()) {
+      writeToFile(usageReport, "passed");
+    } else {
+      writeToFile(usageReport, "failed");
+    }
   }
 
-  private void logErrorReport(HttpHeaders headers, String cedarTemplateIri, int statusCode, String statusMessage) {
+  private void logError(HttpHeaders headers, String cedarTemplateIri, int statusCode, String statusMessage) {
     var usageReport = UsageLog.create(
         ((ContainerRequest) headers).getAbsolutePath().toString(),
         Instant.now().toString(),
@@ -172,7 +176,7 @@ public class ServiceResource {
         cedarTemplateIri,
         null
     );
-    writeToFile(usageReport, "failed");
+    writeToFile(usageReport, "error");
   }
 
   @POST
@@ -217,14 +221,14 @@ public class ServiceResource {
             .validate(spreadsheet, spreadsheetSchema)
             .collect(resultCollector);
         var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
-        logSuccessReport(headers, cedarTemplateIri, reporting);
+        logUsage(headers, cedarTemplateIri, reporting);
         return Response.ok(response).build();
       } catch (ValidatorRuntimeException e) {
-        logErrorReport(headers, cedarTemplateIri, e.getResponse().getStatus(), e.getCause().getMessage());
+        logError(headers, cedarTemplateIri, e.getResponse().getStatus(), e.getCause().getMessage());
         return responseErrorMessage(e);
       }
     } catch (InvalidInputFileException | SchemaIdNotFoundException e) {
-      logErrorReport(headers, null, e.getResponse().getStatus(), e.getCause().getMessage());
+      logError(headers, null, e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
     }
   }
@@ -304,14 +308,14 @@ public class ServiceResource {
             .validate(spreadsheet, spreadsheetSchema)
             .collect(resultCollector);
         var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
-        logSuccessReport(headers, cedarTemplateIri, reporting);
+        logUsage(headers, cedarTemplateIri, reporting);
         return Response.ok(response).build();
       } catch (ValidatorRuntimeException e) {
-        logErrorReport(headers, cedarTemplateIri, e.getResponse().getStatus(), e.getCause().getMessage());
+        logError(headers, cedarTemplateIri, e.getResponse().getStatus(), e.getCause().getMessage());
         return responseErrorMessage(e);
       }
     } catch (InvalidInputFileException | SchemaIdNotFoundException e) {
-      logErrorReport(headers, null, e.getResponse().getStatus(), e.getCause().getMessage());
+      logError(headers, null, e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
     }
   }
