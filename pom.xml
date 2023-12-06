@@ -15,6 +15,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <mainClass>org.metadatacenter.spreadsheetvalidator.SpreadsheetValidatorApplication</mainClass>
         <cedar.version>2.6.42-SNAPSHOT</cedar.version>
+        <caffeine.version>3.1.8</caffeine.version>
         <dagger.version>2.44.2</dagger.version>
         <dropwizard.version>4.0.0</dropwizard.version>
         <dropwizard-web.version>3.0.0</dropwizard-web.version>
@@ -46,6 +47,11 @@
             <groupId>org.metadatacenter</groupId>
             <artifactId>cedar-artifact-library</artifactId>
             <version>${cedar.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>${caffeine.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.dagger</groupId>

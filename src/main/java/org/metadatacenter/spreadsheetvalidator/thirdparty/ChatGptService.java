@@ -2,15 +2,15 @@ package org.metadatacenter.spreadsheetvalidator.thirdparty;
 
 import autovalue.shaded.com.google.common.collect.ImmutableMap;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.collect.ImmutableList;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-
 import java.io.IOException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -25,14 +25,26 @@ public class ChatGptService {
 
   private final RestServiceHandler restServiceHandler;
 
+  private final Cache<String, String> serviceResultCache;
+
   @Inject
   public ChatGptService(@Nonnull ChatGptConfig chatGptConfig,
-                        @Nonnull RestServiceHandler restServiceHandler) {
+                        @Nonnull RestServiceHandler restServiceHandler,
+                        @Nonnull Cache<String, String> serviceResultCache) {
     this.chatGptConfig = checkNotNull(chatGptConfig);
     this.restServiceHandler = checkNotNull(restServiceHandler);
+    this.serviceResultCache = checkNotNull(serviceResultCache);
   }
 
-  public JsonNode getResponse(@Nonnull String prompt) throws ServiceNotAvailable {
+  public String getResponse(@Nonnull String prompt) throws ServiceNotAvailable {
+    try {
+      return serviceResultCache.get(prompt, k -> makeRemoteCall(prompt));
+    } catch (RuntimeException e) {
+      throw new ServiceNotAvailable(e.getMessage());
+    }
+  }
+
+  private String makeRemoteCall(@NotNull String prompt) {
     Request request;
     String payloadString = "";
     try {
@@ -53,7 +65,7 @@ public class ChatGptService {
           "Bearer " + chatGptConfig.getApiKey(),
           payloadString);
     } catch (JsonProcessingException e) {
-      throw new ServiceNotAvailable("Error while processing the ChatGPT payload string.");
+      throw new RuntimeException("Error while processing the ChatGPT payload string.");
     }
 
     HttpResponse response;
@@ -61,25 +73,18 @@ public class ChatGptService {
       response = restServiceHandler.execute(request);
       var statusCode = response.getStatusLine().getStatusCode();
       if (statusCode != HttpStatus.SC_OK) {
-        throw new ServiceNotAvailable("Get return " + statusCode + " from ChatGPT API.");
+        throw new RuntimeException("Get return " + statusCode + " from ChatGPT API.");
       }
     } catch (IOException e) {
-      throw new ServiceNotAvailable("Error while connecting to CEDAR Terminology server.");
+      throw new RuntimeException("Error while connecting to CEDAR Terminology server.");
     }
 
     // Processing the response
     try {
-      return restServiceHandler.processResponse(response);
+      var responseObject = restServiceHandler.processResponse(response);
+      return responseObject.get("choices").get(0).get("message").get("content").asText();
     } catch (IOException e) {
-      throw new ServiceNotAvailable("Error while processing the ChatGPT response string.");
+      throw new RuntimeException("Error while processing the ChatGPT response string.");
     }
   }
-
-  /*
-  messages=[
-          {"role": "system", "content": "You are a metadata spelling corrector. Given a metadata field name and list of permissible field values for HuBMAP, your task is to identify the best match for a specififed user input."},
-          {"role": "user", "content": prompt},
-
-      ]
-   */
 }

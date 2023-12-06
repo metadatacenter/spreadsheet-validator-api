@@ -17,6 +17,7 @@ import org.metadatacenter.spreadsheetvalidator.validator.closure.SimpleSimilarit
 
 import javax.annotation.Nonnull;
 import javax.inject.Provider;
+import javax.inject.Singleton;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -24,6 +25,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
+@Singleton
 public class SpreadsheetValidatorProvider implements Provider<SpreadsheetValidator> {
 
   private final RepairClosures repairClosures;

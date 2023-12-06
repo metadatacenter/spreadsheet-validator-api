@@ -33,8 +33,7 @@ public class ChatGptSimilarityChecker implements Closure<String> {
     var permissibleValues = (List<String>) inputs[2];
     var prompt = getPrompt(fieldName, userInput, permissibleValues);
     try {
-      var response = chatGptService.getResponse(prompt);
-      return response.get("choices").get(0).get("message").get("content").asText();
+      return chatGptService.getResponse(prompt);
     } catch (ServiceNotAvailable e) {
       return simpleChecker.execute(userInput, permissibleValues);
     }
