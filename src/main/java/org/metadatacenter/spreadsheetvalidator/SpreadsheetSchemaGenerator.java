@@ -65,12 +65,17 @@ public class SpreadsheetSchemaGenerator {
         .stream()
         .filter((fieldSchema) -> !fieldSchema.isStatic())
         .collect(new ColumnDescriptionCollector());
+    var requiredColumns = columnDescription.values()
+        .stream()
+        .filter(ColumnDescription::isRequiredColumn)
+        .map(ColumnDescription::getColumnName)
+        .collect(ImmutableList.toImmutableList());
     var columnOrder = templateSchema.orderedFieldSchemas().values()
         .stream()
         .filter((fieldSchema) -> !fieldSchema.isStatic())
         .map(SchemaArtifact::name)
         .collect(ImmutableList.toImmutableList());
-    return SpreadsheetSchema.create(templateName, templateVersion, columnDescription, columnOrder, templateIri, templateAccessUrl);
+    return SpreadsheetSchema.create(templateName, templateVersion, columnDescription, requiredColumns, columnOrder, templateIri, templateAccessUrl);
   }
 
   private TemplateSchemaArtifact getTemplateSchemaArtifact(ObjectNode templateNode) {

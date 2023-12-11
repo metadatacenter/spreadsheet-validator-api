@@ -24,6 +24,8 @@ public abstract class SpreadsheetSchema {
 
   private static final String COLUMN_DESCRIPTION = "columnDescription";
 
+  private static final String REQUIRED_COLUMNS = "requiredColumns";
+
   private static final String COLUMN_ORDER = "columnOrder";
 
   private static final String GENERATED_FROM = "generatedFrom";
@@ -36,10 +38,11 @@ public abstract class SpreadsheetSchema {
       @Nonnull @JsonProperty(NAME) String name,
       @Nonnull @JsonProperty(VERSION) String version,
       @Nonnull @JsonProperty(COLUMN_DESCRIPTION) ImmutableMap<String, ColumnDescription> columnDescription,
+      @Nonnull @JsonProperty(REQUIRED_COLUMNS) ImmutableList<String> requiredColumns,
       @Nonnull @JsonProperty(COLUMN_ORDER) ImmutableList<String> columnOrder,
       @Nonnull @JsonProperty(GENERATED_FROM) String templateIri,
       @Nonnull @JsonProperty(ACCESS_URL) String accessUrl) {
-    return new AutoValue_SpreadsheetSchema(name, version, columnDescription, columnOrder, templateIri, accessUrl);
+    return new AutoValue_SpreadsheetSchema(name, version, columnDescription, requiredColumns, columnOrder, templateIri, accessUrl);
   }
 
   @Nonnull
@@ -53,6 +56,10 @@ public abstract class SpreadsheetSchema {
   @Nonnull
   @JsonProperty(COLUMN_DESCRIPTION)
   public abstract ImmutableMap<String, ColumnDescription> getColumnDescription();
+
+  @Nonnull
+  @JsonProperty(REQUIRED_COLUMNS)
+  public abstract ImmutableList<String> getRequiredColumns();
 
   @Nonnull
   @JsonProperty(COLUMN_ORDER)

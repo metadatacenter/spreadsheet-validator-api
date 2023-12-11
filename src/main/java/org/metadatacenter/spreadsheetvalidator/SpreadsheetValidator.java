@@ -60,11 +60,24 @@ public class SpreadsheetValidator {
 
   public SpreadsheetValidator validate(Spreadsheet spreadsheet,
                                        SpreadsheetSchema spreadsheetSchema) {
+    checkAllRequiredFieldsPresent(spreadsheet, spreadsheetSchema);
     validatorContext = new ValidatorContext(repairClosures, validationResultProvider.get());
     spreadsheet.getRowStream().forEach(
         spreadsheetRow -> validatorList.forEach(
             validator -> validator.validate(validatorContext, spreadsheetSchema, spreadsheetRow)));
     return this;
+  }
+
+  private static void checkAllRequiredFieldsPresent(Spreadsheet spreadsheet,
+                                             SpreadsheetSchema spreadsheetSchema) {
+    var spreadsheetColumns = spreadsheet.getColumns();
+    var missingColumns = spreadsheetSchema.getRequiredColumns()
+        .stream()
+        .filter(column -> !spreadsheetColumns.contains(column))
+        .collect(ImmutableList.toImmutableList());
+    if (!missingColumns.isEmpty()) {
+      throw new MissingRequiredColumnsException(missingColumns);
+    }
   }
 
   public ValidationReport collect(ResultCollector resultCollector) {

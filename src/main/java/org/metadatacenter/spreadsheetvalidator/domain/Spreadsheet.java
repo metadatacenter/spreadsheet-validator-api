@@ -50,4 +50,9 @@ public abstract class Spreadsheet {
   public Stream<SpreadsheetRow> getRowStream() {
     return getRows().stream();
   }
+
+  @JsonIgnore
+  public ImmutableList<String> getColumns() {
+    return get(0).columnStream().collect(ImmutableList.toImmutableList());
+  }
 }
