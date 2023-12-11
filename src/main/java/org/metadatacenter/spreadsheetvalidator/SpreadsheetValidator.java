@@ -1,8 +1,11 @@
 package org.metadatacenter.spreadsheetvalidator;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
+import org.metadatacenter.spreadsheetvalidator.exception.MissingRequiredColumnsException;
+import org.metadatacenter.spreadsheetvalidator.exception.UnexpectedColumnsException;
 import org.metadatacenter.spreadsheetvalidator.validator.closure.Closure;
 
 import javax.annotation.Nonnull;
@@ -38,6 +41,21 @@ public class SpreadsheetValidator {
 
   public void registerValidator(@Nonnull Validator validator) {
     validatorList.add(validator);
+  }
+
+  public SpreadsheetValidator additionalColumnsNotAllowed(Spreadsheet spreadsheet,
+                                                          SpreadsheetSchema spreadsheetSchema) {
+    var additionalColumns = Lists.<String>newArrayList();
+    spreadsheet.getColumns().stream()
+        .forEach(column -> {
+          if (!spreadsheetSchema.containsColumn(column)) {
+            additionalColumns.add(column);
+          }
+        });
+    if (!additionalColumns.isEmpty()) {
+      throw new UnexpectedColumnsException(additionalColumns);
+    }
+    return this;
   }
 
   public SpreadsheetValidator validate(Spreadsheet spreadsheet,

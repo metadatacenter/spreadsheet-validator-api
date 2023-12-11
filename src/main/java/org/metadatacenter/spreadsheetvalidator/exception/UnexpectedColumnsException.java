@@ -1,4 +1,4 @@
-package org.metadatacenter.spreadsheetvalidator.validator;
+package org.metadatacenter.spreadsheetvalidator.exception;
 
 import jakarta.ws.rs.core.Response;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;

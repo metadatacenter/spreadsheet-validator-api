@@ -121,6 +121,7 @@ public class ServiceResource {
         var spreadsheetData = request.getSpreadsheetData();
         var spreadsheet = Spreadsheet.create(spreadsheetData);
         var reporting = spreadsheetValidator
+            .additionalColumnsNotAllowed(spreadsheet, spreadsheetSchema)
             .validate(spreadsheet, spreadsheetSchema)
             .collect(resultCollector);
         var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
@@ -218,6 +219,7 @@ public class ServiceResource {
         var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
         var spreadsheet = Spreadsheet.create(spreadsheetData);
         var reporting = spreadsheetValidator
+            .additionalColumnsNotAllowed(spreadsheet, spreadsheetSchema)
             .validate(spreadsheet, spreadsheetSchema)
             .collect(resultCollector);
         var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
@@ -305,6 +307,7 @@ public class ServiceResource {
         var spreadsheetData = excelFileHandler.getTableData(mainSheet);
         var spreadsheet = Spreadsheet.create(spreadsheetData);
         var reporting = spreadsheetValidator
+            .additionalColumnsNotAllowed(spreadsheet, spreadsheetSchema)
             .validate(spreadsheet, spreadsheetSchema)
             .collect(resultCollector);
         var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
