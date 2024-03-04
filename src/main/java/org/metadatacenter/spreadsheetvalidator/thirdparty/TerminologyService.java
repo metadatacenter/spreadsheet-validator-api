@@ -43,7 +43,7 @@ public class TerminologyService {
     try {
       var payload = ImmutableMap.of(
           "parameterObject", ImmutableMap.of("valueConstraints", valueConstraints),
-          "pageSize", 5000,
+          "pageSize", 4999,
           "page", 1);
       payloadString = restServiceHandler.writeJsonString(payload);
       request = restServiceHandler.createPostRequest(
