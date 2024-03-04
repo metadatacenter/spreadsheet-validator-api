@@ -8,7 +8,7 @@ import jakarta.ws.rs.core.Response;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
-import org.metadatacenter.artifacts.model.core.ValueConstraints;
+import org.metadatacenter.artifacts.model.core.fields.constraints.ValueConstraints;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceException;
 
 import javax.annotation.Nonnull;

@@ -4,14 +4,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import jakarta.validation.constraints.Null;
-import org.metadatacenter.artifacts.model.core.FieldInputType;
 import org.metadatacenter.artifacts.model.core.FieldSchemaArtifact;
-import org.metadatacenter.artifacts.model.core.LiteralValueConstraint;
 import org.metadatacenter.artifacts.model.core.SchemaArtifact;
 import org.metadatacenter.artifacts.model.core.TemplateSchemaArtifact;
-import org.metadatacenter.artifacts.model.core.ValueConstraints;
 import org.metadatacenter.artifacts.model.core.Version;
+import org.metadatacenter.artifacts.model.core.fields.FieldInputType;
+import org.metadatacenter.artifacts.model.core.fields.constraints.LiteralValueConstraint;
+import org.metadatacenter.artifacts.model.core.fields.constraints.ValueConstraints;
 import org.metadatacenter.artifacts.model.reader.ArtifactReader;
 import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.PermissibleValue;
@@ -194,7 +193,7 @@ public class SpreadsheetSchemaGenerator {
 
     @Nonnull
     private ImmutableList<PermissibleValue> getPermissibleValues(String fieldName, ValueConstraints valueConstraints) {
-      if (valueConstraints.isControlledTermValueConstraint() && valueConstraints.asControlledTermValueConstraints().hasValues()) {
+      if (valueConstraints.isControlledTermValueConstraint() && valueConstraints.asControlledTermValueConstraints().hasExplicitConstraints()) {
         var ontologyValues = terminologyService.getOntologyValues(fieldName, valueConstraints);
         return ontologyValues.stream().collect(new OntologyValueCollector());
       } else if (valueConstraints.isTextValueConstraint()) {
