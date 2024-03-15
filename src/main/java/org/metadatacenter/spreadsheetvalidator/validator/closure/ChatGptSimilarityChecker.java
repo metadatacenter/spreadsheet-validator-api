@@ -19,6 +19,8 @@ public class ChatGptSimilarityChecker implements Closure<String> {
 
   private final SimpleSimilarityChecker simpleChecker;
 
+  private final boolean ENABLE_CHATGPT = false;
+
   @Inject
   public ChatGptSimilarityChecker(@Nonnull ChatGptService chatGptService,
                                   @Nonnull SimpleSimilarityChecker simpleChecker) {
@@ -33,9 +35,13 @@ public class ChatGptSimilarityChecker implements Closure<String> {
     var permissibleValues = (List<String>) inputs[2];
     var prompt = getPrompt(fieldName, userInput, permissibleValues);
     var suggestion = "";
-    try {
-      suggestion = chatGptService.getResponse(prompt);
-    } catch (ServiceNotAvailable e) {
+    if (ENABLE_CHATGPT) {
+      try {
+        suggestion = chatGptService.getResponse(prompt);
+      } catch (ServiceNotAvailable e) {
+        suggestion = simpleChecker.execute(userInput, permissibleValues);
+      }
+    } else {
       suggestion = simpleChecker.execute(userInput, permissibleValues);
     }
     return suggestion;
