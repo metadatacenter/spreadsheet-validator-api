@@ -55,7 +55,8 @@ public class ChatGptService {
                   "role", "system",
                   "content", "You are a metadata spelling corrector. Given a metadata " +
                       "field name and list of permissible field values for HuBMAP, your task " +
-                      "is to identify the best match for a specified user input."),
+                      "is to identify the best match for a specified user input. I need a straight " +
+                      "answer so do not include the field name in your answer"),
               ImmutableMap.of(
                   "role", "user",
                   "content", prompt))
