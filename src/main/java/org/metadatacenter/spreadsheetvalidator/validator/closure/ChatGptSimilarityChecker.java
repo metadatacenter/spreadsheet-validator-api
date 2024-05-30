@@ -19,7 +19,7 @@ public class ChatGptSimilarityChecker implements Closure<String> {
 
   private final SimpleSimilarityChecker simpleChecker;
 
-  private final boolean ENABLE_CHATGPT = false;
+  private final boolean ENABLE_CHATGPT = true;
 
   @Inject
   public ChatGptSimilarityChecker(@Nonnull ChatGptService chatGptService,
