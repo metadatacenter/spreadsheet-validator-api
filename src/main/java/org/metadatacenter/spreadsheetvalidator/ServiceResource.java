@@ -213,9 +213,9 @@ public class ServiceResource {
     try {
       var tsvString = getTsvString(inputStream);
       var spreadsheetData = parseTsvString(tsvString);
-      var cedarTemplateIri = getTemplateIri(spreadsheetData);
+      var templateId = getTemplateId(spreadsheetData);
       try {
-        var cedarTemplate = cedarService.getCedarTemplateFromId(cedarTemplateIri);
+        var cedarTemplate = cedarService.getCedarTemplateFromId(templateId);
         var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
         var spreadsheet = Spreadsheet.create(spreadsheetData);
         var reporting = spreadsheetValidator
@@ -223,10 +223,10 @@ public class ServiceResource {
             .validate(spreadsheet, spreadsheetSchema)
             .collect(resultCollector);
         var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
-        logUsage(headers, cedarTemplateIri, reporting);
+        logUsage(headers, templateId, reporting);
         return Response.ok(response).build();
       } catch (ValidatorRuntimeException e) {
-        logError(headers, cedarTemplateIri, e.getResponse().getStatus(), e.getCause().getMessage());
+        logError(headers, templateId, e.getResponse().getStatus(), e.getCause().getMessage());
         return responseErrorMessage(e);
       }
     } catch (InvalidInputFileException | SchemaIdNotFoundException e) {
@@ -251,7 +251,7 @@ public class ServiceResource {
     }
   }
 
-  private String getTemplateIri(List<Map<String, Object>> spreadsheetData) {
+  private String getTemplateId(List<Map<String, Object>> spreadsheetData) {
     var metadataRow = spreadsheetData.stream()
         .findAny()
         .orElseThrow(() -> new InvalidInputFileException(
@@ -299,9 +299,9 @@ public class ServiceResource {
     try {
       var workbook = getWorkbook(inputStream);
       var metadataSheet = getMetadataSheet(workbook);
-      var cedarTemplateIri = getTemplateIri(metadataSheet);
+      var templateIri = getTemplateIri(metadataSheet);
       try {
-        var cedarTemplate = cedarService.getCedarTemplateFromIri(cedarTemplateIri);
+        var cedarTemplate = cedarService.getCedarTemplateFromIri(templateIri);
         var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
         var mainSheet = getMainSheet(workbook);
         var spreadsheetData = excelFileHandler.getTableData(mainSheet);
@@ -311,10 +311,10 @@ public class ServiceResource {
             .validate(spreadsheet, spreadsheetSchema)
             .collect(resultCollector);
         var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
-        logUsage(headers, cedarTemplateIri, reporting);
+        logUsage(headers, templateIri, reporting);
         return Response.ok(response).build();
       } catch (ValidatorRuntimeException e) {
-        logError(headers, cedarTemplateIri, e.getResponse().getStatus(), e.getCause().getMessage());
+        logError(headers, templateIri, e.getResponse().getStatus(), e.getCause().getMessage());
         return responseErrorMessage(e);
       }
     } catch (InvalidInputFileException | SchemaIdNotFoundException e) {
