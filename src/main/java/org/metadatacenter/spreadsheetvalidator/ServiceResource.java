@@ -1,6 +1,5 @@
 package org.metadatacenter.spreadsheetvalidator;
 
-import com.google.common.base.Strings;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,7 +22,10 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.glassfish.jersey.server.ContainerRequest;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
+import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceException;
+import org.metadatacenter.spreadsheetvalidator.request.SchemaIdNotFoundException;
 import org.metadatacenter.spreadsheetvalidator.request.ValidateSpreadsheetRequest;
+import org.metadatacenter.spreadsheetvalidator.request.ValidatorRequestBodyException;
 import org.metadatacenter.spreadsheetvalidator.response.ErrorResponse;
 import org.metadatacenter.spreadsheetvalidator.response.UrlCheckResponse;
 import org.metadatacenter.spreadsheetvalidator.response.ValidateResponse;
@@ -114,38 +116,22 @@ public class ServiceResource {
   public Response validate(@Context HttpHeaders headers,
                            @Nonnull ValidateSpreadsheetRequest request) {
     try {
-      var cedarTemplateIri = getCedarTemplateIri(request);
-      try {
-        var cedarTemplate = cedarService.getCedarTemplateFromIri(cedarTemplateIri);
-        var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
-        var spreadsheetData = request.getSpreadsheetData();
-        var spreadsheet = Spreadsheet.create(spreadsheetData);
-        var reporting = spreadsheetValidator
-            .additionalColumnsNotAllowed(spreadsheet, spreadsheetSchema)
-            .validate(spreadsheet, spreadsheetSchema)
-            .collect(resultCollector);
-        var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
-        logUsage(headers, cedarTemplateIri, reporting);
-        return Response.ok(response).build();
-      } catch (ValidatorRuntimeException e) {
-        logError(headers, cedarTemplateIri, e.getResponse().getStatus(), e.getCause().getMessage());
-        return responseErrorMessage(e);
-      }
-    } catch (SchemaIdNotFoundException e) {
-      logError(headers, null, e.getResponse().getStatus(), e.getCause().getMessage());
+      var cedarTemplateIri = request.getCheckedCedarTemplateIri();
+      var spreadsheetData = request.getCheckedSpreadsheetData();
+      var cedarTemplate = cedarService.getCedarTemplateFromIri(cedarTemplateIri);
+      var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
+      var spreadsheet = Spreadsheet.create(spreadsheetData);
+      var reporting = spreadsheetValidator
+          .additionalColumnsNotAllowed(spreadsheet, spreadsheetSchema)
+          .validate(spreadsheet, spreadsheetSchema)
+          .collect(resultCollector);
+      var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
+      logUsage(headers, cedarTemplateIri, reporting);
+      return Response.ok(response).build();
+    } catch (ValidatorServiceException | ValidatorRequestBodyException e) {
+      logError(headers, cedarTemplateIri, e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
     }
-  }
-
-  @Nonnull
-  private String getCedarTemplateIri(@Nonnull ValidateSpreadsheetRequest request) {
-    var templateIri = request.getCedarTemplateIri();
-    if (Strings.isNullOrEmpty(templateIri)) {
-      throw new SchemaIdNotFoundException(
-          "Bad request body.",
-          new Exception("The input parameter 'cedarTemplateIri' is missing from the request body."));
-    }
-    return templateIri;
   }
 
   private void logUsage(HttpHeaders headers, String cedarTemplateIri, ValidationReport reporting) {
@@ -166,14 +152,14 @@ public class ServiceResource {
     }
   }
 
-  private void logError(HttpHeaders headers, String cedarTemplateIri, int statusCode, String statusMessage) {
+  private void logError(HttpHeaders headers, String cedarTemplateIri, int statusCode, String errorMessage) {
     var usageReport = UsageLog.create(
         ((ContainerRequest) headers).getAbsolutePath().toString(),
         Instant.now().toString(),
         headers.getRequestHeader("X-Forwarded-For").stream().findFirst().orElse(""),
         headers.getRequestHeader("User-Agent").stream().findFirst().orElse(""),
         statusCode,
-        statusMessage,
+        errorMessage,
         cedarTemplateIri,
         null
     );

@@ -3,7 +3,7 @@ package org.metadatacenter.spreadsheetvalidator.request;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
-import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
+import com.google.common.base.Strings;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -34,4 +34,24 @@ public abstract class ValidateSpreadsheetRequest {
   @Nonnull
   @JsonProperty(CEDAR_TEMPLATE_IRI)
   public abstract String getCedarTemplateIri();
+
+  public List<Map<String, Object>> getCheckedSpreadsheetData() {
+    var spreadsheetData = getSpreadsheetData();
+    if (spreadsheetData == null) {
+      throw new SpreadsheetDataNotFoundException(
+        "Bad request body.",
+        new Exception("The input key '" + SPREADSHEET_DATA + "' is missing from the request body."), this);
+    }
+    return spreadsheetData;
+  }
+
+  public String getCheckedCedarTemplateIri() {
+    var templateIri = getCedarTemplateIri();
+    if (Strings.isNullOrEmpty(templateIri)) {
+      throw new SchemaIdNotFoundException(
+          "Bad request body.",
+          new Exception("The input key '" + CEDAR_TEMPLATE_IRI + "' is missing from the request body."), this);
+    }
+    return templateIri;
+  }
 }
