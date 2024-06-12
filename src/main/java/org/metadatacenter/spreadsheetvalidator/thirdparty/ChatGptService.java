@@ -50,13 +50,13 @@ public class ChatGptService {
     try {
       var payload = ImmutableMap.of(
           "model", chatGptConfig.getModel(),
+          "temperature", 0.35,
           "messages", ImmutableList.of(
               ImmutableMap.of(
                   "role", "system",
-                  "content", "You are a metadata spelling corrector. Given a metadata " +
-                      "field name and list of permissible field values for HuBMAP, your task " +
-                      "is to identify the best match for a specified user input. I need a straight " +
-                      "answer so do not include the field name in your answer"),
+                  "content", "You are a spelling checker. Your task is to identify the closest match " +
+                      "from a list of permitted values for a given field based on a specified user input. " +
+                      "Return the best matching value directly from your output."),
               ImmutableMap.of(
                   "role", "user",
                   "content", prompt))
