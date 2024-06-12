@@ -59,6 +59,8 @@ cedarConfig:
   repoBaseUrl: 'https://repo.metadatacenter.org/'
   resourceBaseUrl: 'https://resource.metadatacenter.org/'
   terminologyEndpoint: 'https://terminology.metadatacenter.org/bioportal/integrated-search/'
+  maxRetries: 5
+  backoffSleepTime: 1000
 
 bioPortalConfig:
   apiKey: ''

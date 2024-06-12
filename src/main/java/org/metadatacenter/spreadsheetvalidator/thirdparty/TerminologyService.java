@@ -4,7 +4,6 @@ import autovalue.shaded.com.google.common.collect.ImmutableList;
 import autovalue.shaded.com.google.common.collect.ImmutableMap;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Streams;
-import jakarta.ws.rs.core.Response;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
@@ -51,27 +50,11 @@ public class TerminologyService {
           "apiKey " + cedarConfig.getApiKey(),
           payloadString);
     } catch (JsonProcessingException e) {
-      throw new ValidatorServiceException("Failed to prepare the request payload.",
-          e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+      throw badPayloadError(e);
     }
 
     // Execute the request
-    HttpResponse response = null;
-    try {
-      response = restServiceHandler.execute(request);
-      var statusCode = response.getStatusLine().getStatusCode();
-      if (statusCode != HttpStatus.SC_OK) {
-        var responseMessage = String.format("Bad request to /bioportal/integrated-search.\n%s\n%s",
-            request, payloadString);
-        var cause = new IOException(responseMessage);
-        throw new ValidatorServiceException(String.format(
-            "Failed to populate categorical values for the '%s' field.", fieldName),
-            cause, response.getStatusLine().getStatusCode());
-      }
-    } catch (IOException e) {
-      throw new ValidatorServiceException("Error while connecting to CEDAR Terminology server.",
-          e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-    }
+    var response = makeApiRequest(request, fieldName);
 
     // Process the response
     try {
@@ -81,14 +64,73 @@ public class TerminologyService {
             try {
               return restServiceHandler.writeObject(ontologyValue, OntologyValue.class);
             } catch (JsonProcessingException e) {
-              throw new ValidatorServiceException("Failed to process response from CEDAR Terminology server.",
-                  e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+              throw badResponseError(e);
             }
           })
           .collect(ImmutableList.toImmutableList());
     } catch (IOException e) {
-      throw new ValidatorServiceException("Failed to process response from CEDAR Terminology server.",
-          e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+      throw badResponseError(e);
     }
+  }
+
+  private HttpResponse makeApiRequest(Request request, String fieldName) {
+    var attempt = 0;
+    var maxRetries = cedarConfig.getMaxRetries();
+    while (attempt < maxRetries) {
+      try {
+        var response = restServiceHandler.execute(request);
+        var statusCode = response.getStatusLine().getStatusCode();
+
+        // Handle HTTP 429
+        if (statusCode == HttpStatus.SC_TOO_MANY_REQUESTS) {
+          attempt++;
+          long sleepTime = cedarConfig.getBackoffSleepTime() * (1L << (attempt - 1)); // Exponential backoff
+          System.out.println("429 received. Retrying after " + sleepTime + " ms...");
+          Thread.sleep(sleepTime);
+          continue;
+        }
+
+        if (statusCode == HttpStatus.SC_OK) {
+          return response;
+        } else {
+          throw badRequestError(request, fieldName);
+        }
+      } catch (IOException | InterruptedException e) {
+        if (attempt == maxRetries - 1) {
+          throw failedAttemptError(fieldName, maxRetries);
+        }
+        attempt++;
+      }
+    }
+    throw failedAttemptError(fieldName, attempt);
+  }
+
+  @Nonnull
+  private static ValidatorServiceException badPayloadError(JsonProcessingException cause) {
+    return new ValidatorServiceException("Failed to prepare the request payload.",
+        cause, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+  }
+
+  @Nonnull
+  private static ValidatorServiceException badResponseError(IOException cause) {
+    return new ValidatorServiceException("Failed to process response from CEDAR Terminology server.",
+        cause, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+  }
+
+  @Nonnull
+  private static ValidatorServiceException badRequestError(Request request, String fieldName) {
+    var responseMessage = String.format("Bad request to /bioportal/integrated-search.\n%s", request);
+    var cause = new IOException(responseMessage);
+    return new ValidatorServiceException(String.format(
+        "Failed to populate categorical values for the '%s' field.", fieldName),
+        cause, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+  }
+
+  @Nonnull
+  private static ValidatorServiceException failedAttemptError(String fieldName, int attempt) {
+    var cause = new IOException("Failed after " + attempt + " attempts");
+    return new ValidatorServiceException(String.format(
+        "Failed to populate categorical values for the '%s' field.", fieldName),
+        cause, HttpStatus.SC_INTERNAL_SERVER_ERROR);
   }
 }
