@@ -3,6 +3,7 @@ package org.metadatacenter.spreadsheetvalidator.inject.module;
 import dagger.Module;
 import dagger.Provides;
 import io.dropwizard.web.conf.WebConfiguration;
+import org.metadatacenter.spreadsheetvalidator.GeneralConfig;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.BioPortalConfig;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.CedarConfig;
 import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidatorConfiguration;
@@ -28,6 +29,11 @@ public class WebResourceModule {
   @Provides
   WebConfiguration provideWebConfiguration() {
     return appConfiguration.getWebConfiguration();
+  }
+
+  @Provides
+  GeneralConfig provideGeneralConfiguration() {
+    return appConfiguration.getGeneralConfig();
   }
 
   @Provides

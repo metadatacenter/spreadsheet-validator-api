@@ -51,6 +51,9 @@ web:
     allowedHeaders: [ "Accept","Authorization","Content-Type","Origin","X-Requested-With" ]
     preflightMaxAge: 30 minutes
 
+general:
+  encoding: 'ASCII'
+
 cedarConfig:
   apiKey: ''
   repoBaseUrl: 'https://repo.metadatacenter.org/'
