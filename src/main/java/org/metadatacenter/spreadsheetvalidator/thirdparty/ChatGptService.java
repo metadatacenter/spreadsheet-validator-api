@@ -56,7 +56,8 @@ public class ChatGptService {
                   "role", "system",
                   "content", "You are a spelling checker. Your task is to identify the closest match " +
                       "from a list of permitted values for a given field based on a specified user input. " +
-                      "Return the best matching value directly from your output."),
+                      "Return only the best matching value from the permitted list, without including the " +
+                      "field name in your response."),
               ImmutableMap.of(
                   "role", "user",
                   "content", prompt))
