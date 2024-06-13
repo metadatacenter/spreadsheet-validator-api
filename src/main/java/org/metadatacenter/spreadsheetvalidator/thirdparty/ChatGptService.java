@@ -50,7 +50,7 @@ public class ChatGptService {
     try {
       var payload = ImmutableMap.of(
           "model", chatGptConfig.getModel(),
-          "temperature", 0.35,
+          "temperature", 0.20,
           "messages", ImmutableList.of(
               ImmutableMap.of(
                   "role", "system",
