@@ -81,8 +81,8 @@ public class TerminologyService {
         var response = restServiceHandler.execute(request);
         var statusCode = response.getStatusLine().getStatusCode();
 
-        // Handle HTTP 429
-        if (statusCode == HttpStatus.SC_TOO_MANY_REQUESTS) {
+        // Handle HTTP 429 - Too many requests
+        if (statusCode == 429) {
           attempt++;
           long sleepTime = cedarConfig.getBackoffSleepTime() * (1L << (attempt - 1)); // Exponential backoff
           System.out.println("429 received. Retrying after " + sleepTime + " ms...");
