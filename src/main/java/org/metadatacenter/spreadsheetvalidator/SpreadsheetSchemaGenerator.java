@@ -110,7 +110,7 @@ public class SpreadsheetSchemaGenerator {
       return (builder, fieldSchema) -> builder.put(fieldSchema.name(),
           ColumnDescription.create(
               fieldSchema.name(),
-              fieldSchema.skosPrefLabel().orElse(fieldSchema.name()),
+              fieldSchema.preferredLabel().orElse(fieldSchema.name()),
               getColumnType(fieldSchema.fieldUi().inputType()),
               getColumnSubType(fieldSchema.valueConstraints().get()),
               getMinValueConstraint(fieldSchema.valueConstraints().get()),
