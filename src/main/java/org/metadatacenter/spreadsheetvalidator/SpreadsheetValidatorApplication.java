@@ -8,12 +8,8 @@ import io.dropwizard.web.WebBundle;
 import io.dropwizard.web.conf.WebConfiguration;
 import io.federecio.dropwizard.swagger.SwaggerBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
-import jakarta.servlet.DispatcherType;
-import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.metadatacenter.spreadsheetvalidator.inject.component.DaggerWebappComponent;
 import org.metadatacenter.spreadsheetvalidator.inject.module.WebResourceModule;
-
-import java.util.EnumSet;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
