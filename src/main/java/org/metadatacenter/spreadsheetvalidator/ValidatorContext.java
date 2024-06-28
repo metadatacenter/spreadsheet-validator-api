@@ -17,11 +17,15 @@ public class ValidatorContext {
 
   private final ValidationResult validationResult;
 
+  private final ValidationSettings validationSettings;
+
   @Inject
   public ValidatorContext(@Nonnull RepairClosures repairClosures,
-                          @Nonnull ValidationResult validationResult) {
+                          @Nonnull ValidationResult validationResult,
+                          @Nonnull ValidationSettings validationSettings) {
     this.repairClosures = checkNotNull(repairClosures);
     this.validationResult = checkNotNull(validationResult);
+    this.validationSettings = checkNotNull(validationSettings);
   }
 
   public void setClosure(@Nonnull String key, @Nonnull Closure closure) {
@@ -35,5 +39,10 @@ public class ValidatorContext {
   @Nonnull
   public ValidationResult getValidationResult() {
     return validationResult;
+  }
+
+  @Nonnull
+  public ValidationSettings getValidationSettings() {
+    return validationSettings;
   }
 }

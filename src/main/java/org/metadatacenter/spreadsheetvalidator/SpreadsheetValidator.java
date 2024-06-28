@@ -24,15 +24,19 @@ public class SpreadsheetValidator {
 
   private final ValidationResultProvider validationResultProvider;
 
+  private final ValidationSettingsProvider validationSettingsProvider;
+
   private final List<Validator> validatorList = Lists.newArrayList();
 
   private ValidatorContext validatorContext;
 
   @Inject
   public SpreadsheetValidator(@Nonnull RepairClosures repairClosures,
-                              @Nonnull ValidationResultProvider validationResultProvider) {
+                              @Nonnull ValidationResultProvider validationResultProvider,
+                              @Nonnull ValidationSettingsProvider validationSettingsProvider) {
     this.repairClosures = checkNotNull(repairClosures);
     this.validationResultProvider = checkNotNull(validationResultProvider);
+    this.validationSettingsProvider = checkNotNull(validationSettingsProvider);
   }
 
   public void setClosure(@Nonnull String key, @Nonnull Closure closure) {
@@ -61,7 +65,7 @@ public class SpreadsheetValidator {
   public SpreadsheetValidator validate(Spreadsheet spreadsheet,
                                        SpreadsheetSchema spreadsheetSchema) {
     checkAllRequiredFieldsPresent(spreadsheet, spreadsheetSchema);
-    validatorContext = new ValidatorContext(repairClosures, validationResultProvider.get());
+    validatorContext = new ValidatorContext(repairClosures, validationResultProvider.get(), validationSettingsProvider.get());
     spreadsheet.getRowStream().forEach(
         spreadsheetRow -> validatorList.forEach(
             validator -> validator.validate(validatorContext, spreadsheetSchema, spreadsheetRow)));

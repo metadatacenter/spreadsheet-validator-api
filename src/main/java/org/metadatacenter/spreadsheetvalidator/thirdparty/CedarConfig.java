@@ -17,14 +17,19 @@ public abstract class CedarConfig {
   private static final String REPO_BASE_URL = "repoBaseUrl";
   private static final String RESOURCE_BASE_URL = "resourceBaseUrl";
   private static final String TERMINOLOGY_ENDPOINT = "terminologyEndpoint";
+  private static final String MAX_RETRIES = "maxRetries";
+
+  private static final String BACKOFF_SLEEP_TIME = "backoffSleepTime";
 
   @Nonnull
   @JsonCreator
   public static CedarConfig create(@Nonnull @JsonProperty(API_KEY) String apiKey,
                                    @Nonnull @JsonProperty(REPO_BASE_URL) String repoBaseUrl,
                                    @Nonnull @JsonProperty(RESOURCE_BASE_URL) String resourceBaseUrl,
-                                   @Nonnull @JsonProperty(TERMINOLOGY_ENDPOINT) String terminologyEndpoint) {
-    return new AutoValue_CedarConfig(apiKey, repoBaseUrl, resourceBaseUrl, terminologyEndpoint);
+                                   @Nonnull @JsonProperty(TERMINOLOGY_ENDPOINT) String terminologyEndpoint,
+                                   @Nonnull @JsonProperty(MAX_RETRIES) int maxRetries,
+                                   @Nonnull @JsonProperty(BACKOFF_SLEEP_TIME) int backoffSleepTime) {
+    return new AutoValue_CedarConfig(apiKey, repoBaseUrl, resourceBaseUrl, terminologyEndpoint, maxRetries, backoffSleepTime);
   }
 
   @Nonnull
@@ -42,4 +47,12 @@ public abstract class CedarConfig {
   @Nonnull
   @JsonProperty(TERMINOLOGY_ENDPOINT)
   public abstract String getTerminologyEndpoint();
+
+  @Nonnull
+  @JsonProperty(MAX_RETRIES)
+  public abstract int getMaxRetries();
+
+  @Nonnull
+  @JsonProperty(BACKOFF_SLEEP_TIME)
+  public abstract int getBackoffSleepTime();
 }
