@@ -1,5 +1,6 @@
 package org.metadatacenter.spreadsheetvalidator;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,7 +24,10 @@ import org.glassfish.jersey.server.ContainerRequest;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceException;
-import org.metadatacenter.spreadsheetvalidator.request.SchemaIdNotFoundException;
+import org.metadatacenter.spreadsheetvalidator.request.BadFileException;
+import org.metadatacenter.spreadsheetvalidator.request.MissingDerivedFromColumnException;
+import org.metadatacenter.spreadsheetvalidator.request.MissingMetadataSchemaIdColumnException;
+import org.metadatacenter.spreadsheetvalidator.request.MissingMetadataSheetException;
 import org.metadatacenter.spreadsheetvalidator.request.ValidateSpreadsheetRequest;
 import org.metadatacenter.spreadsheetvalidator.request.ValidatorRequestBodyException;
 import org.metadatacenter.spreadsheetvalidator.response.ErrorResponse;
@@ -116,20 +120,17 @@ public class ServiceResource {
   public Response validate(@Context HttpHeaders headers,
                            @Nonnull ValidateSpreadsheetRequest request) {
     try {
-      var cedarTemplateIri = request.getCheckedCedarTemplateIri();
+      // Get the spreadsheet data
       var spreadsheetData = request.getCheckedSpreadsheetData();
+
+      // Get the CEDAR template IRI
+      var cedarTemplateIri = request.getCheckedCedarTemplateIri();
       var cedarTemplate = cedarService.getCedarTemplateFromIri(cedarTemplateIri);
-      var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
-      var spreadsheet = Spreadsheet.create(spreadsheetData);
-      var reporting = spreadsheetValidator
-          .additionalColumnsNotAllowed(spreadsheet, spreadsheetSchema)
-          .validate(spreadsheet, spreadsheetSchema)
-          .collect(resultCollector);
-      var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
-      logUsage(headers, cedarTemplateIri, reporting);
-      return Response.ok(response).build();
-    } catch (ValidatorServiceException | ValidatorRequestBodyException e) {
-      logError(headers, cedarTemplateIri, e.getResponse().getStatus(), e.getCause().getMessage());
+
+      // Validate the spreadsheet based on its schema
+      return getResponse(headers, cedarTemplate, spreadsheetData);
+    } catch (ValidatorRequestBodyException e) {
+      logError(headers, e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
     }
   }
@@ -166,6 +167,10 @@ public class ServiceResource {
     writeToFile(usageReport, "error");
   }
 
+  private void logError(HttpHeaders headers, int statusCode, String errorMessage) {
+    logError(headers, null, statusCode, errorMessage);
+  }
+
   @POST
   @Operation(summary = "Validate a metadata TSV file according to a metadata specification.")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -197,26 +202,35 @@ public class ServiceResource {
           requiredMode = Schema.RequiredMode.REQUIRED)) @FormDataParam("input_file") InputStream inputStream,
       @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail) {
     try {
+      // Parse the input TSV file
       var tsvString = getTsvString(inputStream);
       var spreadsheetData = parseTsvString(tsvString);
-      var templateId = getTemplateId(spreadsheetData);
-      try {
-        var cedarTemplate = cedarService.getCedarTemplateFromId(templateId);
-        var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
-        var spreadsheet = Spreadsheet.create(spreadsheetData);
-        var reporting = spreadsheetValidator
-            .additionalColumnsNotAllowed(spreadsheet, spreadsheetSchema)
-            .validate(spreadsheet, spreadsheetSchema)
-            .collect(resultCollector);
-        var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
-        logUsage(headers, templateId, reporting);
-        return Response.ok(response).build();
-      } catch (ValidatorRuntimeException e) {
-        logError(headers, templateId, e.getResponse().getStatus(), e.getCause().getMessage());
-        return responseErrorMessage(e);
-      }
-    } catch (InvalidInputFileException | SchemaIdNotFoundException e) {
-      logError(headers, null, e.getResponse().getStatus(), e.getCause().getMessage());
+
+      // Get the CEDAR template ID
+      var templateId = getMetadataSchemaId(spreadsheetData);
+      var cedarTemplate = cedarService.getCedarTemplateFromId(templateId);
+
+      // Validate the spreadsheet based on its schema
+      return getResponse(headers, cedarTemplate, spreadsheetData);
+    } catch (BadFileException e) {
+      logError(headers, e.getResponse().getStatus(), e.getCause().getMessage());
+      return responseErrorMessage(e);
+    }
+  }
+
+  private Response getResponse(HttpHeaders headers, ObjectNode cedarTemplate, List<Map<String, Object>> spreadsheetData) {
+    var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
+    var spreadsheet = Spreadsheet.create(spreadsheetData);
+    try {
+      var reporting = spreadsheetValidator
+          .additionalColumnsNotAllowed(spreadsheet, spreadsheetSchema)
+          .validate(spreadsheet, spreadsheetSchema)
+          .collect(resultCollector);
+      var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
+      logUsage(headers, spreadsheetSchema.getTemplateIri(), reporting);
+      return Response.ok(response).build();
+    } catch (ValidatorServiceException e) {
+      logError(headers, spreadsheetSchema.getTemplateIri(), e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
     }
   }
@@ -225,7 +239,7 @@ public class ServiceResource {
     try {
       return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     } catch (IOException e) {
-      throw new InvalidInputFileException("Bad TSV file.", e);
+      throw new BadFileException("Bad TSV file.", e);
     }
   }
 
@@ -233,23 +247,19 @@ public class ServiceResource {
     try {
       return restServiceHandler.parseTsvString(tsvString);
     } catch (IOException e) {
-      throw new InvalidInputFileException("Bad TSV file.", e);
+      throw new BadFileException("Bad TSV file.", e);
     }
   }
 
-  private String getTemplateId(List<Map<String, Object>> spreadsheetData) {
+  private String getMetadataSchemaId(List<Map<String, Object>> spreadsheetData) {
     var metadataRow = spreadsheetData.stream()
         .findAny()
-        .orElseThrow(() -> new InvalidInputFileException(
-            "Bad TSV file.",
-            new IllegalArgumentException("The file is empty")));
-    var templateId = metadataRow.get("metadata_schema_id").toString();
-    if (templateId.trim().isEmpty()) {
-      throw new SchemaIdNotFoundException(
-          "Bad TSV file.",
-          new IllegalArgumentException("The metadata_schema_id is missing in the file."));
+        .orElseThrow(() -> new BadFileException("Bad TSV file.", new IOException("The file is empty")));
+    var metadataSchemaId = metadataRow.get("metadata_schema_id").toString();
+    if (metadataSchemaId.trim().isEmpty()) {
+      throw new BadFileException("Bad TSV file.", new MissingMetadataSchemaIdColumnException());
     }
-    return templateId;
+    return metadataSchemaId;
   }
 
   @POST
@@ -283,28 +293,20 @@ public class ServiceResource {
           requiredMode = Schema.RequiredMode.REQUIRED)) @FormDataParam("input_file") InputStream inputStream,
       @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail) {
     try {
+      // Parse the input Excel file
       var workbook = getWorkbook(inputStream);
+      var mainSheet = getMainSheet(workbook);
+      var spreadsheetData = excelFileHandler.getTableData(mainSheet);
+
+      // Find the CEDAR template IRI
       var metadataSheet = getMetadataSheet(workbook);
       var templateIri = getTemplateIri(metadataSheet);
-      try {
-        var cedarTemplate = cedarService.getCedarTemplateFromIri(templateIri);
-        var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
-        var mainSheet = getMainSheet(workbook);
-        var spreadsheetData = excelFileHandler.getTableData(mainSheet);
-        var spreadsheet = Spreadsheet.create(spreadsheetData);
-        var reporting = spreadsheetValidator
-            .additionalColumnsNotAllowed(spreadsheet, spreadsheetSchema)
-            .validate(spreadsheet, spreadsheetSchema)
-            .collect(resultCollector);
-        var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
-        logUsage(headers, templateIri, reporting);
-        return Response.ok(response).build();
-      } catch (ValidatorRuntimeException e) {
-        logError(headers, templateIri, e.getResponse().getStatus(), e.getCause().getMessage());
-        return responseErrorMessage(e);
-      }
-    } catch (InvalidInputFileException | SchemaIdNotFoundException e) {
-      logError(headers, null, e.getResponse().getStatus(), e.getCause().getMessage());
+      var cedarTemplate = cedarService.getCedarTemplateFromIri(templateIri);
+
+      // Validate the spreadsheet based on its schema
+      return getResponse(headers, cedarTemplate, spreadsheetData);
+    } catch (BadFileException e) {
+      logError(headers, e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
     }
   }
@@ -313,7 +315,7 @@ public class ServiceResource {
     try {
       return excelFileHandler.getWorkbookFromInputStream(is);
     } catch (IOException e) {
-      throw new InvalidInputFileException("Bad Excel file.", e);
+      throw new BadFileException("Bad Excel file.", e);
     }
   }
 
@@ -322,20 +324,13 @@ public class ServiceResource {
     if (sheet == null) {
       sheet = excelFileHandler.getSheet(workbook, 0);
     }
-    if (sheet == null) {
-      throw new InvalidInputFileException(
-          "Bad Excel file.",
-          new IllegalArgumentException("The [MAIN] sheet is missing."));
-    }
     return sheet;
   }
 
   private XSSFSheet getMetadataSheet(XSSFWorkbook workbook) {
     var sheet = excelFileHandler.getSheet(workbook, ".metadata");
     if (sheet == null) {
-      throw new InvalidInputFileException(
-          "Bad Excel file.",
-          new IllegalArgumentException("The [.metadata] sheet is missing."));
+      throw new BadFileException("Bad Excel file.", new MissingMetadataSheetException());
     }
     return sheet;
   }
@@ -344,9 +339,7 @@ public class ServiceResource {
     var columnIndex = getDerivedFromColumnLocation(metadataSheet);
     var templateIri = excelFileHandler.getStringCellValue(metadataSheet, 1, columnIndex);
     if (templateIri.trim().isEmpty()) {
-      throw new SchemaIdNotFoundException(
-          "Bad Excel file.",
-          new IllegalArgumentException("The schema IRI is missing from the [.metadata] sheet."));
+      throw new BadFileException("Bad Excel file.", new MissingDerivedFromColumnException());
     }
     return templateIri;
   }
@@ -354,9 +347,7 @@ public class ServiceResource {
   private int getDerivedFromColumnLocation(XSSFSheet metadataSheet) {
     var derivedFromColumnLocation = excelFileHandler.findColumnLocation(metadataSheet, "pav:derivedFrom");
     if (!derivedFromColumnLocation.isPresent()) {
-      throw new SchemaIdNotFoundException(
-          "Bad Excel file.",
-          new IllegalArgumentException("The schema IRI is missing in the [.metadata] sheet."));
+      throw new BadFileException("Bad Excel file.", new MissingDerivedFromColumnException());
     }
     return derivedFromColumnLocation.get();
   }

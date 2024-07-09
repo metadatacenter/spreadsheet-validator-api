@@ -15,10 +15,8 @@ public abstract class ValidatorRequestBodyException extends ValidatorRuntimeExce
 
   private final ValidateSpreadsheetRequest request;
 
-  public ValidatorRequestBodyException(@Nonnull String message,
-                                       @Nonnull Throwable cause,
-                                       @Nonnull ValidateSpreadsheetRequest request) {
-    super(message, cause, Response.Status.BAD_REQUEST.getStatusCode());
+  public ValidatorRequestBodyException(@Nonnull String message, @Nonnull ValidateSpreadsheetRequest request) {
+    super(message, Response.Status.BAD_REQUEST.getStatusCode());
     this.request = checkNotNull(request);
   }
 

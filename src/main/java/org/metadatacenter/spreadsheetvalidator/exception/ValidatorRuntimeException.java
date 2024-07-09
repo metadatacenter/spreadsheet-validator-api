@@ -11,10 +11,16 @@ import java.util.Optional;
  */
 public abstract class ValidatorRuntimeException extends WebApplicationException {
 
-  public ValidatorRuntimeException(@Nonnull String message,
-                                   @Nonnull Throwable cause,
-                                   @Nonnull int statusCode) {
+  public ValidatorRuntimeException(@Nonnull String message, @Nonnull Throwable cause, @Nonnull int statusCode) {
     super(message, cause, statusCode);
+  }
+
+  public ValidatorRuntimeException(@Nonnull String message, @Nonnull int statusCode) {
+    super(message, statusCode);
+  }
+
+  public ValidatorRuntimeException(@Nonnull String message) {
+    super(message);
   }
 
   public abstract Optional<String> getFixSuggestion();

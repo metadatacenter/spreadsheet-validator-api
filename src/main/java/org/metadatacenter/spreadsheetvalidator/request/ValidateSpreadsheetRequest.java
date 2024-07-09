@@ -38,9 +38,7 @@ public abstract class ValidateSpreadsheetRequest {
   public List<Map<String, Object>> getCheckedSpreadsheetData() {
     var spreadsheetData = getSpreadsheetData();
     if (spreadsheetData == null) {
-      throw new SpreadsheetDataNotFoundException(
-        "Bad request body.",
-        new Exception("The input key '" + SPREADSHEET_DATA + "' is missing from the request body."), this);
+      throw new SpreadsheetDataNotFoundException(this);
     }
     return spreadsheetData;
   }
@@ -48,9 +46,7 @@ public abstract class ValidateSpreadsheetRequest {
   public String getCheckedCedarTemplateIri() {
     var templateIri = getCedarTemplateIri();
     if (Strings.isNullOrEmpty(templateIri)) {
-      throw new SchemaIdNotFoundException(
-          "Bad request body.",
-          new Exception("The input key '" + CEDAR_TEMPLATE_IRI + "' is missing from the request body."), this);
+      throw new CedarTemplateIriNotFoundException(this);
     }
     return templateIri;
   }
