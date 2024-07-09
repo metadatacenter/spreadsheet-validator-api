@@ -1,9 +1,10 @@
 package org.metadatacenter.spreadsheetvalidator.validator;
 
-import org.jetbrains.annotations.NotNull;
 import org.metadatacenter.spreadsheetvalidator.ValidationError;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
 import org.metadatacenter.spreadsheetvalidator.util.Assert;
+
+import javax.annotation.Nonnull;
 
 import static org.metadatacenter.spreadsheetvalidator.domain.ValueType.NUMBER;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isNumber;
@@ -19,9 +20,9 @@ import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
  */
 public class NumberTypeValidator extends InputValueValidator {
   @Override
-  public void validateInputValue(@NotNull Object value,
-                                 @NotNull ValueContext valueContext,
-                                 @NotNull ValidatorContext validatorContext) {
+  public void validateInputValue(@Nonnull Object value,
+                                 @Nonnull ValueContext valueContext,
+                                 @Nonnull ValidatorContext validatorContext) {
     var columnType = valueContext.getColumnDescription().getColumnType();
     if (columnType == NUMBER && Assert.that(value, not(isNumber()))) {
       var closure = validatorContext.getClosure("numberExtractor");

@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableList;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -44,7 +43,7 @@ public class ChatGptService {
     }
   }
 
-  private String makeRemoteCall(@NotNull String prompt) {
+  private String makeRemoteCall(@Nonnull String prompt) {
     Request request;
     String payloadString = "";
     try {
