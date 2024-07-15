@@ -1,6 +1,6 @@
 package org.metadatacenter.spreadsheetvalidator.request;
 
-import jakarta.ws.rs.core.Response;
+import org.apache.http.HttpStatus;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
 
 import javax.annotation.Nonnull;
@@ -15,13 +15,13 @@ public class BadFileException extends ValidatorRuntimeException {
 
   public BadFileException(@Nonnull String message,
                           @Nonnull Throwable cause) {
-    super(message, cause, Response.Status.BAD_REQUEST.getStatusCode());
+    super(message, cause, HttpStatus.SC_BAD_REQUEST);
   }
 
   @Override
   public Optional<String> getFixSuggestion() {
     var cause = getCause();
-    if (cause instanceof IOException){
+    if (cause instanceof IOException) {
       return Optional.of("Please download the latest version of the metadata spreadsheet from the HIVE website.");
     } else if (cause instanceof ValidatorRuntimeException) {
       return ((ValidatorRuntimeException) getCause()).getFixSuggestion();

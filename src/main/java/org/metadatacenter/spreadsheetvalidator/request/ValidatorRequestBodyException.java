@@ -1,6 +1,6 @@
 package org.metadatacenter.spreadsheetvalidator.request;
 
-import jakarta.ws.rs.core.Response;
+import org.apache.http.HttpStatus;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
 
 import javax.annotation.Nonnull;
@@ -16,7 +16,7 @@ public abstract class ValidatorRequestBodyException extends ValidatorRuntimeExce
   private final ValidateSpreadsheetRequest request;
 
   public ValidatorRequestBodyException(@Nonnull String message, @Nonnull ValidateSpreadsheetRequest request) {
-    super(message, Response.Status.BAD_REQUEST.getStatusCode());
+    super(message, HttpStatus.SC_BAD_REQUEST);
     this.request = checkNotNull(request);
   }
 
