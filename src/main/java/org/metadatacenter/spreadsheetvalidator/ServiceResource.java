@@ -16,18 +16,15 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.glassfish.jersey.server.ContainerRequest;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
+import org.metadatacenter.spreadsheetvalidator.excel.MetadataSpreadsheetBuilder;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceException;
 import org.metadatacenter.spreadsheetvalidator.request.BadFileException;
-import org.metadatacenter.spreadsheetvalidator.request.MissingDerivedFromColumnException;
-import org.metadatacenter.spreadsheetvalidator.request.MissingMetadataSchemaIdColumnException;
-import org.metadatacenter.spreadsheetvalidator.request.MissingMetadataSheetException;
+import org.metadatacenter.spreadsheetvalidator.tsv.MissingMetadataSchemaIdException;
 import org.metadatacenter.spreadsheetvalidator.request.ValidateSpreadsheetRequest;
 import org.metadatacenter.spreadsheetvalidator.request.ValidatorRequestBodyException;
 import org.metadatacenter.spreadsheetvalidator.response.ErrorResponse;
@@ -63,7 +60,7 @@ public class ServiceResource {
 
   private final RestServiceHandler restServiceHandler;
 
-  private final ExcelFileHandler excelFileHandler;
+  private final MetadataSpreadsheetBuilder spreadsheetBuilder;
 
   private final SpreadsheetSchemaGenerator spreadsheetSchemaGenerator;
 
@@ -74,13 +71,13 @@ public class ServiceResource {
   @Inject
   public ServiceResource(@Nonnull CedarService cedarService,
                          @Nonnull RestServiceHandler restServiceHandler,
-                         @Nonnull ExcelFileHandler excelFileHandler,
+                         @Nonnull MetadataSpreadsheetBuilder spreadsheetBuilder,
                          @Nonnull SpreadsheetSchemaGenerator spreadsheetSchemaGenerator,
                          @Nonnull SpreadsheetValidator spreadsheetValidator,
                          @Nonnull ResultCollector resultCollector) {
     this.cedarService = checkNotNull(cedarService);
     this.restServiceHandler = checkNotNull(restServiceHandler);
-    this.excelFileHandler = checkNotNull(excelFileHandler);
+    this.spreadsheetBuilder = checkNotNull(spreadsheetBuilder);
     this.spreadsheetSchemaGenerator = checkNotNull(spreadsheetSchemaGenerator);
     this.spreadsheetValidator = checkNotNull(spreadsheetValidator);
     this.resultCollector = checkNotNull(resultCollector);
@@ -257,7 +254,7 @@ public class ServiceResource {
         .orElseThrow(() -> new BadFileException("Bad TSV file.", new IOException("The file is empty")));
     var metadataSchemaId = metadataRow.get("metadata_schema_id").toString();
     if (metadataSchemaId.trim().isEmpty()) {
-      throw new BadFileException("Bad TSV file.", new MissingMetadataSchemaIdColumnException());
+      throw new BadFileException("Bad TSV file.", new   MissingMetadataSchemaIdException());
     }
     return metadataSchemaId;
   }
@@ -294,13 +291,14 @@ public class ServiceResource {
       @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail) {
     try {
       // Parse the input Excel file
-      var workbook = getWorkbook(inputStream);
-      var mainSheet = getMainSheet(workbook);
-      var spreadsheetData = excelFileHandler.getTableData(mainSheet);
+      var metadataSpreadsheet = spreadsheetBuilder.openSpreadsheetFromInputStream(inputStream).build();
+
+      // Get the data record table from the record sheet.
+      var dataRecordTable = metadataSpreadsheet.getDataSheet().getDataRecordTable();
+      var spreadsheetData = dataRecordTable.asMaps();
 
       // Find the CEDAR template IRI
-      var metadataSheet = getMetadataSheet(workbook);
-      var templateIri = getTemplateIri(metadataSheet);
+      var templateIri = metadataSpreadsheet.getProvenanceSheet().getSchemaIri();
       var cedarTemplate = cedarService.getCedarTemplateFromIri(templateIri);
 
       // Validate the spreadsheet based on its schema
@@ -309,47 +307,6 @@ public class ServiceResource {
       logError(headers, e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
     }
-  }
-
-  private XSSFWorkbook getWorkbook(InputStream is) {
-    try {
-      return excelFileHandler.getWorkbookFromInputStream(is);
-    } catch (IOException e) {
-      throw new BadFileException("Bad Excel file.", e);
-    }
-  }
-
-  private XSSFSheet getMainSheet(XSSFWorkbook workbook) {
-    var sheet = excelFileHandler.getSheet(workbook, "MAIN");
-    if (sheet == null) {
-      sheet = excelFileHandler.getSheet(workbook, 0);
-    }
-    return sheet;
-  }
-
-  private XSSFSheet getMetadataSheet(XSSFWorkbook workbook) {
-    var sheet = excelFileHandler.getSheet(workbook, ".metadata");
-    if (sheet == null) {
-      throw new BadFileException("Bad Excel file.", new MissingMetadataSheetException());
-    }
-    return sheet;
-  }
-
-  private String getTemplateIri(XSSFSheet metadataSheet) {
-    var columnIndex = getDerivedFromColumnLocation(metadataSheet);
-    var templateIri = excelFileHandler.getStringCellValue(metadataSheet, 1, columnIndex);
-    if (templateIri.trim().isEmpty()) {
-      throw new BadFileException("Bad Excel file.", new MissingDerivedFromColumnException());
-    }
-    return templateIri;
-  }
-
-  private int getDerivedFromColumnLocation(XSSFSheet metadataSheet) {
-    var derivedFromColumnLocation = excelFileHandler.findColumnLocation(metadataSheet, "pav:derivedFrom");
-    if (!derivedFromColumnLocation.isPresent()) {
-      throw new BadFileException("Bad Excel file.", new MissingDerivedFromColumnException());
-    }
-    return derivedFromColumnLocation.get();
   }
 
   private Response responseErrorMessage(ValidatorRuntimeException e) {

@@ -1,4 +1,4 @@
-package org.metadatacenter.spreadsheetvalidator.request;
+package org.metadatacenter.spreadsheetvalidator.excel;
 
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
 
@@ -8,10 +8,10 @@ import java.util.Optional;
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-public class MissingMetadataSheetException extends ValidatorRuntimeException {
+public class MissingProvenanceSheetException extends ValidatorRuntimeException {
 
-  public MissingMetadataSheetException() {
-    super("The '.metadata' sheet is missing.");
+  public MissingProvenanceSheetException() {
+    super("The provenance sheet is missing.");
   }
 
   @Override
