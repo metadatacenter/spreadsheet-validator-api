@@ -10,7 +10,6 @@ import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceExcepti
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -38,11 +37,7 @@ public class CedarService {
   }
 
   private String generateTemplateIriFromId(String id) {
-    return new StringBuilder()
-        .append(cedarConfig.getRepoBaseUrl())
-        .append("templates/")
-        .append(id)
-        .toString();
+    return cedarConfig.getRepoBaseUrl() + "templates/" + id;
   }
 
   public ObjectNode getCedarTemplateFromIri(String iri) {
@@ -51,7 +46,7 @@ public class CedarService {
     var request = restServiceHandler.createGetRequest(url, "apiKey " + cedarConfig.getApiKey());
 
     // Execute the request
-    HttpResponse response = null;
+    HttpResponse response;
     try {
       response = restServiceHandler.execute(request);
       var statusCode = response.getStatusLine().getStatusCode();
@@ -74,15 +69,6 @@ public class CedarService {
   }
 
   private String generateTemplateUrlFromIri(String iri) {
-    try {
-      return new StringBuilder()
-          .append(cedarConfig.getResourceBaseUrl())
-          .append("templates/")
-          .append(URLEncoder.encode(iri, Charsets.UTF_8.toString()))
-          .toString();
-    } catch (UnsupportedEncodingException e) {
-      throw new ValidatorServiceException("Unable to construct the template IRI",
-          e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-    }
+    return cedarConfig.getResourceBaseUrl() + "templates/" + URLEncoder.encode(iri, Charsets.UTF_8);
   }
 }
