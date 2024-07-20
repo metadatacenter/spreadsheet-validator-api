@@ -16,6 +16,6 @@ public class MissingSeparatorRowException extends ValidatorRuntimeException {
 
   @Override
   public Optional<String> getFixSuggestion() {
-    return Optional.of("Please add a new blank row between the schema table and the header row to separate.");
+    return Optional.of("Please add a new blank row between the schema table and the data table to separate.");
   }
 }
