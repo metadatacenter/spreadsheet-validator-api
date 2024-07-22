@@ -23,13 +23,15 @@ public abstract class InputValueValidator implements Validator {
                        @Nonnull SpreadsheetRow spreadsheetRow) {
     spreadsheetRow.columnStream()
         .forEach(column -> {
-          var value = spreadsheetRow.getValue(column);
-          if (Assert.that(value, not(isNullOrEmpty()))) {
-            var valueContext = ValueContext.create(
-                column,
-                spreadsheetRow.getRowNumber(),
-                spreadsheetSchema.getColumnDescription(column));
-            validateInputValue(value, valueContext, validatorContext);
+          if (spreadsheetSchema.containsColumn(column)) {
+            var value = spreadsheetRow.getValue(column);
+            if (Assert.that(value, not(isNullOrEmpty()))) {
+              var valueContext = ValueContext.create(
+                  column,
+                  spreadsheetRow.getRowNumber(),
+                  spreadsheetSchema.getColumnDescription(column));
+              validateInputValue(value, valueContext, validatorContext);
+            }
           }
         });
   }
