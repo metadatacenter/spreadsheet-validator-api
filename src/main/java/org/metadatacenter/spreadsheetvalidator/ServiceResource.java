@@ -1,6 +1,6 @@
 package org.metadatacenter.spreadsheetvalidator;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableMap;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,12 +19,15 @@ import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.glassfish.jersey.server.ContainerRequest;
+import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
+import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
+import org.metadatacenter.spreadsheetvalidator.excel.DataSheet;
+import org.metadatacenter.spreadsheetvalidator.excel.HeaderBasedSchemaExtractor;
 import org.metadatacenter.spreadsheetvalidator.excel.MetadataSpreadsheetBuilder;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceException;
 import org.metadatacenter.spreadsheetvalidator.request.BadFileException;
-import org.metadatacenter.spreadsheetvalidator.tsv.MissingMetadataSchemaIdException;
 import org.metadatacenter.spreadsheetvalidator.request.ValidateSpreadsheetRequest;
 import org.metadatacenter.spreadsheetvalidator.request.ValidatorRequestBodyException;
 import org.metadatacenter.spreadsheetvalidator.response.ErrorResponse;
@@ -32,6 +35,7 @@ import org.metadatacenter.spreadsheetvalidator.response.UrlCheckResponse;
 import org.metadatacenter.spreadsheetvalidator.response.ValidateResponse;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.CedarService;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.RestServiceHandler;
+import org.metadatacenter.spreadsheetvalidator.tsv.MissingMetadataSchemaIdException;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -44,7 +48,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -64,23 +70,31 @@ public class ServiceResource {
 
   private final SpreadsheetSchemaGenerator spreadsheetSchemaGenerator;
 
+  private final HeaderBasedSchemaExtractor headerBasedSchemaExtractor;
+
   private final SpreadsheetValidator spreadsheetValidator;
 
   private final ResultCollector resultCollector;
+
+  private final ExcelConfig excelConfig;
 
   @Inject
   public ServiceResource(@Nonnull CedarService cedarService,
                          @Nonnull RestServiceHandler restServiceHandler,
                          @Nonnull MetadataSpreadsheetBuilder spreadsheetBuilder,
                          @Nonnull SpreadsheetSchemaGenerator spreadsheetSchemaGenerator,
+                         @Nonnull HeaderBasedSchemaExtractor headerBasedSchemaExtractor,
                          @Nonnull SpreadsheetValidator spreadsheetValidator,
-                         @Nonnull ResultCollector resultCollector) {
+                         @Nonnull ResultCollector resultCollector,
+                         @Nonnull ExcelConfig excelConfig) {
     this.cedarService = checkNotNull(cedarService);
     this.restServiceHandler = checkNotNull(restServiceHandler);
     this.spreadsheetBuilder = checkNotNull(spreadsheetBuilder);
     this.spreadsheetSchemaGenerator = checkNotNull(spreadsheetSchemaGenerator);
+    this.headerBasedSchemaExtractor = checkNotNull(headerBasedSchemaExtractor);
     this.spreadsheetValidator = checkNotNull(spreadsheetValidator);
     this.resultCollector = checkNotNull(resultCollector);
+    this.excelConfig = checkNotNull(excelConfig);
   }
 
   @POST
@@ -119,13 +133,16 @@ public class ServiceResource {
     try {
       // Get the spreadsheet data
       var spreadsheetData = request.getCheckedSpreadsheetData();
+      var spreadsheet = Spreadsheet.create(spreadsheetData);
 
       // Get the CEDAR template IRI
       var cedarTemplateIri = request.getCheckedCedarTemplateIri();
       var cedarTemplate = cedarService.getCedarTemplateFromIri(cedarTemplateIri);
+      var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
 
       // Validate the spreadsheet based on its schema
-      return getResponse(headers, cedarTemplate, spreadsheetData);
+      var validationReport = doValidation(spreadsheetSchema, spreadsheet);
+      return getResponse(headers, spreadsheetSchema, spreadsheet, validationReport);
     } catch (ValidatorRequestBodyException e) {
       logError(headers, e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
@@ -136,8 +153,12 @@ public class ServiceResource {
     var usageReport = UsageLog.create(
         ((ContainerRequest) headers).getAbsolutePath().toString(),
         Instant.now().toString(),
-        headers.getRequestHeader("X-Forwarded-For").stream().findFirst().orElse(""),
-        headers.getRequestHeader("User-Agent").stream().findFirst().orElse(""),
+        Optional.ofNullable(headers.getRequestHeader("X-Forwarded-For"))
+            .flatMap(values -> values.stream().findFirst())
+            .orElse(""),
+        Optional.ofNullable(headers.getRequestHeader("User-Agent"))
+            .flatMap(values -> values.stream().findFirst())
+            .orElse(""),
         200,
         "Success",
         cedarTemplateIri,
@@ -154,8 +175,12 @@ public class ServiceResource {
     var usageReport = UsageLog.create(
         ((ContainerRequest) headers).getAbsolutePath().toString(),
         Instant.now().toString(),
-        headers.getRequestHeader("X-Forwarded-For").stream().findFirst().orElse(""),
-        headers.getRequestHeader("User-Agent").stream().findFirst().orElse(""),
+        Optional.ofNullable(headers.getRequestHeader("X-Forwarded-For"))
+            .flatMap(values -> values.stream().findFirst())
+            .orElse(""),
+        Optional.ofNullable(headers.getRequestHeader("User-Agent"))
+            .flatMap(values -> values.stream().findFirst())
+            .orElse(""),
         statusCode,
         errorMessage,
         cedarTemplateIri,
@@ -202,32 +227,35 @@ public class ServiceResource {
       // Parse the input TSV file
       var tsvString = getTsvString(inputStream);
       var spreadsheetData = parseTsvString(tsvString);
+      var spreadsheet = Spreadsheet.create(spreadsheetData);
 
       // Get the CEDAR template ID
       var templateId = getMetadataSchemaId(spreadsheetData);
       var cedarTemplate = cedarService.getCedarTemplateFromId(templateId);
+      var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
 
       // Validate the spreadsheet based on its schema
-      return getResponse(headers, cedarTemplate, spreadsheetData);
+      var validationReport = doValidation(spreadsheetSchema, spreadsheet);
+      return getResponse(headers, spreadsheetSchema, spreadsheet, validationReport);
     } catch (BadFileException e) {
       logError(headers, e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
     }
   }
 
-  private Response getResponse(HttpHeaders headers, ObjectNode cedarTemplate, List<Map<String, Object>> spreadsheetData) {
-    var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
-    var spreadsheet = Spreadsheet.create(spreadsheetData);
+  private ValidationReport doValidation(SpreadsheetSchema spreadsheetSchema, Spreadsheet spreadsheet) {
+    return spreadsheetValidator
+        .validate(spreadsheet, spreadsheetSchema)
+        .collect(resultCollector);
+  }
+
+  private Response getResponse(HttpHeaders headers, SpreadsheetSchema schema, Spreadsheet spreadsheet, ValidationReport reporting) {
     try {
-      var reporting = spreadsheetValidator
-          .additionalColumnsNotAllowed(spreadsheet, spreadsheetSchema)
-          .validate(spreadsheet, spreadsheetSchema)
-          .collect(resultCollector);
-      var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
-      logUsage(headers, spreadsheetSchema.getTemplateIri(), reporting);
+      var response = ValidateResponse.create(schema, spreadsheet, reporting);
+      logUsage(headers, schema.getTemplateIri(), reporting);
       return Response.ok(response).build();
     } catch (ValidatorServiceException e) {
-      logError(headers, spreadsheetSchema.getTemplateIri(), e.getResponse().getStatus(), e.getCause().getMessage());
+      logError(headers, schema.getTemplateIri(), e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
     }
   }
@@ -254,7 +282,7 @@ public class ServiceResource {
         .orElseThrow(() -> new BadFileException("Bad TSV file.", new IOException("The file is empty")));
     var metadataSchemaId = metadataRow.get("metadata_schema_id").toString();
     if (metadataSchemaId.trim().isEmpty()) {
-      throw new BadFileException("Bad TSV file.", new   MissingMetadataSchemaIdException());
+      throw new BadFileException("Bad TSV file.", new MissingMetadataSchemaIdException());
     }
     return metadataSchemaId;
   }
@@ -293,20 +321,106 @@ public class ServiceResource {
       // Parse the input Excel file
       var metadataSpreadsheet = spreadsheetBuilder.openSpreadsheetFromInputStream(inputStream).build();
 
-      // Get the data record table from the record sheet.
-      var dataRecordTable = metadataSpreadsheet.getDataSheet().getDataRecordTable();
-      var spreadsheetData = dataRecordTable.asMaps();
-
       // Find the CEDAR template IRI
       var templateIri = metadataSpreadsheet.getProvenanceSheet().getSchemaIri();
       var cedarTemplate = cedarService.getCedarTemplateFromIri(templateIri);
+      var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
+      var columnMapping = getColumnMapping(spreadsheetSchema);
+
+      // Get the data record table from the data sheet.
+      var dataRecordTable = metadataSpreadsheet.getDataSheet().getDataRecordTable();
+      var spreadsheetData = dataRecordTable.asMaps(columnMapping);
+      var spreadsheet = Spreadsheet.create(spreadsheetData);
 
       // Validate the spreadsheet based on its schema
-      return getResponse(headers, cedarTemplate, spreadsheetData);
+      var validationReport = doValidation(spreadsheetSchema, spreadsheet);
+      return getResponse(headers, spreadsheetSchema, spreadsheet, validationReport);
     } catch (BadFileException e) {
       logError(headers, e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
     }
+  }
+
+  @POST
+  @Operation(summary = "Validate a collection of metadata records in an Excel file according to the rules specified " +
+      "in the column headers.")
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("/validate-structured-xlsx")
+  @Tag(name = "Validation")
+  @ApiResponse(
+      responseCode = "200",
+      description = "A JSON object showing the validation report and other properties such as the" +
+          "extracted schema and the original spreadsheet data.",
+      content = @Content(
+          schema = @Schema(implementation = ValidateResponse.class),
+          mediaType = MediaType.APPLICATION_JSON
+      ))
+  @ApiResponse(
+      responseCode = "400",
+      description = "The request could not be understood by the server due to " +
+          "malformed syntax in the request body.")
+  @ApiResponse(
+      responseCode = "500",
+      description = "The server encountered an unexpected condition that prevented " +
+          "it from fulfilling the request.")
+  public Response validateStructuredXlsx(
+      @Context HttpHeaders headers,
+      @Parameter(schema = @Schema(
+          type = "string",
+          format = "binary",
+          description = "An Excel (.xlsx) file with metadata records and input rule headers",
+          requiredMode = Schema.RequiredMode.REQUIRED)) @FormDataParam("input_file") InputStream inputStream,
+      @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail) {
+    try {
+      // Retrieve the CEDAR template IRI about the spreadsheet data schema
+      var templateIri = excelConfig.getMetaSchemaIri();
+      var cedarTemplate = cedarService.getCedarTemplateFromIri(templateIri);
+      var schemaTableSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
+
+      // Parse the input Excel file
+      var metadataSpreadsheet = spreadsheetBuilder
+          .openSpreadsheetFromInputStream(inputStream)
+          .includeDataSchema()
+          .build();
+
+      // Get the data schema table from the data sheet.
+      var dataSheet = metadataSpreadsheet.getDataSheet();
+      var dataSchemaTable = dataSheet.getUncheckedSchemaTable();
+      var schemaTableData = dataSchemaTable.asMaps();
+      var schemaSpreadsheet = Spreadsheet.create(schemaTableData);
+
+      // Validate the data schema table and check the response
+      var schemaValidationReport = doValidation(schemaTableSchema, schemaSpreadsheet);
+      if (!schemaValidationReport.isEmpty()) {
+        return getResponse(headers, schemaTableSchema, schemaSpreadsheet, schemaValidationReport);
+      }
+
+      // Extract the data schema
+      var dataSchema = headerBasedSchemaExtractor.extractFrom(dataSheet);
+      var columnMapping = getColumnMapping(dataSchema);
+
+      // Get the data record table from the data sheet.
+      var dataRecordTable = dataSheet.getDataRecordTable();
+      var recordTableData = dataRecordTable.asMaps(columnMapping);
+      var recordSpreadsheet = Spreadsheet.create(recordTableData);
+
+
+      var dataValidationReport = doValidation(dataSchema, recordSpreadsheet);
+      return getResponse(headers, dataSchema, recordSpreadsheet, dataValidationReport);
+    } catch (BadFileException e) {
+      logError(headers, e.getResponse().getStatus(), e.getCause().getMessage());
+      return responseErrorMessage(e);
+    }
+  }
+
+  private Map<String, String> getColumnMapping(SpreadsheetSchema schema) {
+    var columnDescriptionList = schema.getColumnDescription().values();
+    return columnDescriptionList.stream()
+        .collect(ImmutableMap.toImmutableMap(
+            ColumnDescription::getColumnLabel,
+            ColumnDescription::getColumnName
+        ));
   }
 
   private Response responseErrorMessage(ValidatorRuntimeException e) {

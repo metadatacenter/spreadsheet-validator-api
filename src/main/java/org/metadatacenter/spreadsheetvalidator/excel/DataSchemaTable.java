@@ -32,15 +32,18 @@ public abstract class DataSchemaTable {
   @Nonnull
   public abstract ExcelDataExtractor getDataExtractor();
 
+  public int columnLength() {
+    return getSchemaRows().get(0).getPhysicalNumberOfCells();
+  }
+
   public List<Map<String, Object>> asMaps() {
     // Use the first row as a sample to count the number of cells.
-    var numberOfColumns = getSchemaRows().get(0).getPhysicalNumberOfCells();
-    return IntStream.range(0, numberOfColumns)
-        .mapToObj(this::createSchemaObject)
+    return IntStream.range(1, columnLength()) // skip the first row
+        .mapToObj(this::getColumn)
         .collect(ImmutableList.toImmutableList());
   }
 
-  private ImmutableMap<String, Object> createSchemaObject(int columnIndex) {
+  public Map<String, Object> getColumn(int columnIndex) {
     return getSchemaRows().stream()
         .collect(ImmutableMap.toImmutableMap(
             this::getKey,

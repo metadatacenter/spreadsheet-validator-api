@@ -19,8 +19,8 @@ public abstract class DataSheet {
   }
 
   protected static DataSheet create(@Nonnull Sheet excelSheet,
-                                 @Nonnull Configuration tableConfiguration,
-                                 @Nonnull ExcelDataExtractor dataExtractor) {
+                                    @Nonnull Configuration tableConfiguration,
+                                    @Nonnull ExcelDataExtractor dataExtractor) {
     return new AutoValue_DataSheet(excelSheet, tableConfiguration, dataExtractor);
   }
 
@@ -34,7 +34,7 @@ public abstract class DataSheet {
   public abstract ExcelDataExtractor getDataExtractor();
 
   public boolean isSchemaIncluded() {
-    return (getTableConfiguration() == Configuration.WITH_SCHEMA) ? true : false;
+    return getTableConfiguration() == Configuration.WITH_SCHEMA;
   }
 
   @Nonnull
@@ -42,11 +42,10 @@ public abstract class DataSheet {
     if (!isSchemaIncluded()) {
       return Optional.empty();
     }
-    var separatorRow = getDataExtractor().findFirstEmptyRow(getExcelSheet());
-    if (separatorRow.isEmpty()) {
+    var separatorIndex = getDataExtractor().findFirstEmptyRowIndex(getExcelSheet());
+    if (separatorIndex == -1) {
       throw new BadFileException("Bad Excel file", new MissingSeparatorRowException());
     }
-    var separatorIndex = separatorRow.get().getRowNum();
     // Extract the schema section from the data sheet.
     var startSchemaRowIndex = getExcelSheet().getTopRow();
     var endSchemaRowIndex = separatorIndex - 1;
@@ -59,12 +58,17 @@ public abstract class DataSheet {
   }
 
   @Nonnull
+  public DataSchemaTable getUncheckedSchemaTable() {
+    return getDataSchemaTable().get();
+  }
+
+  @Nonnull
   public DataRecordTable getDataRecordTable() {
     // Determine the row indexes to extract the table header and table data.
-    var separatorRow = getDataExtractor().findFirstEmptyRow(getExcelSheet());
-    var headerRowIndex = (separatorRow.isPresent())
-        ? separatorRow.get().getRowNum() + 1 // The header row is after the separator row
-        : getExcelSheet().getTopRow();       // The header row is always at the top
+    var separatorIndex = getDataExtractor().findFirstEmptyRowIndex(getExcelSheet());
+    var headerRowIndex = (separatorIndex != -1)
+        ? separatorIndex + 1            // The header row is after the separator row
+        : getExcelSheet().getTopRow();  // The header row is always at the top
     var startDataRowIndex = headerRowIndex + 1;
     var endDataRowIndex = getExcelSheet().getLastRowNum();
     // Extract the table header and table data.

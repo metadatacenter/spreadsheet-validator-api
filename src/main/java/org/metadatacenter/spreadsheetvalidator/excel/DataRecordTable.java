@@ -3,6 +3,7 @@ package org.metadatacenter.spreadsheetvalidator.excel;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Streams;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 
@@ -33,22 +34,30 @@ public abstract class DataRecordTable {
   @Nonnull
   public abstract ExcelDataExtractor getDataExtractor();
 
-  public List<Map<String, Object>> asMaps() {
-    return IntStream.range(0, getRecordRows().size())
-        .mapToObj(this::createRecordObject)
+  public List<String> getHeaderColumnNames() {
+    return Streams.stream(getHeaderRow().cellIterator())
+        .map(Cell::getStringCellValue)
         .collect(ImmutableList.toImmutableList());
   }
 
-  private ImmutableMap<String, Object> createRecordObject(int rowIndex) {
+  public List<Map<String, Object>> asMaps(Map<String, String> columnMapping) {
+    return IntStream.range(0, getRecordRows().size())
+        .mapToObj(rowIndex -> createRecordObject(rowIndex, columnMapping))
+        .collect(ImmutableList.toImmutableList());
+  }
+
+  private ImmutableMap<String, Object> createRecordObject(int rowIndex, Map<String, String> columnMapping) {
     var record = getRecordRows().get(rowIndex);
-    return getDataExtractor().getCellStream(getHeaderRow())
+    return getDataExtractor().toStream(getHeaderRow())
         .collect(ImmutableMap.toImmutableMap(
-            this::getKey,
+            header -> getKey(header, columnMapping),
             header -> getValue(header, record)));
   }
 
-  private String getKey(Cell header) {
-    return header.getStringCellValue();
+  private String getKey(Cell headerCell, Map<String, String> columnMapping) {
+    var columnLabel = headerCell.getStringCellValue();
+    var columnName = columnMapping.getOrDefault(columnLabel, columnLabel);
+    return columnName;
   }
 
   private Object getValue(Cell header, Row record) {

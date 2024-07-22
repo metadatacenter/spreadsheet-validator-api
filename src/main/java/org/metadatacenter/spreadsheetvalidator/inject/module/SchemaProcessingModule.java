@@ -4,6 +4,7 @@ import dagger.Module;
 import dagger.Provides;
 import org.metadatacenter.artifacts.model.reader.ArtifactReader;
 import org.metadatacenter.spreadsheetvalidator.SpreadsheetSchemaGenerator;
+import org.metadatacenter.spreadsheetvalidator.excel.HeaderBasedSchemaExtractor;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.TerminologyService;
 
 /**
@@ -20,5 +21,10 @@ public class SchemaProcessingModule {
   public SpreadsheetSchemaGenerator getSpreadsheetSchemaGenerator(ArtifactReader artifactReader,
                                                                   TerminologyService terminologyService) {
     return new SpreadsheetSchemaGenerator(artifactReader, terminologyService);
+  }
+
+  @Provides
+  public HeaderBasedSchemaExtractor getHeaderBasedSchemaExtractor() {
+    return new HeaderBasedSchemaExtractor();
   }
 }

@@ -3,10 +3,11 @@ package org.metadatacenter.spreadsheetvalidator.inject.module;
 import dagger.Module;
 import dagger.Provides;
 import io.dropwizard.web.conf.WebConfiguration;
+import org.metadatacenter.spreadsheetvalidator.ExcelConfig;
 import org.metadatacenter.spreadsheetvalidator.GeneralConfig;
+import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidatorConfiguration;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.BioPortalConfig;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.CedarConfig;
-import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidatorConfiguration;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.ChatGptConfig;
 
 import javax.annotation.Nonnull;
@@ -34,6 +35,11 @@ public class WebResourceModule {
   @Provides
   GeneralConfig provideGeneralConfiguration() {
     return appConfiguration.getGeneralConfig();
+  }
+
+  @Provides
+  ExcelConfig provideExcelConfiguration() {
+    return appConfiguration.getExcelConfig();
   }
 
   @Provides

@@ -7,6 +7,7 @@ import org.metadatacenter.spreadsheetvalidator.inject.module.ExcelFileProcessorM
 import org.metadatacenter.spreadsheetvalidator.inject.module.RestServiceModule;
 import org.metadatacenter.spreadsheetvalidator.inject.module.SchemaProcessingModule;
 import org.metadatacenter.spreadsheetvalidator.inject.module.SpreadsheetValidatorModule;
+import org.metadatacenter.spreadsheetvalidator.inject.module.WebResourceModule;
 
 import javax.inject.Singleton;
 
@@ -19,7 +20,8 @@ import javax.inject.Singleton;
     RestServiceModule.class,
     ExcelFileProcessorModule.class,
     SchemaProcessingModule.class,
-    SpreadsheetValidatorModule.class
+    SpreadsheetValidatorModule.class,
+    WebResourceModule.class
 })
 @Singleton
 public interface WebappComponent {
