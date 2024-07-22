@@ -12,17 +12,21 @@ import javax.annotation.Nullable;
 @AutoValue
 public abstract class MetadataSpreadsheet {
 
+  @Nonnull
   public static MetadataSpreadsheet create(@Nonnull DataSheet dataSheet,
                                            @Nullable ProvenanceSheet provenanceSheet) {
     return new AutoValue_MetadataSpreadsheet(dataSheet, provenanceSheet);
   }
 
+  @Nonnull
   public static MetadataSpreadsheet create(@Nonnull DataSheet dataSheet) {
     return create(dataSheet, null);
   }
 
+  @Nonnull
   public abstract DataSheet getDataSheet();
 
+  @Nullable
   public abstract ProvenanceSheet getProvenanceSheet();
 
   public boolean containsProvenanceSheet() {
