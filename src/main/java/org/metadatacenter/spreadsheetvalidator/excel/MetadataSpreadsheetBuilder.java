@@ -19,7 +19,7 @@ import static org.metadatacenter.spreadsheetvalidator.excel.DataSheet.Configurat
  */
 public class MetadataSpreadsheetBuilder {
 
-  private final SpreadsheetModelHandler specificationHandler;
+  private final SpreadsheetModelHandler spreadsheetModelHandler;
 
   private final ExcelDataExtractor dataExtractor;
 
@@ -28,9 +28,9 @@ public class MetadataSpreadsheetBuilder {
   private boolean isSchemaIncluded = false;
 
   @Inject
-  public MetadataSpreadsheetBuilder(@Nonnull SpreadsheetModelHandler specificationHandler,
+  public MetadataSpreadsheetBuilder(@Nonnull SpreadsheetModelHandler spreadsheetModelHandler,
                                     @Nonnull ExcelDataExtractor dataExtractor) {
-    this.specificationHandler = checkNotNull(specificationHandler);
+    this.spreadsheetModelHandler = checkNotNull(spreadsheetModelHandler);
     this.dataExtractor = checkNotNull(dataExtractor);
   }
 
@@ -58,13 +58,13 @@ public class MetadataSpreadsheetBuilder {
   }
 
   private MetadataSpreadsheet buildSpreadsheetWithEmbeddedSchema() {
-    var dataSheet = DataSheet.create(specificationHandler.getDataSheet(workbook), WITH_SCHEMA, dataExtractor);
+    var dataSheet = DataSheet.create(spreadsheetModelHandler.getDataSheet(workbook), WITH_SCHEMA, dataExtractor);
     return MetadataSpreadsheet.create(dataSheet);
   }
 
   private MetadataSpreadsheet buildSpreadsheetWithProvenanceSheet() {
-    var dataSheet = DataSheet.create(specificationHandler.getDataSheet(workbook), NO_SCHEMA, dataExtractor);
-    var provenanceSheet = ProvenanceSheet.create(specificationHandler.getProvenanceSheet(workbook), dataExtractor);
+    var dataSheet = DataSheet.create(spreadsheetModelHandler.getDataSheet(workbook), NO_SCHEMA, dataExtractor);
+    var provenanceSheet = ProvenanceSheet.create(spreadsheetModelHandler.getProvenanceSheet(workbook), dataExtractor);
     return MetadataSpreadsheet.create(dataSheet, provenanceSheet);
   }
 }
