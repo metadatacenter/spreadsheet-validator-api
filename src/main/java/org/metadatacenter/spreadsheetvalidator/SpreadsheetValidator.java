@@ -75,7 +75,8 @@ public class SpreadsheetValidator {
         .filter(column -> !spreadsheetColumns.contains(column))
         .collect(ImmutableList.toImmutableList());
     if (!missingColumns.isEmpty()) {
-      throw new MissingRequiredColumnsException(missingColumns);
+      var schemaName = spreadsheetSchema.getName();
+      throw new MissingRequiredColumnsException(schemaName, missingColumns);
     }
   }
 

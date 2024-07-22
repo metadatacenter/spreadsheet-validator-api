@@ -14,8 +14,9 @@ import java.util.stream.Collectors;
  */
 public class MissingRequiredColumnsException extends ValidatorRuntimeException {
 
-  public MissingRequiredColumnsException(@Nonnull List<String> missingColumns) {
-    super("Found missing required columns in the input spreadsheet.",
+  public MissingRequiredColumnsException(@Nonnull String schemaName,
+                                         @Nonnull List<String> missingColumns) {
+    super("The spreadsheet is missing required fields as specified in the '" + schemaName + "' schema",
         new IOException("List of missing required columns: " +
             missingColumns.stream()
                 .map(column -> "'" + column + "'")
