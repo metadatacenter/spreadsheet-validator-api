@@ -25,6 +25,11 @@ public abstract class PermissibleValue {
   }
 
   @Nonnull
+  public static PermissibleValue create(@Nonnull String label) {
+    return create(label, null);
+  }
+
+  @Nonnull
   @JsonProperty(LABEL)
   public abstract String getLabel();
 
