@@ -8,7 +8,6 @@ import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
 import org.metadatacenter.spreadsheetvalidator.domain.ValueType;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -24,8 +23,8 @@ public class HeaderBasedSchemaExtractor {
   // Reserved field names
   private static final String VARIABLE = "variable";
   private static final String TYPE = "type";
+  private static final String PRIORITY = "priority";
   private static final String DESCRIPTION = "description";
-  private static final String COMPLIANCE = "compliance";
   private static final String MIN_VALUE = "min_value";
   private static final String MAX_VALUE = "max_value";
   private static final String INPUT_PATTERN = "input_pattern";
@@ -57,7 +56,7 @@ public class HeaderBasedSchemaExtractor {
       .build();
 
   // Mapping from supported compliance type to a boolean value
-  private static final Map<String, Boolean> IS_REQUIRED_MAP = ImmutableMap.<String, Boolean>builder()
+  private static final Map<String, Boolean> PRIORITY_MAP = ImmutableMap.<String, Boolean>builder()
       .put("REQUIRED", true)
       .put("OPTIONAL", false)
       .put("RECOMMENDED", false)
@@ -100,11 +99,11 @@ public class HeaderBasedSchemaExtractor {
           var variableName = (String) columnSchema.getOrDefault(VARIABLE, variableLabel);
           var variableType = TYPE_MAP.get((String) columnSchema.get(TYPE));
           var variableSubType = SUBTYPE_MAP.get((String) columnSchema.get(TYPE));
-          var isRequired = IS_REQUIRED_MAP.get((String) columnSchema.get(COMPLIANCE));
+          var isRequired = PRIORITY_MAP.get((String) columnSchema.get(PRIORITY));
           var description = (String) columnSchema.get(DESCRIPTION);
           var minValue = (Number) columnSchema.get(MIN_VALUE);
           var maxValue = (Number) columnSchema.get(MAX_VALUE);
-          var inputPattern = INPUT_PATTERN_MAP.get((String) columnSchema.get(INPUT_PATTERN));
+          var inputPattern = getInputPattern(columnSchema);
           var permissibleValues = getPermissibleValues(columnSchema);
           var example = "";
           return Map.entry(variableName, ColumnDescription.create(
@@ -117,6 +116,14 @@ public class HeaderBasedSchemaExtractor {
           ));
         })
         .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  private static String getInputPattern(Map<String, Object> columnSchema) {
+    var inputPattern = (String) columnSchema.get(INPUT_PATTERN);
+    if (inputPattern != null) {
+      return inputPattern;
+    }
+    return INPUT_PATTERN_MAP.get((String) columnSchema.get(TYPE));
   }
 
   private ImmutableList<PermissibleValue> getPermissibleValues(Map<String, Object> columnSchema) {
@@ -135,7 +142,7 @@ public class HeaderBasedSchemaExtractor {
           var columnSchema = dataSchemaTable.getColumn(i);
           var variableLabel = headerColumnNames.get(i);
           var variableName = (String) columnSchema.getOrDefault(VARIABLE, variableLabel);
-          var isRequired = IS_REQUIRED_MAP.get((String) columnSchema.get(COMPLIANCE));
+          var isRequired = PRIORITY_MAP.get((String) columnSchema.get(PRIORITY));
           return isRequired ? variableName : null;
         })
         .filter(Objects::nonNull)
