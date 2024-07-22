@@ -30,6 +30,8 @@ public class SpreadsheetValidator {
 
   private ValidatorContext validatorContext;
 
+  private boolean additionalColumnsNotAllowed = false;
+
   @Inject
   public SpreadsheetValidator(@Nonnull RepairClosures repairClosures,
                               @Nonnull ValidationResultProvider validationResultProvider,
@@ -47,24 +49,17 @@ public class SpreadsheetValidator {
     validatorList.add(validator);
   }
 
-  public SpreadsheetValidator additionalColumnsNotAllowed(Spreadsheet spreadsheet,
-                                                          SpreadsheetSchema spreadsheetSchema) {
-    var additionalColumns = Lists.<String>newArrayList();
-    spreadsheet.getColumns().stream()
-        .forEach(column -> {
-          if (!spreadsheetSchema.containsColumn(column)) {
-            additionalColumns.add(column);
-          }
-        });
-    if (!additionalColumns.isEmpty()) {
-      throw new UnexpectedColumnsException(additionalColumns);
-    }
+  public SpreadsheetValidator additionalColumnsNotAllowed() {
+    additionalColumnsNotAllowed = true;
     return this;
   }
 
   public SpreadsheetValidator validate(Spreadsheet spreadsheet,
                                        SpreadsheetSchema spreadsheetSchema) {
     checkAllRequiredFieldsPresent(spreadsheet, spreadsheetSchema);
+    if (additionalColumnsNotAllowed) {
+      checkAdditionalColumns(spreadsheet, spreadsheetSchema);
+    }
     validatorContext = new ValidatorContext(repairClosures, validationResultProvider.get(), validationSettingsProvider.get());
     spreadsheet.getRowStream().forEach(
         spreadsheetRow -> validatorList.forEach(
@@ -81,6 +76,19 @@ public class SpreadsheetValidator {
         .collect(ImmutableList.toImmutableList());
     if (!missingColumns.isEmpty()) {
       throw new MissingRequiredColumnsException(missingColumns);
+    }
+  }
+
+  private static void checkAdditionalColumns(Spreadsheet spreadsheet, SpreadsheetSchema schema) {
+    var additionalColumns = Lists.<String>newArrayList();
+    spreadsheet.getColumns().stream()
+        .forEach(column -> {
+          if (!schema.containsColumn(column)) {
+            additionalColumns.add(column);
+          }
+        });
+    if (!additionalColumns.isEmpty()) {
+      throw new UnexpectedColumnsException(additionalColumns);
     }
   }
 
