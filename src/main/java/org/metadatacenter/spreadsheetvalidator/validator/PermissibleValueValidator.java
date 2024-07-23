@@ -1,7 +1,7 @@
 package org.metadatacenter.spreadsheetvalidator.validator;
 
 import com.google.common.collect.ImmutableList;
-import org.metadatacenter.spreadsheetvalidator.ValidationError;
+import com.google.common.collect.ImmutableMap;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
 import org.metadatacenter.spreadsheetvalidator.domain.PermissibleValue;
 import org.metadatacenter.spreadsheetvalidator.util.Assert;
@@ -10,7 +10,11 @@ import javax.annotation.Nonnull;
 
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isIgnoreCaseMemberOf;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.not;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.COLUMN_LABEL;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.COLUMN_NAME;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_MESSAGE;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ROW_INDEX;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SUGGESTION;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
@@ -34,13 +38,16 @@ public class PermissibleValueValidator extends InputValueValidator {
         var similarityChecker = validatorContext.getClosure("similarityChecker");
         var suggestion = similarityChecker.execute(fieldName, value, permissibleValueLabels);
         validatorContext.getValidationResult().add(
-            ValidationError.builder(valueContext)
-                .setErrorDescription("Value is not part of the permissible values")
-                .setProp(VALUE, value)
-                .setProp(SUGGESTION, suggestion)
-                .setProp(ERROR_TYPE, "notStandardTerm")
-                .setProp(SEVERITY, 1)
-                .build());
+            ImmutableMap.of(
+                ROW_INDEX, valueContext.getRow(),
+                COLUMN_NAME, valueContext.getColumn(),
+                COLUMN_LABEL, columnDescription.getColumnLabel(),
+                VALUE, value,
+                ERROR_TYPE, "notStandardTerm",
+                ERROR_MESSAGE, "Value is not part of the permissible values",
+                SUGGESTION, suggestion,
+                SEVERITY, 1
+            ));
       }
     }
   }

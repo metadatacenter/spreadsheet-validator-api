@@ -1,15 +1,18 @@
 package org.metadatacenter.spreadsheetvalidator.validator;
 
 import com.google.common.base.Charsets;
-import org.metadatacenter.spreadsheetvalidator.ValidationError;
+import com.google.common.collect.ImmutableMap;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
 
 import javax.annotation.Nonnull;
-
 import java.nio.charset.Charset;
 
 import static org.metadatacenter.spreadsheetvalidator.domain.ValueType.STRING;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.COLUMN_LABEL;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.COLUMN_NAME;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_MESSAGE;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ROW_INDEX;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
 
@@ -23,16 +26,20 @@ public class TextEncodingValidator extends InputValueValidator {
   public void validateInputValue(@Nonnull Object value,
                                  @Nonnull ValueContext valueContext,
                                  @Nonnull ValidatorContext validatorContext) {
-    var valueType = valueContext.getColumnDescription().getColumnType();
+    var columnDescription = valueContext.getColumnDescription();
+    var valueType = columnDescription.getColumnType();
     var valueEncoding = validatorContext.getValidationSettings().getEncoding();
     if (valueType == STRING && !useValidEncoding(String.valueOf(value), valueEncoding)) {
       validatorContext.getValidationResult().add(
-          ValidationError.builder(valueContext)
-              .setErrorDescription("The value includes non-" + valueEncoding.displayName() + " characters.")
-              .setProp(VALUE, value)
-              .setProp(ERROR_TYPE, "invalidValueEncoding")
-              .setProp(SEVERITY, 1)
-              .build());
+          ImmutableMap.of(
+              ROW_INDEX, valueContext.getRow(),
+              COLUMN_NAME, valueContext.getColumn(),
+              COLUMN_LABEL, columnDescription.getColumnLabel(),
+              VALUE, value,
+              ERROR_TYPE, "invalidValueEncoding",
+              ERROR_MESSAGE, "The value includes non-" + valueEncoding.displayName() + " characters",
+              SEVERITY, 1
+          ));
     }
   }
 

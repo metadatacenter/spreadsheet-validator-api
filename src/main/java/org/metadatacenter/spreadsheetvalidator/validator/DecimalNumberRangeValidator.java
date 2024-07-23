@@ -1,15 +1,18 @@
 package org.metadatacenter.spreadsheetvalidator.validator;
 
-import org.metadatacenter.spreadsheetvalidator.ValidationError;
+import com.google.common.collect.ImmutableMap;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
 import org.metadatacenter.spreadsheetvalidator.util.Assert;
 
 import javax.annotation.Nonnull;
 
 import static org.metadatacenter.spreadsheetvalidator.domain.ValueType.DECIMAL;
-import static org.metadatacenter.spreadsheetvalidator.domain.ValueType.INTEGER;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isNumber;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.COLUMN_LABEL;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.COLUMN_NAME;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_MESSAGE;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
+import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ROW_INDEX;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SUGGESTION;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
@@ -50,13 +53,16 @@ public class DecimalNumberRangeValidator extends InputValueValidator {
       if (!suggestion.isEmpty()) {
         // Construct the error message
         validatorContext.getValidationResult().add(
-            ValidationError.builder(valueContext)
-                .setErrorDescription("Decimal number is out of range")
-                .setProp(VALUE, value)
-                .setProp(ERROR_TYPE, "numberOutOfRange")
-                .setProp(SUGGESTION, suggestion)
-                .setProp(SEVERITY, 3)
-                .build());
+            ImmutableMap.of(
+                ROW_INDEX, valueContext.getRow(),
+                COLUMN_NAME, valueContext.getColumn(),
+                COLUMN_LABEL, columnDescription.getColumnLabel(),
+                VALUE, value,
+                ERROR_TYPE, "numberOutOfRange",
+                ERROR_MESSAGE, "Decimal number is out of range",
+                SUGGESTION, suggestion,
+                SEVERITY, 3
+            ));
       }
     }
   }

@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -12,17 +13,17 @@ import java.util.stream.Stream;
  */
 public class ValidationResult {
 
-  private final List<ValidationError> errorList = Lists.newArrayList();
+  private final List<Map<String, Object>> itemList = Lists.<Map<String, Object>>newArrayList();
 
-  public void add(ValidationError error) {
-    errorList.add(error);
+  public void add(Map<String, Object> item) {
+    itemList.add(item);
   }
 
-  public ImmutableList<ValidationError> getErrorList() {
-    return ImmutableList.copyOf(errorList);
+  public ImmutableList<Map<String, Object>> get() {
+    return ImmutableList.copyOf(itemList);
   }
 
-  public Stream<ValidationError> stream() {
-    return errorList.stream();
+  public Stream<Map<String, Object>> stream() {
+    return itemList.stream();
   }
 }
