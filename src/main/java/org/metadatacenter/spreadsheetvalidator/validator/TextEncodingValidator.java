@@ -27,9 +27,7 @@ public class TextEncodingValidator extends InputValueValidator {
     var valueEncoding = validatorContext.getValidationSettings().getEncoding();
     if (valueType == STRING && !useValidEncoding(String.valueOf(value), valueEncoding)) {
       validatorContext.getValidationResult().add(
-          ValidationError.builder()
-              .setColumnName(valueContext.getColumn())
-              .setRowNumber(valueContext.getRow())
+          ValidationError.builder(valueContext)
               .setErrorDescription("The value includes non-" + valueEncoding.displayName() + " characters.")
               .setProp(VALUE, value)
               .setProp(ERROR_TYPE, "invalidValueEncoding")

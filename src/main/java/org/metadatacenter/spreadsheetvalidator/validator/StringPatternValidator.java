@@ -29,9 +29,7 @@ public class StringPatternValidator extends InputValueValidator {
       var matcher = pattern.matcher(String.valueOf(value));
       if (!matcher.matches()) {
         validatorContext.getValidationResult().add(
-            ValidationError.builder()
-                .setColumnName(valueContext.getColumn())
-                .setRowNumber(valueContext.getRow())
+            ValidationError.builder(valueContext)
                 .setErrorDescription("Value doesn't match the required pattern")
                 .setProp(VALUE, value)
                 .setProp(ERROR_TYPE, "invalidValueFormat")

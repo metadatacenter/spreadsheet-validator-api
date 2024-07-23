@@ -26,9 +26,7 @@ public class StringTypeValidator extends InputValueValidator {
     var valueType = valueContext.getColumnDescription().getColumnType();
     if (valueType == STRING && Assert.that(value, not(isString()))) {
       validatorContext.getValidationResult().add(
-          ValidationError.builder()
-              .setColumnName(valueContext.getColumn())
-              .setRowNumber(valueContext.getRow())
+          ValidationError.builder(valueContext)
               .setErrorDescription("Value is not a string")
               .setProp(VALUE, value)
               .setProp(ERROR_TYPE, "notStringType")

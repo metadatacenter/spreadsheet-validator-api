@@ -25,16 +25,15 @@ public class RequiredFieldValidator implements Validator {
                        @Nonnull SpreadsheetRow spreadsheetRow) {
     var validationResult = context.getValidationResult();
     spreadsheetRow.columnStream()
-        .forEach(column -> {
-          if (spreadsheetSchema.containsColumn(column)) {
-            var columnDescription = spreadsheetSchema.getColumnDescription(column);
+        .forEach(columnName -> {
+          if (spreadsheetSchema.containsColumn(columnName)) {
+            var columnDescription = spreadsheetSchema.getColumnDescription(columnName);
             var rowNumber = spreadsheetRow.getRowNumber();
-            var value = spreadsheetRow.getValue(column);
+            var value = spreadsheetRow.getValue(columnName);
             if (columnDescription.isRequiredColumn() && Assert.that(value, isNullOrEmpty())) {
+              var valueContext = ValueContext.create(columnName, rowNumber, columnDescription);
               validationResult.add(
-                  ValidationError.builder()
-                      .setColumnName(column)
-                      .setRowNumber(rowNumber)
+                  ValidationError.builder(valueContext)
                       .setErrorDescription("Required value is missing")
                       .setProp(VALUE, value)
                       .setProp(ERROR_TYPE, "missingRequired")

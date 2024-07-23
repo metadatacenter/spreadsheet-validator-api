@@ -3,6 +3,7 @@ package org.metadatacenter.spreadsheetvalidator;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import org.metadatacenter.spreadsheetvalidator.validator.ValueContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -20,13 +21,17 @@ public abstract class ValidationError {
   @Nonnull
   public static ValidationError create(@Nonnull Integer rowNumber,
                                        @Nonnull String columnName,
+                                       @Nonnull String columnLabel,
                                        @Nonnull String errorDescription,
                                        @Nonnull ImmutableMap<String, Object> additionalProps) {
-    return new AutoValue_ValidationError(rowNumber, columnName, errorDescription, additionalProps);
+    return new AutoValue_ValidationError(rowNumber, columnName, columnLabel, errorDescription, additionalProps);
   }
 
-  public static Builder builder() {
-    return new ValidationError.Builder();
+  public static Builder builder(@Nonnull ValueContext valueContext) {
+    var rowNumber = valueContext.getRow();
+    var columnName = valueContext.getColumn();
+    var columnLabel = valueContext.getColumnDescription().getColumnLabel();
+    return new ValidationError.Builder(rowNumber, columnName, columnLabel);
   }
 
   @Nonnull
@@ -34,6 +39,9 @@ public abstract class ValidationError {
 
   @Nonnull
   public abstract String getColumnName();
+
+  @Nonnull
+  public abstract String getColumnLabel();
 
   @Nonnull
   public abstract String getErrorDescription();
@@ -52,22 +60,17 @@ public abstract class ValidationError {
 
   public static class Builder {
 
-    private Integer rowNumber;
-    private String columnName;
+    private final Integer rowNumber;
+    private final String columnName;
+    private final String columnLabel;
     private String errorDescription;
 
     private Map<String, Object> additionalProps = Maps.newHashMap();
 
-    public Builder setRowNumber(@Nonnull Integer rowNumber) {
-      checkNotNull(rowNumber);
-      this.rowNumber = rowNumber;
-      return this;
-    }
-
-    public Builder setColumnName(@Nonnull String columnName) {
-      checkNotNull(columnName);
-      this.columnName = columnName;
-      return this;
+    public Builder(@Nonnull Integer rowNumber, @Nonnull String columnName, @Nonnull String columnLabel) {
+      this.rowNumber = checkNotNull(rowNumber);
+      this.columnName = checkNotNull(columnName);
+      this.columnLabel = checkNotNull(columnLabel);
     }
 
     public Builder setErrorDescription(@Nonnull String description) {
@@ -84,12 +87,11 @@ public abstract class ValidationError {
     }
 
     public ValidationError build() {
-      checkNotNull(rowNumber);
-      checkNotNull(columnName);
       checkNotNull(errorDescription);
       return ValidationError.create(
           rowNumber,
           columnName,
+          columnLabel,
           errorDescription,
           ImmutableMap.copyOf(additionalProps));
     }

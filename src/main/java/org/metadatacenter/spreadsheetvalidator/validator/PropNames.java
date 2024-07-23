@@ -6,6 +6,7 @@ package org.metadatacenter.spreadsheetvalidator.validator;
  */
 public class PropNames {
 
+  public static final String COLUMN_LABEL = "columnLabel";
   public static final String VALUE = "value";
   public static final String ERROR_TYPE = "errorType";
   public static final String SUGGESTION = "suggestion";

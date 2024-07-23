@@ -29,14 +29,12 @@ public class UrlValidator extends InputValueValidator {
         var url = new URL(String.valueOf(value));
         if (!isResolvable(url)) {
           validatorContext.getValidationResult().add(
-              invalidUrlError(valueContext.getColumn(), valueContext.getRow(), value,
-                  "URL does not exist")
+              invalidUrlError(valueContext, value, "URL does not exist")
           );
         }
       } catch (MalformedURLException e) {
         validatorContext.getValidationResult().add(
-            invalidUrlError(valueContext.getColumn(), valueContext.getRow(), value,
-                "URL is not valid")
+            invalidUrlError(valueContext, value, "URL is not valid")
         );
       }
     }
@@ -53,10 +51,8 @@ public class UrlValidator extends InputValueValidator {
     }
   }
 
-  private static ValidationError invalidUrlError(String column, int row, Object value, String message) {
-    return ValidationError.builder()
-        .setColumnName(column)
-        .setRowNumber(row)
+  private static ValidationError invalidUrlError(ValueContext valueContext, Object value, String message) {
+    return ValidationError.builder(valueContext)
         .setErrorDescription(message)
         .setProp(VALUE, value)
         .setProp(ERROR_TYPE, "invalidUrl")

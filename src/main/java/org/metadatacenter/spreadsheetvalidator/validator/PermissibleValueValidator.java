@@ -34,9 +34,7 @@ public class PermissibleValueValidator extends InputValueValidator {
         var similarityChecker = validatorContext.getClosure("similarityChecker");
         var suggestion = similarityChecker.execute(fieldName, value, permissibleValueLabels);
         validatorContext.getValidationResult().add(
-            ValidationError.builder()
-                .setColumnName(valueContext.getColumn())
-                .setRowNumber(valueContext.getRow())
+            ValidationError.builder(valueContext)
                 .setErrorDescription("Value is not part of the permissible values")
                 .setProp(VALUE, value)
                 .setProp(SUGGESTION, suggestion)

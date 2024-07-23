@@ -28,9 +28,7 @@ public class NumberTypeValidator extends InputValueValidator {
       var closure = validatorContext.getClosure("numberExtractor");
       var suggestion = closure.execute(value);
       validatorContext.getValidationResult().add(
-          ValidationError.builder()
-              .setColumnName(valueContext.getColumn())
-              .setRowNumber(valueContext.getRow())
+          ValidationError.builder(valueContext)
               .setErrorDescription("Value is not a number")
               .setProp(VALUE, value)
               .setProp(ERROR_TYPE, "notNumberType")

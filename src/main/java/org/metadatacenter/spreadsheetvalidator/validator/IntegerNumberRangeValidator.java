@@ -49,9 +49,7 @@ public class IntegerNumberRangeValidator extends InputValueValidator {
       if (!suggestion.isEmpty()) {
         // Construct the error message
         validatorContext.getValidationResult().add(
-            ValidationError.builder()
-                .setColumnName(valueContext.getColumn())
-                .setRowNumber(valueContext.getRow())
+            ValidationError.builder(valueContext)
                 .setErrorDescription("Integer number is out of range")
                 .setProp(VALUE, value)
                 .setProp(ERROR_TYPE, "numberOutOfRange")
