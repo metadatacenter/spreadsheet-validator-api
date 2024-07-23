@@ -22,7 +22,6 @@ import org.glassfish.jersey.server.ContainerRequest;
 import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
-import org.metadatacenter.spreadsheetvalidator.excel.DataSheet;
 import org.metadatacenter.spreadsheetvalidator.excel.HeaderBasedSchemaExtractor;
 import org.metadatacenter.spreadsheetvalidator.excel.MetadataSpreadsheetBuilder;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
@@ -50,7 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -251,7 +249,9 @@ public class ServiceResource {
 
   private Response getResponse(HttpHeaders headers, SpreadsheetSchema schema, Spreadsheet spreadsheet, ValidationReport reporting) {
     try {
-      var response = ValidateResponse.create(schema, spreadsheet, reporting);
+      var response = reporting.isEmpty()
+          ? ValidateResponse.createSuccess(schema, spreadsheet, reporting)
+          : ValidateResponse.createFailed(schema, spreadsheet, reporting);
       logUsage(headers, schema.getTemplateIri(), reporting);
       return Response.ok(response).build();
     } catch (ValidatorServiceException e) {

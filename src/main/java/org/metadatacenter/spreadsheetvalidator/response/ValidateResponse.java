@@ -8,7 +8,6 @@ import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -17,17 +16,41 @@ import javax.annotation.Nullable;
 @AutoValue
 public abstract class ValidateResponse {
 
+  public enum Status {
+    SUCCESS, FAILED
+  }
+
+  private static final String STATUS = "status";
   private static final String SCHEMA = "schema";
   private static final String DATA = "data";
   private static final String REPORTING = "reporting";
 
   @Nonnull
   @JsonCreator
-  public static ValidateResponse create(@Nonnull @JsonProperty(SCHEMA) SpreadsheetSchema schema,
+  public static ValidateResponse create(@Nonnull @JsonProperty(STATUS) Status validationStatus,
+                                        @Nonnull @JsonProperty(SCHEMA) SpreadsheetSchema schema,
                                         @Nonnull @JsonProperty(DATA) Spreadsheet data,
                                         @Nonnull @JsonProperty(REPORTING) ValidationReport reporting) {
-    return new AutoValue_ValidateResponse(schema, data, reporting);
+    return new AutoValue_ValidateResponse(validationStatus, schema, data, reporting);
   }
+
+  @Nonnull
+  public static ValidateResponse createSuccess(@Nonnull SpreadsheetSchema schema,
+                                               @Nonnull Spreadsheet data,
+                                               @Nonnull ValidationReport reporting) {
+    return create(Status.SUCCESS, schema, data, reporting);
+  }
+
+  @Nonnull
+  public static ValidateResponse createFailed(@Nonnull SpreadsheetSchema schema,
+                                              @Nonnull Spreadsheet data,
+                                              @Nonnull ValidationReport reporting) {
+    return create(Status.FAILED, schema, data, reporting);
+  }
+
+  @Nonnull
+  @JsonProperty(STATUS)
+  public abstract Status getValidationStatus();
 
   @Nonnull
   @JsonProperty(SCHEMA)
