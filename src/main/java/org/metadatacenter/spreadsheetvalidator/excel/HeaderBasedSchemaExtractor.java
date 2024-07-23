@@ -47,6 +47,7 @@ public class HeaderBasedSchemaExtractor {
       .put("boolean", ValueType.STRING)
       .put("obo id", ValueType.STRING)
       .put("rrid", ValueType.STRING)
+      .put("ror", ValueType.STRING)
       .put("url", ValueType.URL)
       .build();
 
@@ -74,6 +75,7 @@ public class HeaderBasedSchemaExtractor {
       .put("boolean", "^(?i:true|false)$")
       .put("obo id", "^[A-Za-z]+:[0-9]{7}$")
       .put("rrid", "^RRID:[A-Za-z]+_[0-9]+$")
+      .put("ror", "^ROR:0[a-hj-km-np-tv-z|0-9]{6}[0-9]{2}$")
       .build();
 
   public SpreadsheetSchema extractFrom(@Nonnull DataSheet dataSheet) {
