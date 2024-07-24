@@ -37,7 +37,7 @@ public class PermissibleValueValidator extends InputValueValidator {
       if (Assert.that(label, not(isIgnoreCaseMemberOf(permissibleValueLabels)))) {
         var similarityChecker = validatorContext.getClosure("similarityChecker");
         var suggestion = similarityChecker.execute(fieldName, value, permissibleValueLabels);
-        validatorContext.getValidationResult().add(
+        validatorContext.getValidationResultAccumulator().add(
             ImmutableMap.of(
                 ROW_INDEX, valueContext.getRow(),
                 COLUMN_NAME, valueContext.getColumn(),

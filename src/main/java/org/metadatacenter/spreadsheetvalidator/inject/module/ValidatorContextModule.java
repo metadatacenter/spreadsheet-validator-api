@@ -4,8 +4,8 @@ import dagger.Module;
 import dagger.Provides;
 import org.metadatacenter.spreadsheetvalidator.GeneralConfig;
 import org.metadatacenter.spreadsheetvalidator.RepairClosures;
-import org.metadatacenter.spreadsheetvalidator.ValidationResultProvider;
-import org.metadatacenter.spreadsheetvalidator.ValidationSettingsProvider;
+import org.metadatacenter.spreadsheetvalidator.ValidationResultAccumulatorProvider;
+import org.metadatacenter.spreadsheetvalidator.ValidationSettings;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -22,12 +22,12 @@ public class ValidatorContextModule {
   }
 
   @Provides
-  public ValidationResultProvider providesValidationResultProvider() {
-    return new ValidationResultProvider();
+  public ValidationResultAccumulatorProvider providesValidationResultCollectorProvider() {
+    return new ValidationResultAccumulatorProvider();
   }
 
   @Provides
-  public ValidationSettingsProvider providesValidationSettingsProvider(GeneralConfig generalConfig) {
-    return new ValidationSettingsProvider(generalConfig);
+  public ValidationSettings providesValidationSettings(GeneralConfig generalConfig) {
+    return new ValidationSettings(generalConfig);
   }
 }

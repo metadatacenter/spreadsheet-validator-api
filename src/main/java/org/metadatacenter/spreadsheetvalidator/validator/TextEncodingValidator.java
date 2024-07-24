@@ -30,7 +30,7 @@ public class TextEncodingValidator extends InputValueValidator {
     var valueType = columnDescription.getColumnType();
     var valueEncoding = validatorContext.getValidationSettings().getEncoding();
     if (valueType == STRING && !useValidEncoding(String.valueOf(value), valueEncoding)) {
-      validatorContext.getValidationResult().add(
+      validatorContext.getValidationResultAccumulator().add(
           ImmutableMap.of(
               ROW_INDEX, valueContext.getRow(),
               COLUMN_NAME, valueContext.getColumn(),

@@ -1,8 +1,8 @@
 package org.metadatacenter.spreadsheetvalidator;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import com.google.auto.value.AutoValue;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -11,19 +11,19 @@ import java.util.stream.Stream;
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-public class ValidationResult {
+@AutoValue
+public abstract class ValidationResult {
 
-  private final List<Map<String, Object>> itemList = Lists.<Map<String, Object>>newArrayList();
-
-  public void add(Map<String, Object> item) {
-    itemList.add(item);
+  @Nonnull
+  public static ValidationResult create(@Nonnull List<Map<String, Object>> resultList) {
+    return new AutoValue_ValidationResult(resultList);
   }
 
-  public ImmutableList<Map<String, Object>> get() {
-    return ImmutableList.copyOf(itemList);
-  }
+  @Nonnull
+  public abstract List<Map<String, Object>> asList();
 
+  @Nonnull
   public Stream<Map<String, Object>> stream() {
-    return itemList.stream();
+    return asList().stream();
   }
 }

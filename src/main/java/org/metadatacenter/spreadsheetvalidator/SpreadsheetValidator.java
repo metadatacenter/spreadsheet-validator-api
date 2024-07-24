@@ -22,9 +22,9 @@ public class SpreadsheetValidator {
 
   private final RepairClosures repairClosures;
 
-  private final ValidationResultProvider validationResultProvider;
+  private final ValidationSettings validationSettings;
 
-  private final ValidationSettingsProvider validationSettingsProvider;
+  private final ValidationResultAccumulatorProvider validationResultAccumulatorProvider;
 
   private final List<Validator> validatorList = Lists.newArrayList();
 
@@ -34,11 +34,11 @@ public class SpreadsheetValidator {
 
   @Inject
   public SpreadsheetValidator(@Nonnull RepairClosures repairClosures,
-                              @Nonnull ValidationResultProvider validationResultProvider,
-                              @Nonnull ValidationSettingsProvider validationSettingsProvider) {
+                              @Nonnull ValidationSettings validationSettings,
+                              @Nonnull ValidationResultAccumulatorProvider validationResultAccumulatorProvider) {
     this.repairClosures = checkNotNull(repairClosures);
-    this.validationResultProvider = checkNotNull(validationResultProvider);
-    this.validationSettingsProvider = checkNotNull(validationSettingsProvider);
+    this.validationSettings = checkNotNull(validationSettings);
+    this.validationResultAccumulatorProvider = checkNotNull(validationResultAccumulatorProvider);
   }
 
   public void setClosure(@Nonnull String key, @Nonnull Closure closure) {
@@ -60,7 +60,8 @@ public class SpreadsheetValidator {
     if (additionalColumnsNotAllowed) {
       checkAdditionalColumns(spreadsheet, spreadsheetSchema);
     }
-    validatorContext = new ValidatorContext(repairClosures, validationResultProvider.get(), validationSettingsProvider.get());
+    var validationResultAccumulator = validationResultAccumulatorProvider.get();
+    validatorContext = new ValidatorContext(repairClosures, validationSettings, validationResultAccumulator);
     spreadsheet.getRowStream().forEach(
         spreadsheetRow -> validatorList.forEach(
             validator -> validator.validate(validatorContext, spreadsheetSchema, spreadsheetRow)));
@@ -94,6 +95,7 @@ public class SpreadsheetValidator {
   }
 
   public ValidationReport collect(ResultCollector resultCollector) {
-    return resultCollector.of(validatorContext.getValidationResult());
+    var validationResultCollector = validatorContext.getValidationResultAccumulator();
+    return resultCollector.of(validationResultCollector.toValidationResult());
   }
 }

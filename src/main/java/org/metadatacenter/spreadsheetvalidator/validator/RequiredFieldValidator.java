@@ -27,7 +27,7 @@ public class RequiredFieldValidator implements Validator {
   public void validate(@Nonnull ValidatorContext context,
                        @Nonnull SpreadsheetSchema spreadsheetSchema,
                        @Nonnull SpreadsheetRow spreadsheetRow) {
-    var validationResult = context.getValidationResult();
+    var validationResult = context.getValidationResultAccumulator();
     spreadsheetRow.columnStream()
         .forEach(columnName -> {
           if (spreadsheetSchema.containsColumn(columnName)) {

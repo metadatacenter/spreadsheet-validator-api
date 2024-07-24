@@ -5,8 +5,8 @@ import dagger.Provides;
 import org.metadatacenter.spreadsheetvalidator.RepairClosures;
 import org.metadatacenter.spreadsheetvalidator.ResultCollector;
 import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidator;
-import org.metadatacenter.spreadsheetvalidator.ValidationResultProvider;
-import org.metadatacenter.spreadsheetvalidator.ValidationSettingsProvider;
+import org.metadatacenter.spreadsheetvalidator.ValidationResultAccumulatorProvider;
+import org.metadatacenter.spreadsheetvalidator.ValidationSettings;
 import org.metadatacenter.spreadsheetvalidator.inject.provider.SpreadsheetValidatorProvider;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.ChatGptService;
 import org.metadatacenter.spreadsheetvalidator.validator.ResultCollectorImpl;
@@ -25,10 +25,10 @@ public class SpreadsheetValidatorModule {
 
   @Provides
   public SpreadsheetValidator provideSpreadsheetValidator(@Nonnull RepairClosures repairClosures,
-                                                          @Nonnull ValidationResultProvider validationResultProvider,
-                                                          @Nonnull ValidationSettingsProvider validationSettingsProvider,
+                                                          @Nonnull ValidationResultAccumulatorProvider validationResultAccumulatorProvider,
+                                                          @Nonnull ValidationSettings validationSettings,
                                                           @Nonnull ChatGptService chatGptService) {
-    return new SpreadsheetValidatorProvider(repairClosures, validationResultProvider, validationSettingsProvider, chatGptService).get();
+    return new SpreadsheetValidatorProvider(repairClosures, validationResultAccumulatorProvider, validationSettings, chatGptService).get();
   }
 
   @Provides

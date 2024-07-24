@@ -15,7 +15,6 @@ import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ROW_INDEX;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SUGGESTION;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
 
 /**
@@ -44,7 +43,7 @@ public class NumberTypeValidator extends InputValueValidator {
       if (suggestion != null) {
         resultMap.put(ERROR_TYPE, suggestion);
       }
-      validatorContext.getValidationResult().add(resultMap);
+      validatorContext.getValidationResultAccumulator().add(resultMap);
     }
   }
 }

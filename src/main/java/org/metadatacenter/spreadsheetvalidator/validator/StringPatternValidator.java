@@ -31,7 +31,7 @@ public class StringPatternValidator extends InputValueValidator {
       var pattern = Pattern.compile(regexString);
       var matcher = pattern.matcher(String.valueOf(value));
       if (!matcher.matches()) {
-        validatorContext.getValidationResult().add(
+        validatorContext.getValidationResultAccumulator().add(
             ImmutableMap.of(
                 ROW_INDEX, valueContext.getRow(),
                 COLUMN_NAME, valueContext.getColumn(),

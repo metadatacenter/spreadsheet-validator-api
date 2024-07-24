@@ -15,34 +15,31 @@ public class ValidatorContext {
 
   private final RepairClosures repairClosures;
 
-  private final ValidationResult validationResult;
-
   private final ValidationSettings validationSettings;
+
+  private final ValidationResultAccumulator validationResultAccumulator;
 
   @Inject
   public ValidatorContext(@Nonnull RepairClosures repairClosures,
-                          @Nonnull ValidationResult validationResult,
-                          @Nonnull ValidationSettings validationSettings) {
+                          @Nonnull ValidationSettings validationSettings,
+                          @Nonnull ValidationResultAccumulator validationResultAccumulator) {
     this.repairClosures = checkNotNull(repairClosures);
-    this.validationResult = checkNotNull(validationResult);
     this.validationSettings = checkNotNull(validationSettings);
+    this.validationResultAccumulator = checkNotNull(validationResultAccumulator);
   }
 
-  public void setClosure(@Nonnull String key, @Nonnull Closure closure) {
-    repairClosures.add(key, closure);
-  }
-
+  @Nonnull
   public Closure getClosure(@Nonnull String key) {
     return repairClosures.get(key);
   }
 
   @Nonnull
-  public ValidationResult getValidationResult() {
-    return validationResult;
+  public ValidationSettings getValidationSettings() {
+    return validationSettings;
   }
 
   @Nonnull
-  public ValidationSettings getValidationSettings() {
-    return validationSettings;
+  public ValidationResultAccumulator getValidationResultAccumulator() {
+    return validationResultAccumulator;
   }
 }

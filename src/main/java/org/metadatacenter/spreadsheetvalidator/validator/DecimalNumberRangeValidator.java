@@ -52,7 +52,7 @@ public class DecimalNumberRangeValidator extends InputValueValidator {
       }
       if (!suggestion.isEmpty()) {
         // Construct the error message
-        validatorContext.getValidationResult().add(
+        validatorContext.getValidationResultAccumulator().add(
             ImmutableMap.of(
                 ROW_INDEX, valueContext.getRow(),
                 COLUMN_NAME, valueContext.getColumn(),

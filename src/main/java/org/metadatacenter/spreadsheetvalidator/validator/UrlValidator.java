@@ -33,7 +33,7 @@ public class UrlValidator extends InputValueValidator {
       try {
         var url = new URL(String.valueOf(value));
         if (!isResolvable(url)) {
-          validatorContext.getValidationResult().add(
+          validatorContext.getValidationResultAccumulator().add(
               ImmutableMap.of(
                   ROW_INDEX, valueContext.getRow(),
                   COLUMN_NAME, valueContext.getColumn(),
@@ -45,7 +45,7 @@ public class UrlValidator extends InputValueValidator {
               ));
         }
       } catch (MalformedURLException e) {
-        validatorContext.getValidationResult().add(
+        validatorContext.getValidationResultAccumulator().add(
             ImmutableMap.of(
                 ROW_INDEX, valueContext.getRow(),
                 COLUMN_NAME, valueContext.getColumn(),

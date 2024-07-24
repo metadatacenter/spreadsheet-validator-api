@@ -2,7 +2,6 @@ package org.metadatacenter.spreadsheetvalidator.validator;
 
 import com.google.common.collect.ImmutableMap;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
-import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.util.Assert;
 
 import javax.annotation.Nonnull;
@@ -31,7 +30,7 @@ public class StringTypeValidator extends InputValueValidator {
     var columnDescription = valueContext.getColumnDescription();
     var valueType = columnDescription.getColumnType();
     if (valueType == STRING && Assert.that(value, not(isString()))) {
-      validatorContext.getValidationResult().add(
+      validatorContext.getValidationResultAccumulator().add(
           ImmutableMap.of(
               ROW_INDEX, valueContext.getRow(),
               COLUMN_NAME, valueContext.getColumn(),

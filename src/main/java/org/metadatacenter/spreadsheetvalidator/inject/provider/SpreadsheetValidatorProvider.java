@@ -2,8 +2,8 @@ package org.metadatacenter.spreadsheetvalidator.inject.provider;
 
 import org.metadatacenter.spreadsheetvalidator.RepairClosures;
 import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidator;
-import org.metadatacenter.spreadsheetvalidator.ValidationResultProvider;
-import org.metadatacenter.spreadsheetvalidator.ValidationSettingsProvider;
+import org.metadatacenter.spreadsheetvalidator.ValidationResultAccumulatorProvider;
+import org.metadatacenter.spreadsheetvalidator.ValidationSettings;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.ChatGptService;
 import org.metadatacenter.spreadsheetvalidator.validator.DecimalNumberRangeValidator;
 import org.metadatacenter.spreadsheetvalidator.validator.IntegerNumberRangeValidator;
@@ -32,25 +32,25 @@ public class SpreadsheetValidatorProvider implements Provider<SpreadsheetValidat
 
   private final RepairClosures repairClosures;
 
-  private final ValidationResultProvider validationResultProvider;
+  private final ValidationResultAccumulatorProvider validationResultAccumulatorProvider;
 
-  private final ValidationSettingsProvider validationSettingsProvider;
+  private final ValidationSettings validationSettings;
 
   private final ChatGptService chatGptService;
 
   public SpreadsheetValidatorProvider(@Nonnull RepairClosures repairClosures,
-                                      @Nonnull ValidationResultProvider validationResultProvider,
-                                      @Nonnull ValidationSettingsProvider validationSettingsProvider,
+                                      @Nonnull ValidationResultAccumulatorProvider validationResultAccumulatorProvider,
+                                      @Nonnull ValidationSettings validationSettings,
                                       @Nonnull ChatGptService chatGptService) {
     this.repairClosures = checkNotNull(repairClosures);
-    this.validationResultProvider = checkNotNull(validationResultProvider);
-    this.validationSettingsProvider = checkNotNull(validationSettingsProvider);
+    this.validationResultAccumulatorProvider = checkNotNull(validationResultAccumulatorProvider);
+    this.validationSettings = checkNotNull(validationSettings);
     this.chatGptService = checkNotNull(chatGptService);
   }
 
   @Override
   public SpreadsheetValidator get() {
-    var validator = new SpreadsheetValidator(repairClosures, validationResultProvider, validationSettingsProvider);
+    var validator = new SpreadsheetValidator(repairClosures, validationSettings, validationResultAccumulatorProvider);
     validator.setClosure("numberExtractor", new NumberExtractor());
     validator.setClosure("similarityChecker", new ChatGptSimilarityChecker(chatGptService, new SimpleSimilarityChecker()));
     validator.registerValidator(new TextEncodingValidator());
