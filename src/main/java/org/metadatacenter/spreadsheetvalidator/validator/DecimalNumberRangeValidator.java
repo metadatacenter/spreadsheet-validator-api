@@ -1,18 +1,15 @@
 package org.metadatacenter.spreadsheetvalidator.validator;
 
-import com.google.common.collect.ImmutableMap;
+import org.metadatacenter.spreadsheetvalidator.ValidationError;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
 import org.metadatacenter.spreadsheetvalidator.util.Assert;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 import static org.metadatacenter.spreadsheetvalidator.domain.ValueType.DECIMAL;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isNumber;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.COLUMN_LABEL;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.COLUMN_NAME;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_MESSAGE;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ROW_INDEX;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SUGGESTION;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
@@ -22,48 +19,43 @@ import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
  * Stanford Center for Biomedical Informatics Research
  */
 public class DecimalNumberRangeValidator extends InputValueValidator {
+
   @Override
-  public void validateInputValue(@Nonnull Object value,
-                                 @Nonnull ValueContext valueContext,
-                                 @Nonnull ValidatorContext validatorContext) {
+  public Optional<ValidationError> validateInputValue(@Nonnull Object value,
+                                                      @Nonnull ValueContext valueContext,
+                                                      @Nonnull ValidatorContext validatorContext) {
     var columnDescription = valueContext.getColumnDescription();
     var columnSubType = columnDescription.getColumnSubType();
+
     if (columnSubType == DECIMAL && Assert.that(value, isNumber())) {
-      var suggestion = "";
-      if (columnDescription.hasMinValue() || columnDescription.hasMaxValue()) {
-        var numberValue = ((Number) value).doubleValue();
-        if (columnDescription.hasMinValue() && columnDescription.hasMaxValue()) {
-          var minValue = columnDescription.getMinValue().doubleValue();
-          var maxValue = columnDescription.getMaxValue().doubleValue();
-          if (numberValue < minValue || numberValue > maxValue) {
-            suggestion = String.format("Enter a decimal number between %f and %f", minValue, maxValue);
-          }
-        } else if (columnDescription.hasMinValue() && !columnDescription.hasMaxValue()) {
-          var minValue = columnDescription.getMinValue().doubleValue();
-          if (numberValue < minValue) {
-            suggestion = String.format("Enter a decimal number above %f", minValue);
-          }
-        } else if (!columnDescription.hasMinValue() && columnDescription.hasMaxValue()) {
-          var maxValue = columnDescription.getMaxValue().doubleValue();
-          if (numberValue > maxValue) {
-            suggestion = String.format("Enter a decimal number below %f", maxValue);
-          }
+      var numberValue = ((Number) value).doubleValue();
+
+      var hasMinValue = columnDescription.hasMinValue();
+      var hasMaxValue = columnDescription.hasMaxValue();
+      var minValue = hasMinValue ? columnDescription.getMinValue().doubleValue() : Double.MIN_VALUE;
+      var maxValue = hasMaxValue ? columnDescription.getMaxValue().doubleValue() : Double.MAX_VALUE;
+
+      if (numberValue < minValue || numberValue > maxValue) {
+        var suggestion = "";
+        if (hasMinValue && hasMaxValue) {
+          suggestion = String.format("Enter a decimal number between %f and %f", minValue, maxValue);
+        } else if (hasMinValue) {
+          suggestion = String.format("Enter a decimal number above %f", minValue);
+        } else if (hasMaxValue) {
+          suggestion = String.format("Enter a decimal number below %f", maxValue);
         }
-      }
-      if (!suggestion.isEmpty()) {
-        // Construct the error message
-        validatorContext.getValidationResultAccumulator().add(
-            ImmutableMap.of(
-                ROW_INDEX, valueContext.getRow(),
-                COLUMN_NAME, valueContext.getColumn(),
-                COLUMN_LABEL, columnDescription.getColumnLabel(),
-                VALUE, value,
-                ERROR_TYPE, "numberOutOfRange",
-                ERROR_MESSAGE, "Decimal number is out of range",
-                SUGGESTION, suggestion,
-                SEVERITY, 3
-            ));
+        var validationError = ValidationError.builder()
+            .setErrorType("numberOutOfRange")
+            .setErrorMessage("Decimal number is out of range")
+            .setErrorLocation(valueContext.getColumn(), valueContext.getRow())
+            .setOtherProp(VALUE, value)
+            .setOtherProp(COLUMN_LABEL, columnDescription.getColumnLabel())
+            .setOtherProp(SEVERITY, 3)
+            .setOtherProp(SUGGESTION, suggestion)
+            .build();
+        return Optional.of(validationError);
       }
     }
+    return Optional.empty();
   }
 }

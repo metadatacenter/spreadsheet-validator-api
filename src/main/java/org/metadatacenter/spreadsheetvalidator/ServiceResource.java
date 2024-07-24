@@ -72,7 +72,7 @@ public class ServiceResource {
 
   private final SpreadsheetValidator spreadsheetValidator;
 
-  private final ResultCollector resultCollector;
+  private final ValidationReportHandler validationReportHandler;
 
   private final ExcelConfig excelConfig;
 
@@ -83,7 +83,7 @@ public class ServiceResource {
                          @Nonnull SpreadsheetSchemaGenerator spreadsheetSchemaGenerator,
                          @Nonnull HeaderBasedSchemaExtractor headerBasedSchemaExtractor,
                          @Nonnull SpreadsheetValidator spreadsheetValidator,
-                         @Nonnull ResultCollector resultCollector,
+                         @Nonnull ValidationReportHandler validationReportHandler,
                          @Nonnull ExcelConfig excelConfig) {
     this.cedarService = checkNotNull(cedarService);
     this.restServiceHandler = checkNotNull(restServiceHandler);
@@ -91,7 +91,7 @@ public class ServiceResource {
     this.spreadsheetSchemaGenerator = checkNotNull(spreadsheetSchemaGenerator);
     this.headerBasedSchemaExtractor = checkNotNull(headerBasedSchemaExtractor);
     this.spreadsheetValidator = checkNotNull(spreadsheetValidator);
-    this.resultCollector = checkNotNull(resultCollector);
+    this.validationReportHandler = checkNotNull(validationReportHandler);
     this.excelConfig = checkNotNull(excelConfig);
   }
 
@@ -244,7 +244,7 @@ public class ServiceResource {
   private ValidationReport doValidation(SpreadsheetSchema spreadsheetSchema, Spreadsheet spreadsheet) {
     return spreadsheetValidator
         .validate(spreadsheet, spreadsheetSchema)
-        .collect(resultCollector);
+        .collect(validationReportHandler);
   }
 
   private Response getResponse(HttpHeaders headers, SpreadsheetSchema schema, Spreadsheet spreadsheet, ValidationReport reporting) {

@@ -17,15 +17,11 @@ public class ValidatorContext {
 
   private final ValidationSettings validationSettings;
 
-  private final ValidationResultAccumulator validationResultAccumulator;
-
   @Inject
   public ValidatorContext(@Nonnull RepairClosures repairClosures,
-                          @Nonnull ValidationSettings validationSettings,
-                          @Nonnull ValidationResultAccumulator validationResultAccumulator) {
+                          @Nonnull ValidationSettings validationSettings) {
     this.repairClosures = checkNotNull(repairClosures);
     this.validationSettings = checkNotNull(validationSettings);
-    this.validationResultAccumulator = checkNotNull(validationResultAccumulator);
   }
 
   @Nonnull
@@ -36,10 +32,5 @@ public class ValidatorContext {
   @Nonnull
   public ValidationSettings getValidationSettings() {
     return validationSettings;
-  }
-
-  @Nonnull
-  public ValidationResultAccumulator getValidationResultAccumulator() {
-    return validationResultAccumulator;
   }
 }

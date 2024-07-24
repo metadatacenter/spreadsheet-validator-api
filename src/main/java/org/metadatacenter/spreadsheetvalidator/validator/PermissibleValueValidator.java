@@ -1,20 +1,17 @@
 package org.metadatacenter.spreadsheetvalidator.validator;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import org.metadatacenter.spreadsheetvalidator.ValidationError;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
 import org.metadatacenter.spreadsheetvalidator.domain.PermissibleValue;
 import org.metadatacenter.spreadsheetvalidator.util.Assert;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isIgnoreCaseMemberOf;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.not;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.COLUMN_LABEL;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.COLUMN_NAME;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_MESSAGE;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ROW_INDEX;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SUGGESTION;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
@@ -24,32 +21,32 @@ import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
  * Stanford Center for Biomedical Informatics Research
  */
 public class PermissibleValueValidator extends InputValueValidator {
+
   @Override
-  public void validateInputValue(@Nonnull Object value,
-                                 @Nonnull ValueContext valueContext,
-                                 @Nonnull ValidatorContext validatorContext) {
+  public Optional<ValidationError> validateInputValue(@Nonnull Object value,
+                                                      @Nonnull ValueContext valueContext,
+                                                      @Nonnull ValidatorContext validatorContext) {
     var columnDescription = valueContext.getColumnDescription();
     if (columnDescription.hasPermissibleValues()) {
-      var fieldName = columnDescription.getColumnLabel();
-      var label = String.valueOf(value);
+      var columnLabel = columnDescription.getColumnLabel();
       var permissibleValues = columnDescription.getPermissibleValues();
       var permissibleValueLabels = getPermissibleValueLabels(permissibleValues);
-      if (Assert.that(label, not(isIgnoreCaseMemberOf(permissibleValueLabels)))) {
+      if (Assert.that(String.valueOf(value), not(isIgnoreCaseMemberOf(permissibleValueLabels)))) {
         var similarityChecker = validatorContext.getClosure("similarityChecker");
-        var suggestion = similarityChecker.execute(fieldName, value, permissibleValueLabels);
-        validatorContext.getValidationResultAccumulator().add(
-            ImmutableMap.of(
-                ROW_INDEX, valueContext.getRow(),
-                COLUMN_NAME, valueContext.getColumn(),
-                COLUMN_LABEL, columnDescription.getColumnLabel(),
-                VALUE, value,
-                ERROR_TYPE, "notStandardTerm",
-                ERROR_MESSAGE, "Value is not part of the permissible values",
-                SUGGESTION, suggestion,
-                SEVERITY, 1
-            ));
+        var suggestion = similarityChecker.execute(columnLabel, value, permissibleValueLabels);
+        var validationError = ValidationError.builder()
+            .setErrorType("notStandardTerm")
+            .setErrorMessage("Value is not among the permissible values")
+            .setErrorLocation(valueContext.getColumn(), valueContext.getRow())
+            .setOtherProp(VALUE, value)
+            .setOtherProp(COLUMN_LABEL, columnLabel)
+            .setOtherProp(SEVERITY, 1)
+            .setOtherProp(SUGGESTION, suggestion)
+            .build();
+        return Optional.of(validationError);
       }
     }
+    return Optional.empty();
   }
 
   private ImmutableList<String> getPermissibleValueLabels(ImmutableList<PermissibleValue> permissibleValues) {

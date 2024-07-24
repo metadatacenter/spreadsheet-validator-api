@@ -1,6 +1,6 @@
 package org.metadatacenter.spreadsheetvalidator.validator;
 
-import com.google.common.collect.ImmutableMap;
+import org.metadatacenter.spreadsheetvalidator.ValidationError;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
 
 import javax.annotation.Nonnull;
@@ -8,13 +8,10 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Optional;
 
 import static org.metadatacenter.spreadsheetvalidator.domain.ValueType.URL;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.COLUMN_LABEL;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.COLUMN_NAME;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_MESSAGE;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ROW_INDEX;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
 
@@ -23,40 +20,25 @@ import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
  * Stanford Center for Biomedical Informatics Research
  */
 public class UrlValidator extends InputValueValidator {
+
   @Override
-  public void validateInputValue(@Nonnull Object value,
-                                 @Nonnull ValueContext valueContext,
-                                 @Nonnull ValidatorContext validatorContext) {
+  public Optional<ValidationError> validateInputValue(@Nonnull Object value,
+                                                      @Nonnull ValueContext valueContext,
+                                                      @Nonnull ValidatorContext validatorContext) {
     var columnDescription = valueContext.getColumnDescription();
     var valueType = columnDescription.getColumnType();
+
     if (valueType == URL) {
       try {
-        var url = new URL(String.valueOf(value));
+        var url = new URL(value.toString());
         if (!isResolvable(url)) {
-          validatorContext.getValidationResultAccumulator().add(
-              ImmutableMap.of(
-                  ROW_INDEX, valueContext.getRow(),
-                  COLUMN_NAME, valueContext.getColumn(),
-                  COLUMN_LABEL, columnDescription.getColumnLabel(),
-                  VALUE, value,
-                  ERROR_TYPE, "invalidUrl",
-                  ERROR_MESSAGE, "URL does not exist",
-                  SEVERITY, 1
-              ));
+          return Optional.of(createValidationError(value, valueContext, "URL does not exist"));
         }
       } catch (MalformedURLException e) {
-        validatorContext.getValidationResultAccumulator().add(
-            ImmutableMap.of(
-                ROW_INDEX, valueContext.getRow(),
-                COLUMN_NAME, valueContext.getColumn(),
-                COLUMN_LABEL, columnDescription.getColumnLabel(),
-                VALUE, value,
-                ERROR_TYPE, "invalidUrl",
-                ERROR_MESSAGE, "URL is not valid",
-                SEVERITY, 1
-            ));
+        return Optional.of(createValidationError(value, valueContext, "URL is not valid"));
       }
     }
+    return Optional.empty();
   }
 
   private boolean isResolvable(URL url) {
@@ -68,5 +50,17 @@ public class UrlValidator extends InputValueValidator {
     } catch (IOException e) {
       return false;
     }
+  }
+
+  private ValidationError createValidationError(Object value, ValueContext valueContext, String errorMessage) {
+    var columnDescription = valueContext.getColumnDescription();
+    return ValidationError.builder()
+        .setErrorType("invalidUrl")
+        .setErrorMessage(errorMessage)
+        .setErrorLocation(valueContext.getColumn(), valueContext.getRow())
+        .setOtherProp(VALUE, value)
+        .setOtherProp(COLUMN_LABEL, columnDescription.getColumnLabel())
+        .setOtherProp(SEVERITY, 1)
+        .build();
   }
 }

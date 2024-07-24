@@ -24,21 +24,17 @@ public class SpreadsheetValidator {
 
   private final ValidationSettings validationSettings;
 
-  private final ValidationResultAccumulatorProvider validationResultAccumulatorProvider;
+  private final List<Validator> validators = Lists.newArrayList();
 
-  private final List<Validator> validatorList = Lists.newArrayList();
-
-  private ValidatorContext validatorContext;
+  private List<ValidationError> validationErrors = Lists.newArrayList();
 
   private boolean additionalColumnsNotAllowed = false;
 
   @Inject
   public SpreadsheetValidator(@Nonnull RepairClosures repairClosures,
-                              @Nonnull ValidationSettings validationSettings,
-                              @Nonnull ValidationResultAccumulatorProvider validationResultAccumulatorProvider) {
+                              @Nonnull ValidationSettings validationSettings) {
     this.repairClosures = checkNotNull(repairClosures);
     this.validationSettings = checkNotNull(validationSettings);
-    this.validationResultAccumulatorProvider = checkNotNull(validationResultAccumulatorProvider);
   }
 
   public void setClosure(@Nonnull String key, @Nonnull Closure closure) {
@@ -46,7 +42,7 @@ public class SpreadsheetValidator {
   }
 
   public void registerValidator(@Nonnull Validator validator) {
-    validatorList.add(validator);
+    validators.add(validator);
   }
 
   public SpreadsheetValidator additionalColumnsNotAllowed() {
@@ -60,16 +56,17 @@ public class SpreadsheetValidator {
     if (additionalColumnsNotAllowed) {
       checkAdditionalColumns(spreadsheet, spreadsheetSchema);
     }
-    var validationResultAccumulator = validationResultAccumulatorProvider.get();
-    validatorContext = new ValidatorContext(repairClosures, validationSettings, validationResultAccumulator);
-    spreadsheet.getRowStream().forEach(
-        spreadsheetRow -> validatorList.forEach(
-            validator -> validator.validate(validatorContext, spreadsheetSchema, spreadsheetRow)));
+
+    var validatorContext = new ValidatorContext(repairClosures, validationSettings);
+    validationErrors = spreadsheet.getRowStream()
+        .flatMap(spreadsheetRow -> validators.stream()
+            .flatMap(validator -> validator.validate(spreadsheetRow, spreadsheetSchema, validatorContext).stream()))
+        .collect(ImmutableList.toImmutableList());
+
     return this;
   }
 
-  private static void checkAllRequiredFieldsPresent(Spreadsheet spreadsheet,
-                                             SpreadsheetSchema spreadsheetSchema) {
+  private static void checkAllRequiredFieldsPresent(Spreadsheet spreadsheet, SpreadsheetSchema spreadsheetSchema) {
     var spreadsheetColumns = spreadsheet.getColumns();
     var missingColumns = spreadsheetSchema.getRequiredColumns()
         .stream()
@@ -83,7 +80,7 @@ public class SpreadsheetValidator {
 
   private static void checkAdditionalColumns(Spreadsheet spreadsheet, SpreadsheetSchema schema) {
     var additionalColumns = Lists.<String>newArrayList();
-    spreadsheet.getColumns().stream()
+    spreadsheet.getColumns()
         .forEach(column -> {
           if (!schema.containsColumn(column)) {
             additionalColumns.add(column);
@@ -94,8 +91,7 @@ public class SpreadsheetValidator {
     }
   }
 
-  public ValidationReport collect(ResultCollector resultCollector) {
-    var validationResultCollector = validatorContext.getValidationResultAccumulator();
-    return resultCollector.of(validationResultCollector.toValidationResult());
+  public ValidationReport collect(ValidationReportHandler validationReportHandler) {
+    return validationReportHandler.of(validationErrors);
   }
 }

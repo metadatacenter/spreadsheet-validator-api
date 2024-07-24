@@ -2,7 +2,6 @@ package org.metadatacenter.spreadsheetvalidator.inject.provider;
 
 import org.metadatacenter.spreadsheetvalidator.RepairClosures;
 import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidator;
-import org.metadatacenter.spreadsheetvalidator.ValidationResultAccumulatorProvider;
 import org.metadatacenter.spreadsheetvalidator.ValidationSettings;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.ChatGptService;
 import org.metadatacenter.spreadsheetvalidator.validator.DecimalNumberRangeValidator;
@@ -32,25 +31,21 @@ public class SpreadsheetValidatorProvider implements Provider<SpreadsheetValidat
 
   private final RepairClosures repairClosures;
 
-  private final ValidationResultAccumulatorProvider validationResultAccumulatorProvider;
-
   private final ValidationSettings validationSettings;
 
   private final ChatGptService chatGptService;
 
   public SpreadsheetValidatorProvider(@Nonnull RepairClosures repairClosures,
-                                      @Nonnull ValidationResultAccumulatorProvider validationResultAccumulatorProvider,
                                       @Nonnull ValidationSettings validationSettings,
                                       @Nonnull ChatGptService chatGptService) {
     this.repairClosures = checkNotNull(repairClosures);
-    this.validationResultAccumulatorProvider = checkNotNull(validationResultAccumulatorProvider);
     this.validationSettings = checkNotNull(validationSettings);
     this.chatGptService = checkNotNull(chatGptService);
   }
 
   @Override
   public SpreadsheetValidator get() {
-    var validator = new SpreadsheetValidator(repairClosures, validationSettings, validationResultAccumulatorProvider);
+    var validator = new SpreadsheetValidator(repairClosures, validationSettings);
     validator.setClosure("numberExtractor", new NumberExtractor());
     validator.setClosure("similarityChecker", new ChatGptSimilarityChecker(chatGptService, new SimpleSimilarityChecker()));
     validator.registerValidator(new TextEncodingValidator());

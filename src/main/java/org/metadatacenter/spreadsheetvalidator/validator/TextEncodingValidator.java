@@ -1,18 +1,15 @@
 package org.metadatacenter.spreadsheetvalidator.validator;
 
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableMap;
+import org.metadatacenter.spreadsheetvalidator.ValidationError;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
 
 import javax.annotation.Nonnull;
 import java.nio.charset.Charset;
+import java.util.Optional;
 
 import static org.metadatacenter.spreadsheetvalidator.domain.ValueType.STRING;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.COLUMN_LABEL;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.COLUMN_NAME;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_MESSAGE;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ERROR_TYPE;
-import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.ROW_INDEX;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.SEVERITY;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
 
@@ -23,24 +20,24 @@ import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.VALUE;
 public class TextEncodingValidator extends InputValueValidator {
 
   @Override
-  public void validateInputValue(@Nonnull Object value,
-                                 @Nonnull ValueContext valueContext,
-                                 @Nonnull ValidatorContext validatorContext) {
+  public Optional<ValidationError> validateInputValue(@Nonnull Object value,
+                                                      @Nonnull ValueContext valueContext,
+                                                      @Nonnull ValidatorContext validatorContext) {
     var columnDescription = valueContext.getColumnDescription();
     var valueType = columnDescription.getColumnType();
     var valueEncoding = validatorContext.getValidationSettings().getEncoding();
     if (valueType == STRING && !useValidEncoding(String.valueOf(value), valueEncoding)) {
-      validatorContext.getValidationResultAccumulator().add(
-          ImmutableMap.of(
-              ROW_INDEX, valueContext.getRow(),
-              COLUMN_NAME, valueContext.getColumn(),
-              COLUMN_LABEL, columnDescription.getColumnLabel(),
-              VALUE, value,
-              ERROR_TYPE, "invalidValueEncoding",
-              ERROR_MESSAGE, "The value includes non-" + valueEncoding.displayName() + " characters",
-              SEVERITY, 1
-          ));
+      var validationError = ValidationError.builder()
+          .setErrorType("invalidValueEncoding")
+          .setErrorMessage("The value includes non-" + valueEncoding.displayName() + " characters")
+          .setErrorLocation(valueContext.getColumn(), valueContext.getRow())
+          .setOtherProp(VALUE, value)
+          .setOtherProp(COLUMN_LABEL, columnDescription.getColumnLabel())
+          .setOtherProp(SEVERITY, 1)
+          .build();
+      return Optional.of(validationError);
     }
+    return Optional.empty();
   }
 
   private boolean useValidEncoding(String str, Charset encoding) {

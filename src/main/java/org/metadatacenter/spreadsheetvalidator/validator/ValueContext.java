@@ -12,17 +12,17 @@ import javax.annotation.Nonnull;
 @AutoValue
 public abstract class ValueContext {
 
-  public static ValueContext create(@Nonnull String column,
-                                    @Nonnull Integer row,
+  public static ValueContext create(@Nonnull Integer row,
+                                    @Nonnull String column,
                                     @Nonnull ColumnDescription columnDescription) {
-    return new AutoValue_ValueContext(column, row, columnDescription);
+    return new AutoValue_ValueContext(row, column, columnDescription);
   }
 
   @Nonnull
-  public abstract String getColumn();
+  public abstract Integer getRow();
 
   @Nonnull
-  public abstract Integer getRow();
+  public abstract String getColumn();
 
   @Nonnull
   public abstract ColumnDescription getColumnDescription();
