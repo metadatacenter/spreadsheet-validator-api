@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static org.apache.poi.ss.usermodel.CellType.BLANK;
+import static org.apache.poi.ss.usermodel.CellType.STRING;
+
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
@@ -36,9 +39,22 @@ public class ExcelDataExtractor {
 
   public int findFirstEmptyRowIndex(Sheet sheet) {
     return IntStream.rangeClosed(sheet.getFirstRowNum(), sheet.getLastRowNum())
-        .filter(rowNum -> sheet.getRow(rowNum) == null)
+        .filter(rowNum -> {
+          var row = sheet.getRow(rowNum);
+          return row == null || isRowEmpty(row);
+        })
         .findFirst()
         .orElse(-1);
+  }
+
+  private boolean isRowEmpty(Row row) {
+    for (Cell cell : row) {
+      if (cell.getCellType() != BLANK && cell.getCellType() != STRING
+          || (cell.getCellType() == STRING && !cell.getStringCellValue().trim().isEmpty())) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public int findColumnIndex(Row row, String value) {
