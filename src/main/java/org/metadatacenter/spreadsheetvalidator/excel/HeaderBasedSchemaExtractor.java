@@ -67,7 +67,7 @@ public class HeaderBasedSchemaExtractor {
   private static final Map<String, String> INPUT_PATTERN_MAP = ImmutableMap.<String, String>builder()
       .put("email", "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")
       .put("phone", "^\\+?[0-9. ()-]{10,15}$")
-      .put("doi", "^10\\.\\d{4,9}/[-._;()/:A-Z0-9]+$")
+      .put("doi", "^10\\.\\d{4,9}/[-._;()/:a-zA-Z0-9]+$")
       .put("orcid", "^\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX]$")
       .put("date", "^\\d{4}-\\d{2}-\\d{2}$")  // YYYY-MM-DD
       .put("time", "^\\d{2}:\\d{2}:\\d{2}$")  // hh:mm
