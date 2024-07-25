@@ -74,10 +74,18 @@ public class ExcelDataExtractor {
     var cellType = cell.getCellType();
     return switch (cellType) {
       case STRING -> cell.getStringCellValue();
-      case NUMERIC -> cell.getNumericCellValue();
+      case NUMERIC -> parseNumber(cell.getNumericCellValue());
       case BOOLEAN -> cell.getBooleanCellValue();
       default -> "";
     };
+  }
+
+  private static Number parseNumber(double numericValue) {
+    if (numericValue % 1 == 0) {
+      return (int) numericValue;
+    } else {
+      return numericValue;
+    }
   }
 
   public String getStringValue(Sheet sheet, int rowIndex, int columnIndex) {
