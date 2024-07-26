@@ -7,6 +7,7 @@ import org.metadatacenter.spreadsheetvalidator.inject.module.ExcelFileProcessorM
 import org.metadatacenter.spreadsheetvalidator.inject.module.RestServiceModule;
 import org.metadatacenter.spreadsheetvalidator.inject.module.SchemaProcessingModule;
 import org.metadatacenter.spreadsheetvalidator.inject.module.SpreadsheetValidatorModule;
+import org.metadatacenter.spreadsheetvalidator.inject.module.TsvParserModule;
 import org.metadatacenter.spreadsheetvalidator.inject.module.WebResourceModule;
 
 import javax.inject.Singleton;
@@ -18,6 +19,7 @@ import javax.inject.Singleton;
 @Component(modules = {
     CedarServiceModule.class,
     RestServiceModule.class,
+    TsvParserModule.class,
     ExcelFileProcessorModule.class,
     SchemaProcessingModule.class,
     SpreadsheetValidatorModule.class,

@@ -13,14 +13,12 @@ import javax.annotation.Nonnull;
  * Stanford Center for Biomedical Informatics Research
  */
 @Module(includes = {
-    ObjectMapperModule.class,
-    TsvReaderModule.class
+    ObjectMapperModule.class
 })
 public class RestServiceModule {
 
   @Provides
-  public RestServiceHandler getRestServiceHandler(@Nonnull ObjectMapper objectMapper,
-                                                  @Nonnull ObjectReader tsvReader) {
-    return new RestServiceHandler(objectMapper, tsvReader);
+  public RestServiceHandler getRestServiceHandler(@Nonnull ObjectMapper objectMapper) {
+    return new RestServiceHandler(objectMapper);
   }
 }

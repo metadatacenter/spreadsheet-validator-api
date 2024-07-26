@@ -35,6 +35,7 @@ import org.metadatacenter.spreadsheetvalidator.response.ValidateResponse;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.CedarService;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.RestServiceHandler;
 import org.metadatacenter.spreadsheetvalidator.tsv.MissingMetadataSchemaIdException;
+import org.metadatacenter.spreadsheetvalidator.tsv.TsvParser;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -64,6 +65,8 @@ public class ServiceResource {
 
   private final RestServiceHandler restServiceHandler;
 
+  private final TsvParser tsvParser;
+
   private final MetadataSpreadsheetBuilder spreadsheetBuilder;
 
   private final SpreadsheetSchemaGenerator spreadsheetSchemaGenerator;
@@ -79,6 +82,7 @@ public class ServiceResource {
   @Inject
   public ServiceResource(@Nonnull CedarService cedarService,
                          @Nonnull RestServiceHandler restServiceHandler,
+                         @Nonnull TsvParser tsvParser,
                          @Nonnull MetadataSpreadsheetBuilder spreadsheetBuilder,
                          @Nonnull SpreadsheetSchemaGenerator spreadsheetSchemaGenerator,
                          @Nonnull ExcelBasedSchemaParser excelBasedSchemaParser,
@@ -87,6 +91,7 @@ public class ServiceResource {
                          @Nonnull ExcelConfig excelConfig) {
     this.cedarService = checkNotNull(cedarService);
     this.restServiceHandler = checkNotNull(restServiceHandler);
+    this.tsvParser = checkNotNull(tsvParser);
     this.spreadsheetBuilder = checkNotNull(spreadsheetBuilder);
     this.spreadsheetSchemaGenerator = checkNotNull(spreadsheetSchemaGenerator);
     this.excelBasedSchemaParser = checkNotNull(excelBasedSchemaParser);
@@ -223,8 +228,7 @@ public class ServiceResource {
       @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail) {
     try {
       // Parse the input TSV file
-      var tsvString = getTsvString(inputStream);
-      var spreadsheetData = parseTsvString(tsvString);
+      var spreadsheetData = tsvParser.parse(inputStream);
       var spreadsheet = Spreadsheet.create(spreadsheetData);
 
       // Get the CEDAR template ID
@@ -257,22 +261,6 @@ public class ServiceResource {
     } catch (ValidatorServiceException e) {
       logError(headers, schema.getTemplateIri(), e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
-    }
-  }
-
-  private String getTsvString(InputStream inputStream) {
-    try {
-      return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new BadFileException("Bad TSV file.", e);
-    }
-  }
-
-  private List<Map<String, Object>> parseTsvString(String tsvString) {
-    try {
-      return restServiceHandler.parseTsvString(tsvString);
-    } catch (IOException e) {
-      throw new BadFileException("Bad TSV file.", e);
     }
   }
 

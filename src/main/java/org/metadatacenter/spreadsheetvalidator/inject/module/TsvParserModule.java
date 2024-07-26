@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import dagger.Module;
 import dagger.Provides;
 import org.metadatacenter.spreadsheetvalidator.inject.provider.TsvReaderProvider;
+import org.metadatacenter.spreadsheetvalidator.tsv.TsvParser;
 
 import javax.inject.Singleton;
 
@@ -12,7 +13,7 @@ import javax.inject.Singleton;
  * Stanford Center for Biomedical Informatics Research
  */
 @Module
-public class TsvReaderModule {
+public class TsvParserModule {
 
   @Provides
   @Singleton
@@ -20,4 +21,8 @@ public class TsvReaderModule {
     return new TsvReaderProvider().get();
   }
 
+  @Provides
+  TsvParser providesTsvParser(ObjectReader tsvReader) {
+    return new TsvParser(tsvReader);
+  }
 }
