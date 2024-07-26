@@ -5,6 +5,9 @@ import dagger.Provides;
 import org.metadatacenter.artifacts.model.reader.ArtifactReader;
 import org.metadatacenter.spreadsheetvalidator.SpreadsheetSchemaGenerator;
 import org.metadatacenter.spreadsheetvalidator.excel.HeaderBasedSchemaExtractor;
+import org.metadatacenter.spreadsheetvalidator.excel.model.BuiltinTypeMap;
+import org.metadatacenter.spreadsheetvalidator.excel.model.RequirementLevelMap;
+import org.metadatacenter.spreadsheetvalidator.excel.model.ReservedKeyword;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.TerminologyService;
 
 /**
@@ -13,7 +16,8 @@ import org.metadatacenter.spreadsheetvalidator.thirdparty.TerminologyService;
  */
 @Module(includes = {
     ArtifactReaderModule.class,
-    TerminologyServiceModule.class
+    TerminologyServiceModule.class,s
+    DefaultHeaderBasedSchemaParser.class
 })
 public class SchemaProcessingModule {
 
@@ -24,7 +28,9 @@ public class SchemaProcessingModule {
   }
 
   @Provides
-  public HeaderBasedSchemaExtractor getHeaderBasedSchemaExtractor() {
-    return new HeaderBasedSchemaExtractor();
+  public HeaderBasedSchemaExtractor getHeaderBasedSchemaExtractor(ReservedKeyword reservedKeyword,
+                                                                  BuiltinTypeMap builtinTypeMap,
+                                                                  RequirementLevelMap requirementLevelMap) {
+    return new HeaderBasedSchemaExtractor(reservedKeyword, builtinTypeMap, requirementLevelMap);
   }
 }

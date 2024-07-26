@@ -14,6 +14,13 @@ public enum ValueType {
   NUMBER("number"),
   DECIMAL("decimal"),
   INTEGER("integer"),
+  DATE("date"),
+  TIME("time"),
+  DATETIME("datetime"),
+  BOOLEAN("boolean"),
+  EMAIL("email"),
+  PHONE("phone"),
+  IDENTIFIER("identifier"),
   URL("url");
 
   private final String canonicalName;

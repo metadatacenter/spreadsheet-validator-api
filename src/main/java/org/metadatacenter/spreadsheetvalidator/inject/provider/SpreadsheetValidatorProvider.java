@@ -9,7 +9,7 @@ import org.metadatacenter.spreadsheetvalidator.validator.IntegerNumberRangeValid
 import org.metadatacenter.spreadsheetvalidator.validator.NumberTypeValidator;
 import org.metadatacenter.spreadsheetvalidator.validator.PermissibleValueValidator;
 import org.metadatacenter.spreadsheetvalidator.validator.RequiredFieldValidator;
-import org.metadatacenter.spreadsheetvalidator.validator.StringPatternValidator;
+import org.metadatacenter.spreadsheetvalidator.validator.InputPatternValidator;
 import org.metadatacenter.spreadsheetvalidator.validator.TextEncodingValidator;
 import org.metadatacenter.spreadsheetvalidator.validator.UrlValidator;
 import org.metadatacenter.spreadsheetvalidator.validator.closure.ChatGptSimilarityChecker;
@@ -54,7 +54,7 @@ public class SpreadsheetValidatorProvider implements Provider<SpreadsheetValidat
     validator.registerValidator(new IntegerNumberRangeValidator());
     validator.registerValidator(new DecimalNumberRangeValidator());
     validator.registerValidator(new PermissibleValueValidator());
-    validator.registerValidator(new StringPatternValidator());
+    validator.registerValidator(new InputPatternValidator());
     validator.registerValidator(new UrlValidator());
     return validator;
   }

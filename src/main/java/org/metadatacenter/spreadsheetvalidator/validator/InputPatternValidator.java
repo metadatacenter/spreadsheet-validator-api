@@ -2,6 +2,7 @@ package org.metadatacenter.spreadsheetvalidator.validator;
 
 import org.metadatacenter.spreadsheetvalidator.ValidationError;
 import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
+import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
@@ -29,7 +30,7 @@ public class InputPatternValidator extends InputValueValidator {
       if (!matcher.matches()) {
         var validationError = ValidationError.builder()
             .setErrorType("invalidValueFormat")
-            .setErrorMessage("Value does not conform to the expected format: " + regexString)
+            .setErrorMessage(constructErrorMessage(columnDescription))
             .setErrorLocation(valueContext.getColumn(), valueContext.getRow())
             .setOtherProp(VALUE, value)
             .setOtherProp(COLUMN_LABEL, columnDescription.getColumnLabel())
@@ -39,5 +40,12 @@ public class InputPatternValidator extends InputValueValidator {
       }
     }
     return Optional.empty();
+  }
+
+  private static String constructErrorMessage(ColumnDescription columnDescription) {
+    var inputExample = columnDescription.getValueExample();
+    return (inputExample == null)
+        ? "Value does not conform to the expected format."
+        : "Value does not conform to the expected format. An example of a valid value is " + inputExample + ".";
   }
 }
