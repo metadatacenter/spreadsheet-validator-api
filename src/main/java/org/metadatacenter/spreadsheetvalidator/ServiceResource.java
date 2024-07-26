@@ -22,7 +22,7 @@ import org.glassfish.jersey.server.ContainerRequest;
 import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
-import org.metadatacenter.spreadsheetvalidator.excel.HeaderBasedSchemaExtractor;
+import org.metadatacenter.spreadsheetvalidator.excel.ExcelBasedSchemaParser;
 import org.metadatacenter.spreadsheetvalidator.excel.MetadataSpreadsheetBuilder;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceException;
@@ -68,7 +68,7 @@ public class ServiceResource {
 
   private final SpreadsheetSchemaGenerator spreadsheetSchemaGenerator;
 
-  private final HeaderBasedSchemaExtractor headerBasedSchemaExtractor;
+  private final ExcelBasedSchemaParser excelBasedSchemaParser;
 
   private final SpreadsheetValidator spreadsheetValidator;
 
@@ -81,7 +81,7 @@ public class ServiceResource {
                          @Nonnull RestServiceHandler restServiceHandler,
                          @Nonnull MetadataSpreadsheetBuilder spreadsheetBuilder,
                          @Nonnull SpreadsheetSchemaGenerator spreadsheetSchemaGenerator,
-                         @Nonnull HeaderBasedSchemaExtractor headerBasedSchemaExtractor,
+                         @Nonnull ExcelBasedSchemaParser excelBasedSchemaParser,
                          @Nonnull SpreadsheetValidator spreadsheetValidator,
                          @Nonnull ValidationReportHandler validationReportHandler,
                          @Nonnull ExcelConfig excelConfig) {
@@ -89,7 +89,7 @@ public class ServiceResource {
     this.restServiceHandler = checkNotNull(restServiceHandler);
     this.spreadsheetBuilder = checkNotNull(spreadsheetBuilder);
     this.spreadsheetSchemaGenerator = checkNotNull(spreadsheetSchemaGenerator);
-    this.headerBasedSchemaExtractor = checkNotNull(headerBasedSchemaExtractor);
+    this.excelBasedSchemaParser = checkNotNull(excelBasedSchemaParser);
     this.spreadsheetValidator = checkNotNull(spreadsheetValidator);
     this.validationReportHandler = checkNotNull(validationReportHandler);
     this.excelConfig = checkNotNull(excelConfig);
@@ -397,14 +397,13 @@ public class ServiceResource {
       }
 
       // Extract the data schema
-      var dataSchema = headerBasedSchemaExtractor.extractFrom(dataSheet);
-      var columnMapping = getColumnMapping(dataSchema);
+      var dataSchema = excelBasedSchemaParser.extractTableSchemaFrom(dataSheet);
 
       // Get the data record table from the data sheet.
       var dataRecordTable = dataSheet.getDataRecordTable();
+      var columnMapping = getColumnMapping(dataSchema);
       var recordTableData = dataRecordTable.asMaps(columnMapping);
       var recordSpreadsheet = Spreadsheet.create(recordTableData);
-
 
       var dataValidationReport = doValidation(dataSchema, recordSpreadsheet);
       return getResponse(headers, dataSchema, recordSpreadsheet, dataValidationReport);

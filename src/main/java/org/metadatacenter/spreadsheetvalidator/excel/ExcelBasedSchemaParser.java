@@ -24,7 +24,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-public class HeaderBasedSchemaExtractor {
+public class ExcelBasedSchemaParser {
 
   private final ReservedKeyword reservedKeyword;
 
@@ -33,31 +33,30 @@ public class HeaderBasedSchemaExtractor {
   private final RequirementLevelMap requirementLevelMap;
 
   @Inject
-  public HeaderBasedSchemaExtractor(@Nonnull ReservedKeyword reservedKeyword,
-                                    @Nonnull BuiltinTypeMap builtinTypeMap,
-                                    @Nonnull RequirementLevelMap requirementLevelMap) {
+  public ExcelBasedSchemaParser(@Nonnull ReservedKeyword reservedKeyword,
+                                @Nonnull BuiltinTypeMap builtinTypeMap,
+                                @Nonnull RequirementLevelMap requirementLevelMap) {
     this.reservedKeyword = checkNotNull(reservedKeyword);
     this.builtinTypeMap = checkNotNull(builtinTypeMap);
     this.requirementLevelMap = checkNotNull(requirementLevelMap);
   }
 
-
-  public SpreadsheetSchema extractFrom(@Nonnull DataSheet dataSheet) {
+  public SpreadsheetSchema extractTableSchemaFrom(@Nonnull DataSheet dataSheet) {
     var dataSchemaTable = dataSheet.getUncheckedSchemaTable();
     var dataRecordTable = dataSheet.getDataRecordTable();
     var headerColumnNames = dataRecordTable.getHeaderColumnNames();
     return SpreadsheetSchema.create(
         "virtual-schema",
         "1.0.0",
-        getColumnDescriptionMap(dataSchemaTable, headerColumnNames),
+        getColumnDescriptions(dataSchemaTable, headerColumnNames),
         getRequiredColumns(dataSchemaTable, headerColumnNames),
         getColumnOrder(dataSchemaTable, headerColumnNames),
         null,
         null);
   }
 
-  private ImmutableMap<String, ColumnDescription> getColumnDescriptionMap(DataSchemaTable dataSchemaTable,
-                                                                          List<String> headerColumnNames) {
+  private ImmutableMap<String, ColumnDescription> getColumnDescriptions(DataSchemaTable dataSchemaTable,
+                                                                        List<String> headerColumnNames) {
     return IntStream.range(1, dataSchemaTable.columnLength())
         .mapToObj(i -> {
           var columnSchema = dataSchemaTable.getColumn(i);
