@@ -59,7 +59,7 @@ public class ExcelBasedSchemaParser {
           var inputExample = getInputExample(schemaTable, columnName).orElse(null);
           var inputPattern = getInputPattern(schemaTable, columnName).orElse(null);
           var permissibleValues = getPermissibleValues(schemaTable, columnName);
-          return Map.entry(variableName,
+          return Map.entry(columnName,
               ColumnDescription.create(
                   variableName, variableLabel,
                   variableType, variableSubType,
