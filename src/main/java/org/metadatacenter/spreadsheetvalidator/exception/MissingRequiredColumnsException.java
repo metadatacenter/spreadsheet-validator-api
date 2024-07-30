@@ -3,7 +3,6 @@ package org.metadatacenter.spreadsheetvalidator.exception;
 import jakarta.ws.rs.core.Response;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,15 +15,16 @@ public class MissingRequiredColumnsException extends ValidatorRuntimeException {
 
   public MissingRequiredColumnsException(@Nonnull String schemaName,
                                          @Nonnull List<String> missingColumns) {
-    super("The spreadsheet is missing required fields as specified in the '" + schemaName + "' schema",
-        new IOException("List of missing required columns: " +
+    super("The spreadsheet is missing required fields as specified in the '" + schemaName + "' schema. " +
+            "List of missing required columns: " +
             missingColumns.stream()
                 .map(column -> "'" + column + "'")
-                .collect(Collectors.joining(", "))),
+                .collect(Collectors.joining(", ")),
         Response.Status.BAD_REQUEST.getStatusCode());
   }
+
   @Override
   public Optional<String> getFixSuggestion() {
-    return Optional.of("Please download the latest version of the metadata spreadsheet from the HIVE website.");
+    return Optional.of("Please make sure the spreadsheet includes all the required columns.");
   }
 }
