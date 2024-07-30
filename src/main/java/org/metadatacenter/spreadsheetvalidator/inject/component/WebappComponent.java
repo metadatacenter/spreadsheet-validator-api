@@ -4,6 +4,7 @@ import dagger.Component;
 import org.metadatacenter.spreadsheetvalidator.ServiceResource;
 import org.metadatacenter.spreadsheetvalidator.inject.module.CedarServiceModule;
 import org.metadatacenter.spreadsheetvalidator.inject.module.ExcelFileProcessorModule;
+import org.metadatacenter.spreadsheetvalidator.inject.module.ExcelParserModule;
 import org.metadatacenter.spreadsheetvalidator.inject.module.RestServiceModule;
 import org.metadatacenter.spreadsheetvalidator.inject.module.SchemaProcessingModule;
 import org.metadatacenter.spreadsheetvalidator.inject.module.SpreadsheetValidatorModule;
@@ -20,6 +21,7 @@ import javax.inject.Singleton;
     CedarServiceModule.class,
     RestServiceModule.class,
     TsvParserModule.class,
+    ExcelParserModule.class,
     ExcelFileProcessorModule.class,
     SchemaProcessingModule.class,
     SpreadsheetValidatorModule.class,

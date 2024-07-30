@@ -13,19 +13,16 @@ import static java.lang.String.format;
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-public class MissingProvenanceInfoException extends ValidatorRuntimeException {
+public class MissingProvenanceTemplateIri extends ValidatorRuntimeException {
 
-  private final String columnName;
-
-  public MissingProvenanceInfoException(@Nonnull String columnName) {
-    super(format("The provenance sheet is missing '%s' column or its value.", columnName), HttpStatus.SC_BAD_REQUEST);
-    this.columnName = checkNotNull(columnName);
+  public MissingProvenanceTemplateIri() {
+    super(format("The provenance sheet is missing the template IRI information required to link the data sheet " +
+        "to its predefined schema."), HttpStatus.SC_BAD_REQUEST);
   }
 
   @Override
   public Optional<String> getFixSuggestion() {
-    var message = format("Please ensure the provenance sheet contains the '%s' column and that it has " +
-        "the correct value.", columnName);
+    var message = format("Please ensure the template IRI linking to the schema resource is included in the provenance sheet.");
     return Optional.of(message);
   }
 }

@@ -7,6 +7,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -17,7 +18,7 @@ import static org.apache.poi.ss.usermodel.CellType.STRING;
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-public class ExcelDataExtractor {
+public class ExcelReader {
 
   public Row getHeaderRow(Sheet sheet) {
     return getRow(sheet, sheet.getTopRow());
@@ -37,14 +38,14 @@ public class ExcelDataExtractor {
     return Streams.stream(row.cellIterator());
   }
 
-  public int findFirstEmptyRowIndex(Sheet sheet) {
-    return IntStream.rangeClosed(sheet.getFirstRowNum(), sheet.getLastRowNum())
-        .filter(rowNum -> {
-          var row = sheet.getRow(rowNum);
-          return row == null || isRowEmpty(row);
-        })
-        .findFirst()
-        .orElse(-1);
+  public Optional<Row> findFirstEmptyRow(Sheet sheet) {
+    for (int i = sheet.getFirstRowNum(); i < sheet.getLastRowNum(); i++) {
+      var row = sheet.getRow(i);
+      if (row == null || isRowEmpty(row)) {
+        return Optional.of(sheet.createRow(i));
+      }
+    }
+    return Optional.empty();
   }
 
   private boolean isRowEmpty(Row row) {

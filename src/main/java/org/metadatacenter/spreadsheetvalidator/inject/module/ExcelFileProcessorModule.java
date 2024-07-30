@@ -2,27 +2,45 @@ package org.metadatacenter.spreadsheetvalidator.inject.module;
 
 import dagger.Module;
 import dagger.Provides;
-import org.metadatacenter.spreadsheetvalidator.excel.ExcelDataExtractor;
-import org.metadatacenter.spreadsheetvalidator.excel.MetadataSpreadsheetBuilder;
-import org.metadatacenter.spreadsheetvalidator.excel.MetadataSpreadsheetModelHandler;
-import org.metadatacenter.spreadsheetvalidator.excel.SpreadsheetModelHandler;
+import org.metadatacenter.spreadsheetvalidator.excel.DataTableVisitor;
+import org.metadatacenter.spreadsheetvalidator.excel.ExcelReader;
+import org.metadatacenter.spreadsheetvalidator.excel.ProvenanceTableVisitor;
+import org.metadatacenter.spreadsheetvalidator.excel.SchemaTableVisitor;
+import org.metadatacenter.spreadsheetvalidator.excel.model.ProvenanceKeyword;
+import org.metadatacenter.spreadsheetvalidator.excel.model.SchemaKeyword;
+
+import javax.annotation.Nonnull;
+import javax.inject.Singleton;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-@Module
+@Module(includes =
+  ReservedKeywordModule.class
+)
 public class ExcelFileProcessorModule {
 
   @Provides
-  public SpreadsheetModelHandler provideSpreadsheetModelHandler() {
-    return new MetadataSpreadsheetModelHandler();
+  @Singleton
+  public ExcelReader provideExcelReader() {
+    return new ExcelReader();
   }
 
   @Provides
-  public MetadataSpreadsheetBuilder provideMetadataSpreadsheetBuilder(SpreadsheetModelHandler spreadsheetModelHandler) {
-    return new MetadataSpreadsheetBuilder(
-        spreadsheetModelHandler,
-        new ExcelDataExtractor());
+  public DataTableVisitor provideDataTableVisitor(@Nonnull ExcelReader excelReader) {
+    return new DataTableVisitor(excelReader);
+  }
+
+  @Provides
+  public SchemaTableVisitor provideSchemaTableVisitor(@Nonnull ExcelReader excelReader,
+                                                      @Nonnull SchemaKeyword schemaKeyword) {
+    return new SchemaTableVisitor(excelReader, schemaKeyword);
+  }
+
+  @Provides
+  public ProvenanceTableVisitor provenanceTableVisitor(@Nonnull ExcelReader excelReader,
+                                                       @Nonnull ProvenanceKeyword provenanceKeyword) {
+    return new ProvenanceTableVisitor(excelReader, provenanceKeyword);
   }
 }

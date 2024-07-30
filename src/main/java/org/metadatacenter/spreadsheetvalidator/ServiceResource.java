@@ -1,6 +1,5 @@
 package org.metadatacenter.spreadsheetvalidator;
 
-import com.google.common.collect.ImmutableMap;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,11 +18,14 @@ import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.glassfish.jersey.server.ContainerRequest;
-import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
+import org.metadatacenter.spreadsheetvalidator.excel.DataTableVisitor;
 import org.metadatacenter.spreadsheetvalidator.excel.ExcelBasedSchemaParser;
-import org.metadatacenter.spreadsheetvalidator.excel.MetadataSpreadsheetBuilder;
+import org.metadatacenter.spreadsheetvalidator.excel.ExcelParser;
+import org.metadatacenter.spreadsheetvalidator.excel.MissingProvenanceTemplateIri;
+import org.metadatacenter.spreadsheetvalidator.excel.ProvenanceTableVisitor;
+import org.metadatacenter.spreadsheetvalidator.excel.SchemaTableVisitor;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceException;
 import org.metadatacenter.spreadsheetvalidator.request.BadFileException;
@@ -44,7 +46,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +68,13 @@ public class ServiceResource {
 
   private final TsvParser tsvParser;
 
-  private final MetadataSpreadsheetBuilder spreadsheetBuilder;
+  private final ExcelParser excelParser;
+
+  private final SchemaTableVisitor schemaTableVisitor;
+
+  private final DataTableVisitor dataTableVisitor;
+
+  private final ProvenanceTableVisitor provenanceTableVisitor;
 
   private final SpreadsheetSchemaGenerator spreadsheetSchemaGenerator;
 
@@ -83,7 +90,10 @@ public class ServiceResource {
   public ServiceResource(@Nonnull CedarService cedarService,
                          @Nonnull RestServiceHandler restServiceHandler,
                          @Nonnull TsvParser tsvParser,
-                         @Nonnull MetadataSpreadsheetBuilder spreadsheetBuilder,
+                         @Nonnull ExcelParser excelParser,
+                         @Nonnull SchemaTableVisitor schemaTableVisitor,
+                         @Nonnull DataTableVisitor dataTableVisitor,
+                         @Nonnull ProvenanceTableVisitor provenanceTableVisitor,
                          @Nonnull SpreadsheetSchemaGenerator spreadsheetSchemaGenerator,
                          @Nonnull ExcelBasedSchemaParser excelBasedSchemaParser,
                          @Nonnull SpreadsheetValidator spreadsheetValidator,
@@ -92,7 +102,10 @@ public class ServiceResource {
     this.cedarService = checkNotNull(cedarService);
     this.restServiceHandler = checkNotNull(restServiceHandler);
     this.tsvParser = checkNotNull(tsvParser);
-    this.spreadsheetBuilder = checkNotNull(spreadsheetBuilder);
+    this.excelParser = checkNotNull(excelParser);
+    this.schemaTableVisitor = schemaTableVisitor;
+    this.dataTableVisitor = dataTableVisitor;
+    this.provenanceTableVisitor = provenanceTableVisitor;
     this.spreadsheetSchemaGenerator = checkNotNull(spreadsheetSchemaGenerator);
     this.excelBasedSchemaParser = checkNotNull(excelBasedSchemaParser);
     this.spreadsheetValidator = checkNotNull(spreadsheetValidator);
@@ -307,18 +320,20 @@ public class ServiceResource {
       @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail) {
     try {
       // Parse the input Excel file
-      var metadataSpreadsheet = spreadsheetBuilder.openSpreadsheetFromInputStream(inputStream).build();
+      var worksheet = excelParser.parse(inputStream);
 
       // Find the CEDAR template IRI
-      var templateIri = metadataSpreadsheet.getProvenanceSheet().getSchemaIri();
+      var provenanceTable = worksheet.accept(provenanceTableVisitor);
+      var templateIri = provenanceTable.getAccessUrl()
+          .orElseThrow(() -> new BadFileException("Bad Excel file.", new MissingProvenanceTemplateIri()));
+
+      // Get the CEDAR template remotely
       var cedarTemplate = cedarService.getCedarTemplateFromIri(templateIri);
       var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
-      var columnMapping = getColumnMapping(spreadsheetSchema);
 
       // Get the data record table from the data sheet.
-      var dataRecordTable = metadataSpreadsheet.getDataSheet().getDataRecordTable();
-      var spreadsheetData = dataRecordTable.asMaps(columnMapping);
-      var spreadsheet = Spreadsheet.create(spreadsheetData);
+      var dataTable = worksheet.accept(dataTableVisitor);
+      var spreadsheet = Spreadsheet.create(dataTable.getRecords());
 
       // Validate the spreadsheet based on its schema
       var validationReport = doValidation(spreadsheetSchema, spreadsheet);
@@ -367,16 +382,11 @@ public class ServiceResource {
       var schemaTableSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
 
       // Parse the input Excel file
-      var metadataSpreadsheet = spreadsheetBuilder
-          .openSpreadsheetFromInputStream(inputStream)
-          .includeDataSchema()
-          .build();
+      var metadataSpreadsheet = excelParser.parse(inputStream);
 
       // Get the data schema table from the data sheet.
-      var dataSheet = metadataSpreadsheet.getDataSheet();
-      var dataSchemaTable = dataSheet.getUncheckedSchemaTable();
-      var schemaTableData = dataSchemaTable.asMaps();
-      var schemaSpreadsheet = Spreadsheet.create(schemaTableData);
+      var schemaTable = metadataSpreadsheet.accept(schemaTableVisitor);
+      var schemaSpreadsheet = Spreadsheet.create(schemaTable.getRecords());
 
       // Validate the data schema table and check the response
       var schemaValidationReport = doValidation(schemaTableSchema, schemaSpreadsheet);
@@ -385,29 +395,18 @@ public class ServiceResource {
       }
 
       // Extract the data schema
-      var dataSchema = excelBasedSchemaParser.extractTableSchemaFrom(dataSheet);
+      var dataSchema = excelBasedSchemaParser.extractTableSchemaFrom(schemaTable);
 
       // Get the data record table from the data sheet.
-      var dataRecordTable = dataSheet.getDataRecordTable();
-      var columnMapping = getColumnMapping(dataSchema);
-      var recordTableData = dataRecordTable.asMaps(columnMapping);
-      var recordSpreadsheet = Spreadsheet.create(recordTableData);
+      var dataTable = metadataSpreadsheet.accept(dataTableVisitor);
+      var dataSpreadsheet = Spreadsheet.create(dataTable.getRecords());
 
-      var dataValidationReport = doValidation(dataSchema, recordSpreadsheet);
-      return getResponse(headers, dataSchema, recordSpreadsheet, dataValidationReport);
+      var dataValidationReport = doValidation(dataSchema, dataSpreadsheet);
+      return getResponse(headers, dataSchema, dataSpreadsheet, dataValidationReport);
     } catch (BadFileException e) {
       logError(headers, e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
     }
-  }
-
-  private Map<String, String> getColumnMapping(SpreadsheetSchema schema) {
-    var columnDescriptionList = schema.getColumnDescription().values();
-    return columnDescriptionList.stream()
-        .collect(ImmutableMap.toImmutableMap(
-            ColumnDescription::getColumnLabel,
-            ColumnDescription::getColumnName
-        ));
   }
 
   private Response responseErrorMessage(ValidatorRuntimeException e) {

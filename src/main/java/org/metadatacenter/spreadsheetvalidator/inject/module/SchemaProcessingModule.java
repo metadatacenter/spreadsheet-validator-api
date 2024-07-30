@@ -7,7 +7,7 @@ import org.metadatacenter.spreadsheetvalidator.SpreadsheetSchemaGenerator;
 import org.metadatacenter.spreadsheetvalidator.excel.ExcelBasedSchemaParser;
 import org.metadatacenter.spreadsheetvalidator.excel.model.BuiltinTypeMap;
 import org.metadatacenter.spreadsheetvalidator.excel.model.RequirementLevelMap;
-import org.metadatacenter.spreadsheetvalidator.excel.model.ReservedKeyword;
+import org.metadatacenter.spreadsheetvalidator.excel.model.SchemaKeyword;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.TerminologyService;
 
 /**
@@ -17,7 +17,8 @@ import org.metadatacenter.spreadsheetvalidator.thirdparty.TerminologyService;
 @Module(includes = {
     ArtifactReaderModule.class,
     TerminologyServiceModule.class,
-    DefaultHeaderBasedSchemaParser.class
+    BuiltinTypeModule.class,
+    RequirementLevelModule.class
 })
 public class SchemaProcessingModule {
 
@@ -28,9 +29,8 @@ public class SchemaProcessingModule {
   }
 
   @Provides
-  public ExcelBasedSchemaParser provideExcelBasedSchemaParser(ReservedKeyword reservedKeyword,
-                                                              BuiltinTypeMap builtinTypeMap,
+  public ExcelBasedSchemaParser provideExcelBasedSchemaParser(BuiltinTypeMap builtinTypeMap,
                                                               RequirementLevelMap requirementLevelMap) {
-    return new ExcelBasedSchemaParser(reservedKeyword, builtinTypeMap, requirementLevelMap);
+    return new ExcelBasedSchemaParser(builtinTypeMap, requirementLevelMap);
   }
 }

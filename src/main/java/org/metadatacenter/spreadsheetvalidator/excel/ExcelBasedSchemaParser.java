@@ -8,14 +8,11 @@ import org.metadatacenter.spreadsheetvalidator.domain.PermissibleValue;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
 import org.metadatacenter.spreadsheetvalidator.excel.model.BuiltinTypeMap;
 import org.metadatacenter.spreadsheetvalidator.excel.model.RequirementLevelMap;
-import org.metadatacenter.spreadsheetvalidator.excel.model.ReservedKeyword;
+import org.metadatacenter.spreadsheetvalidator.excel.model.SchemaTable;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.IntStream;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -26,113 +23,94 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class ExcelBasedSchemaParser {
 
-  private final ReservedKeyword reservedKeyword;
-
   private final BuiltinTypeMap builtinTypeMap;
 
   private final RequirementLevelMap requirementLevelMap;
 
   @Inject
-  public ExcelBasedSchemaParser(@Nonnull ReservedKeyword reservedKeyword,
-                                @Nonnull BuiltinTypeMap builtinTypeMap,
+  public ExcelBasedSchemaParser(@Nonnull BuiltinTypeMap builtinTypeMap,
                                 @Nonnull RequirementLevelMap requirementLevelMap) {
-    this.reservedKeyword = checkNotNull(reservedKeyword);
     this.builtinTypeMap = checkNotNull(builtinTypeMap);
     this.requirementLevelMap = checkNotNull(requirementLevelMap);
   }
 
-  public SpreadsheetSchema extractTableSchemaFrom(@Nonnull DataSheet dataSheet) {
-    var dataSchemaTable = dataSheet.getUncheckedSchemaTable();
-    var dataRecordTable = dataSheet.getDataRecordTable();
-    var headerColumnNames = dataRecordTable.getHeaderColumnNames();
+  public SpreadsheetSchema extractTableSchemaFrom(@Nonnull SchemaTable schemaTable) {
     return SpreadsheetSchema.create(
         "virtual-schema",
         "1.0.0",
-        getColumnDescriptions(dataSchemaTable, headerColumnNames),
-        getRequiredColumns(dataSchemaTable, headerColumnNames),
-        getColumnOrder(dataSchemaTable, headerColumnNames),
+        getColumnDescriptions(schemaTable),
+        getRequiredColumns(schemaTable),
+        getColumnOrder(schemaTable),
         null,
         null);
   }
 
-  private ImmutableMap<String, ColumnDescription> getColumnDescriptions(DataSchemaTable dataSchemaTable,
-                                                                        List<String> headerColumnNames) {
-    return IntStream.range(1, dataSchemaTable.columnLength())
-        .mapToObj(i -> {
-          var columnSchema = dataSchemaTable.getColumn(i);
-          var variableLabel = headerColumnNames.get(i);
-          var variableName = (String) columnSchema.getOrDefault(reservedKeyword.ofVariable(), variableLabel);
-          var variableType = builtinTypeMap.getBuiltinType((String) columnSchema.getOrDefault(reservedKeyword.ofDatatype(), "text")).getType();
-          var variableSubType = builtinTypeMap.getBuiltinType((String) columnSchema.getOrDefault(reservedKeyword.ofDatatype(), "text")).getSubType();
-          var isRequired = requirementLevelMap.isRequired((String) columnSchema.getOrDefault(reservedKeyword.ofRequirementLevel(), "optional"));
-          var description = (String) columnSchema.get(reservedKeyword.ofDescription());
-          var minValue = (Number) columnSchema.get(reservedKeyword.ofMinValue());
-          var maxValue = (Number) columnSchema.get(reservedKeyword.ofMaxValue());
-          var inputPattern = getInputPattern(columnSchema);
-          var permissibleValues = getPermissibleValues(columnSchema);
-          var inputExample = getInputExample(columnSchema);
-          return Map.entry(variableName, ColumnDescription.create(
-              variableName, variableLabel,
-              variableType, variableSubType,
-              minValue, maxValue,
-              isRequired, description,
-              inputExample, inputPattern,
-              permissibleValues
-          ));
+  private ImmutableMap<String, ColumnDescription> getColumnDescriptions(SchemaTable schemaTable) {
+    return schemaTable.getColumnNames().stream()
+        .map(columnName -> {
+          var variableName = schemaTable.getVariableNameFor(columnName).orElse(null);
+          var variableLabel = schemaTable.getVariableLabelFor(columnName).orElse(null);
+          var variableType = builtinTypeMap.getBuiltinType(schemaTable.getDatatypeFor(columnName).orElse("text")).getType();
+          var variableSubType = builtinTypeMap.getBuiltinType(schemaTable.getDatatypeFor(columnName).orElse("text")).getSubType();
+          var minValue = schemaTable.getMinValueConstraintFor(columnName).orElse(null);
+          var maxValue = schemaTable.getMaxValueConstraintFor(columnName).orElse(null);
+          var isRequired = requirementLevelMap.isRequired(schemaTable.getRequirementLevelFor(columnName).orElse("OPTIONAL"));
+          var description = schemaTable.getDescriptionFor(columnName).orElse(null);
+          var inputExample = getInputExample(schemaTable, columnName).orElse(null);
+          var inputPattern = getInputPattern(schemaTable, columnName).orElse(null);
+          var permissibleValues = getPermissibleValues(schemaTable, columnName);
+          return Map.entry(variableName,
+              ColumnDescription.create(
+                  variableName, variableLabel,
+                  variableType, variableSubType,
+                  minValue, maxValue,
+                  isRequired, description,
+                  inputExample, inputPattern,
+                  permissibleValues
+              ));
         })
         .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-
-  @Nullable
-  private String getInputExample(Map<String, Object> columnSchema) {
-    var inputExample = (String) columnSchema.get(reservedKeyword.ofInputExample());
-    return (inputExample != null)
-        ? inputExample
-        : builtinTypeMap.getBuiltinType((String) columnSchema.get(reservedKeyword.ofDatatype())).getInputExample();
-  }
-
-  @Nullable
-  private String getInputPattern(Map<String, Object> columnSchema) {
-    var inputPattern = (String) columnSchema.get(reservedKeyword.ofInputPattern());
-    return (inputPattern != null)
-        ? inputPattern
-        : builtinTypeMap.getBuiltinType((String) columnSchema.get(reservedKeyword.ofDatatype())).getInputPattern();
+  @Nonnull
+  private Optional<String> getInputExample(SchemaTable schemaTable, String columnName) {
+    return schemaTable.getInputExampleFor(columnName)
+        .or(() -> {
+          var datatype = schemaTable.getDatatypeFor(columnName).orElse("text");
+          return Optional.ofNullable(builtinTypeMap.getBuiltinType(datatype).getInputExample());
+        });
   }
 
   @Nonnull
-  private ImmutableList<PermissibleValue> getPermissibleValues(Map<String, Object> columnSchema) {
-    String values = (String) columnSchema.get(reservedKeyword.ofPermissibleValues());
-    if (values == null) {
-      return ImmutableList.of();
-    }
-    return Stream.of(values.split("\\|"))
-        .map(s -> PermissibleValue.create(s.trim()))
-        .collect(ImmutableList.toImmutableList());
+  private Optional<String> getInputPattern(SchemaTable schemaTable, String columnName) {
+    return schemaTable.getInputPatternFor(columnName)
+        .or(() -> {
+          var datatype = schemaTable.getDatatypeFor(columnName).orElse("text");
+          return Optional.ofNullable(builtinTypeMap.getBuiltinType(datatype).getInputPattern());
+        });
   }
 
   @Nonnull
-  private ImmutableList<String> getRequiredColumns(DataSchemaTable dataSchemaTable, List<String> headerColumnNames) {
-    return IntStream.range(1, dataSchemaTable.columnLength())
-        .mapToObj(i -> {
-          var columnSchema = dataSchemaTable.getColumn(i);
-          var variableLabel = headerColumnNames.get(i);
-          var variableName = (String) columnSchema.getOrDefault(reservedKeyword.ofVariable(), variableLabel);
-          var isRequired = requirementLevelMap.isRequired((String) columnSchema.get(reservedKeyword.ofRequirementLevel()));
-          return isRequired ? variableName : null;
-        })
-        .filter(Objects::nonNull)
-        .collect(ImmutableList.toImmutableList());
+  private ImmutableList<PermissibleValue> getPermissibleValues(SchemaTable schemaTable, String columnName) {
+    return schemaTable.getPermissibleValuesFor(columnName)
+        .map(values -> Stream.of(values.split("\\|"))
+            .map(s -> PermissibleValue.create(s.trim()))
+            .collect(ImmutableList.toImmutableList()))
+        .orElseGet(ImmutableList::of);
   }
 
   @Nonnull
-  private ImmutableList<String> getColumnOrder(DataSchemaTable dataSchemaTable, List<String> headerColumnNames) {
-    return IntStream.range(1, dataSchemaTable.columnLength())
-        .mapToObj(i -> {
-          var columnSchema = dataSchemaTable.getColumn(i);
-          var variableLabel = headerColumnNames.get(i);
-          return (String) columnSchema.getOrDefault(reservedKeyword.ofVariable(), variableLabel);
+  private ImmutableList<String> getRequiredColumns(SchemaTable schemaTable) {
+    return schemaTable.getColumnNames().stream()
+        .filter(columnName -> {
+          var requirementLevel = schemaTable.getRequirementLevelFor(columnName).orElse("OPTIONAL");
+          return requirementLevelMap.isRequired(requirementLevel);
         })
         .collect(ImmutableList.toImmutableList());
+  }
+
+  @Nonnull
+  private ImmutableList<String> getColumnOrder(SchemaTable schemaTable) {
+    return ImmutableList.copyOf(schemaTable.getColumnNames());
   }
 }

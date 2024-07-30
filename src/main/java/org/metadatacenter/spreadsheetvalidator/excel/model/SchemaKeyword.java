@@ -4,9 +4,11 @@ package org.metadatacenter.spreadsheetvalidator.excel.model;
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-public interface ReservedKeyword {
+public interface SchemaKeyword {
 
   String ofVariable();
+
+  String ofLabel();
 
   String ofDatatype();
 

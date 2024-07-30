@@ -4,11 +4,16 @@ package org.metadatacenter.spreadsheetvalidator.excel.model;
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-public class DefaultReservedKeyword implements ReservedKeyword {
+public class DefaultSchemaKeyword implements SchemaKeyword {
 
   @Override
   public String ofVariable() {
     return "variable";
+  }
+
+  @Override
+  public String ofLabel() {
+    return "label";
   }
 
   @Override
