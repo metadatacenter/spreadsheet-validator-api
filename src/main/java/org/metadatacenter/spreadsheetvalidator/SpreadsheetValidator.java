@@ -2,6 +2,7 @@ package org.metadatacenter.spreadsheetvalidator;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
 import org.metadatacenter.spreadsheetvalidator.exception.MissingRequiredColumnsException;
@@ -70,7 +71,9 @@ public class SpreadsheetValidator {
     var spreadsheetColumns = spreadsheet.getColumns();
     var missingColumns = spreadsheetSchema.getRequiredColumns()
         .stream()
-        .filter(column -> !spreadsheetColumns.contains(column))
+        .map(spreadsheetSchema::getColumnDescription)
+        .filter(desc -> !spreadsheetColumns.contains(desc.getColumnName()) && !spreadsheetColumns.contains(desc.getColumnLabel()))
+        .map(ColumnDescription::getColumnName)
         .collect(ImmutableList.toImmutableList());
     if (!missingColumns.isEmpty()) {
       var schemaName = spreadsheetSchema.getName();

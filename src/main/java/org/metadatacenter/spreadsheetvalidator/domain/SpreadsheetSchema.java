@@ -76,7 +76,19 @@ public abstract class SpreadsheetSchema {
   @Nullable
   @JsonIgnore
   public ColumnDescription getColumnDescription(String columnName) {
-    return getColumnDescription().get(columnName);
+    // First try: search the column description by the map index key
+    var columnDescription = getColumnDescription().get(columnName);
+    if (columnDescription != null) {
+      return columnDescription;
+    }
+    // Second try: search the column description by iterating over all the items and comparing each column label.
+    for (var columnDescriptionItem : getColumnDescription().values()) {
+      if (columnName.equals(columnDescriptionItem.getColumnLabel())) {
+        return columnDescriptionItem;
+      }
+    }
+    // No luck, return null.
+    return null;
   }
 
   @Nonnull
