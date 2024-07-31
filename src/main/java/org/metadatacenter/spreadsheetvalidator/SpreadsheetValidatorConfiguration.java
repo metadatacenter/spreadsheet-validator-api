@@ -23,7 +23,7 @@ public abstract class SpreadsheetValidatorConfiguration extends Configuration {
 
   private static final String GENERAL_CONFIG = "general";
 
-  private static final String EXCEL_CONFIG = "excel";
+  private static final String META_SCHEMA_CONFIG = "metaSchema";
 
   private static final String CEDAR_CONFIG = "cedarConfig";
 
@@ -37,12 +37,12 @@ public abstract class SpreadsheetValidatorConfiguration extends Configuration {
   @JsonCreator
   public static SpreadsheetValidatorConfiguration create(@Nonnull @JsonProperty(WEB) WebConfiguration webConfiguration,
                                                          @Nonnull @JsonProperty(GENERAL_CONFIG) GeneralConfig generalConfig,
-                                                         @Nonnull @JsonProperty(EXCEL_CONFIG) ExcelConfig excelConfig,
+                                                         @Nonnull @JsonProperty(META_SCHEMA_CONFIG) MetaSchemaConfig metaSchemaConfig,
                                                          @Nonnull @JsonProperty(CEDAR_CONFIG) CedarConfig cedarConfig,
                                                          @Nonnull @JsonProperty(BIO_PORTAL_CONFIG) BioPortalConfig bioPortalConfig,
                                                          @Nonnull @JsonProperty(CHAT_GPT_CONFIG) ChatGptConfig chatGptConfig,
                                                          @Nonnull @JsonProperty(SWAGGER) SwaggerBundleConfiguration swaggerBundleConfiguration) {
-    return new AutoValue_SpreadsheetValidatorConfiguration(webConfiguration, generalConfig, excelConfig, cedarConfig, bioPortalConfig, chatGptConfig, swaggerBundleConfiguration);
+    return new AutoValue_SpreadsheetValidatorConfiguration(webConfiguration, generalConfig, metaSchemaConfig, cedarConfig, bioPortalConfig, chatGptConfig, swaggerBundleConfiguration);
   }
 
   @Nonnull
@@ -54,8 +54,8 @@ public abstract class SpreadsheetValidatorConfiguration extends Configuration {
   public abstract GeneralConfig getGeneralConfig();
 
   @Nonnull
-  @JsonProperty(EXCEL_CONFIG)
-  public abstract ExcelConfig getExcelConfig();
+  @JsonProperty(META_SCHEMA_CONFIG)
+  public abstract MetaSchemaConfig getMetaSchemaConfig();
 
   @Nonnull
   @JsonProperty(CEDAR_CONFIG)

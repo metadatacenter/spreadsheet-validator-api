@@ -54,8 +54,8 @@ web:
 general:
   encoding: 'ASCII'
 
-excel:
-  metaSchemaIri: 'https://repo.metadatacenter.org/templates/31b481ab-0df0-4c6a-b7af-ce75e7e3250f'
+metaSchema:
+  targetIri: 'https://repo.metadatacenter.org/templates/31b481ab-0df0-4c6a-b7af-ce75e7e3250f'
 
 cedarConfig:
   apiKey: ''

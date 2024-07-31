@@ -11,17 +11,17 @@ import javax.annotation.Nonnull;
  * Stanford Center for Biomedical Informatics Research
  */
 @AutoValue
-public abstract class ExcelConfig {
+public abstract class MetaSchemaConfig {
 
-  private static final String META_SCHEMA_IRI = "metaSchemaIri";
+  private static final String TARGET_IRI = "targetIri";
 
   @Nonnull
   @JsonCreator
-  public static ExcelConfig create(@Nonnull @JsonProperty(META_SCHEMA_IRI) String metaSchemaIri) {
-    return new AutoValue_ExcelConfig(metaSchemaIri);
+  public static MetaSchemaConfig create(@Nonnull @JsonProperty(TARGET_IRI) String metaSchemaIri) {
+    return new AutoValue_MetaSchemaConfig(metaSchemaIri);
   }
 
   @Nonnull
-  @JsonProperty(META_SCHEMA_IRI)
-  public abstract String getMetaSchemaIri();
+  @JsonProperty(TARGET_IRI)
+  public abstract String getTargetIri();
 }

@@ -3,7 +3,7 @@ package org.metadatacenter.spreadsheetvalidator.inject.module;
 import dagger.Module;
 import dagger.Provides;
 import io.dropwizard.web.conf.WebConfiguration;
-import org.metadatacenter.spreadsheetvalidator.ExcelConfig;
+import org.metadatacenter.spreadsheetvalidator.MetaSchemaConfig;
 import org.metadatacenter.spreadsheetvalidator.GeneralConfig;
 import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidatorConfiguration;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.BioPortalConfig;
@@ -38,8 +38,8 @@ public class WebResourceModule {
   }
 
   @Provides
-  ExcelConfig provideExcelConfiguration() {
-    return appConfiguration.getExcelConfig();
+  MetaSchemaConfig provideMetaSchemaConfiguration() {
+    return appConfiguration.getMetaSchemaConfig();
   }
 
   @Provides

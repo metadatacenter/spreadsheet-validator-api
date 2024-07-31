@@ -84,7 +84,7 @@ public class ServiceResource {
 
   private final ValidationReportHandler validationReportHandler;
 
-  private final ExcelConfig excelConfig;
+  private final MetaSchemaConfig metaSchemaConfig;
 
   @Inject
   public ServiceResource(@Nonnull CedarService cedarService,
@@ -98,7 +98,7 @@ public class ServiceResource {
                          @Nonnull ExcelSpreadsheetSchemaParser excelSpreadsheetSchemaParser,
                          @Nonnull SpreadsheetValidator spreadsheetValidator,
                          @Nonnull ValidationReportHandler validationReportHandler,
-                         @Nonnull ExcelConfig excelConfig) {
+                         @Nonnull MetaSchemaConfig metaSchemaConfig) {
     this.cedarService = checkNotNull(cedarService);
     this.restServiceHandler = checkNotNull(restServiceHandler);
     this.tsvParser = checkNotNull(tsvParser);
@@ -110,7 +110,7 @@ public class ServiceResource {
     this.excelSpreadsheetSchemaParser = checkNotNull(excelSpreadsheetSchemaParser);
     this.spreadsheetValidator = checkNotNull(spreadsheetValidator);
     this.validationReportHandler = checkNotNull(validationReportHandler);
-    this.excelConfig = checkNotNull(excelConfig);
+    this.metaSchemaConfig = checkNotNull(metaSchemaConfig);
   }
 
   @POST
@@ -377,7 +377,7 @@ public class ServiceResource {
       @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail) {
     try {
       // Retrieve the CEDAR template IRI about the spreadsheet data schema
-      var templateIri = excelConfig.getMetaSchemaIri();
+      var templateIri = metaSchemaConfig.getTargetIri();
       var cedarTemplate = cedarService.getCedarTemplateFromIri(templateIri);
       var schemaTableSchema = cedarSpreadsheetSchemaParser.parse(cedarTemplate);
 
