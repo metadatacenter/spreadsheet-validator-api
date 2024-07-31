@@ -8,51 +8,51 @@ public class DefaultSchemaKeyword implements SchemaKeyword {
 
   @Override
   public String ofVariable() {
-    return "variable";
+    return "Variable";
   }
 
   @Override
   public String ofLabel() {
-    return "label";
+    return "Label";
   }
 
   @Override
   public String ofDatatype() {
-    return "type";
+    return "Type";
   }
 
   @Override
   public String ofRequirementLevel() {
-    return "priority";
+    return "Priority";
   }
 
   @Override
   public String ofDescription() {
-    return "description";
+    return "Description";
   }
 
   @Override
   public String ofInputExample() {
-    return "example";
+    return "Example";
   }
 
   @Override
   public String ofMinValue() {
-    return "min_value";
+    return "Min value";
   }
 
   @Override
   public String ofMaxValue() {
-    return "max_value";
+    return "Max value";
   }
 
   @Override
   public String ofInputPattern() {
-    return "input_pattern";
+    return "Input pattern";
   }
 
   @Override
   public String ofPermissibleValues() {
-    return "permissible_values";
+    return "Permissible values";
   }
 }
