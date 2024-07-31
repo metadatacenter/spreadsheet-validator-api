@@ -1,13 +1,13 @@
 package org.metadatacenter.spreadsheetvalidator.inject.module;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import dagger.Module;
 import dagger.Provides;
 import org.metadatacenter.artifacts.model.reader.ArtifactReader;
-import org.metadatacenter.spreadsheetvalidator.SpreadsheetSchemaGenerator;
-import org.metadatacenter.spreadsheetvalidator.excel.ExcelBasedSchemaParser;
+import org.metadatacenter.spreadsheetvalidator.CedarSpreadsheetSchemaParser;
+import org.metadatacenter.spreadsheetvalidator.excel.ExcelSpreadsheetSchemaParser;
 import org.metadatacenter.spreadsheetvalidator.excel.model.BuiltinTypeMap;
 import org.metadatacenter.spreadsheetvalidator.excel.model.RequirementLevelMap;
-import org.metadatacenter.spreadsheetvalidator.excel.model.SchemaKeyword;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.TerminologyService;
 
 /**
@@ -23,14 +23,14 @@ import org.metadatacenter.spreadsheetvalidator.thirdparty.TerminologyService;
 public class SchemaProcessingModule {
 
   @Provides
-  public SpreadsheetSchemaGenerator getSpreadsheetSchemaGenerator(ArtifactReader artifactReader,
-                                                                  TerminologyService terminologyService) {
-    return new SpreadsheetSchemaGenerator(artifactReader, terminologyService);
+  public CedarSpreadsheetSchemaParser provideCedarSpreadsheetSchemaParser(ArtifactReader<ObjectNode> artifactReader,
+                                                                          TerminologyService terminologyService) {
+    return new CedarSpreadsheetSchemaParser(artifactReader, terminologyService);
   }
 
   @Provides
-  public ExcelBasedSchemaParser provideExcelBasedSchemaParser(BuiltinTypeMap builtinTypeMap,
-                                                              RequirementLevelMap requirementLevelMap) {
-    return new ExcelBasedSchemaParser(builtinTypeMap, requirementLevelMap);
+  public ExcelSpreadsheetSchemaParser provideExcelSpreadsheetSchemaParser(BuiltinTypeMap builtinTypeMap,
+                                                                          RequirementLevelMap requirementLevelMap) {
+    return new ExcelSpreadsheetSchemaParser(builtinTypeMap, requirementLevelMap);
   }
 }

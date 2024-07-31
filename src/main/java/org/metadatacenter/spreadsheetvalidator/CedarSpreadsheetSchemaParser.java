@@ -38,22 +38,23 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-public class SpreadsheetSchemaGenerator {
+public class CedarSpreadsheetSchemaParser implements SpreadsheetSchemaParser<ObjectNode> {
 
-  private final ArtifactReader artifactReader;
+  private final ArtifactReader<ObjectNode> artifactReader;
   private final TerminologyService terminologyService;
 
   private static final String DESCRIPTION_WITH_EXAMPLE = "^(.*)\\s*(?=Example:\\s+(.*)$)";
 
   @Inject
-  public SpreadsheetSchemaGenerator(@Nonnull ArtifactReader artifactReader,
-                                    @Nonnull TerminologyService terminologyService) {
+  public CedarSpreadsheetSchemaParser(@Nonnull ArtifactReader<ObjectNode> artifactReader,
+                                      @Nonnull TerminologyService terminologyService) {
     this.artifactReader = checkNotNull(artifactReader);
     this.terminologyService = checkNotNull(terminologyService);
   }
 
+  @Override
   @Nonnull
-  public SpreadsheetSchema generateFrom(@Nonnull ObjectNode templateNode) {
+  public SpreadsheetSchema parse(@Nonnull ObjectNode templateNode) {
     var templateSchema = getTemplateSchemaArtifact(templateNode);
     var templateName = templateSchema.name();
     var templateVersion = getTemplateVersion(templateSchema);

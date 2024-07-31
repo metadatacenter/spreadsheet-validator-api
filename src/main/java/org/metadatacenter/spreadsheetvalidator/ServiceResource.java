@@ -21,8 +21,8 @@ import org.glassfish.jersey.server.ContainerRequest;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
 import org.metadatacenter.spreadsheetvalidator.excel.DataTableVisitor;
-import org.metadatacenter.spreadsheetvalidator.excel.ExcelBasedSchemaParser;
 import org.metadatacenter.spreadsheetvalidator.excel.ExcelParser;
+import org.metadatacenter.spreadsheetvalidator.excel.ExcelSpreadsheetSchemaParser;
 import org.metadatacenter.spreadsheetvalidator.excel.MissingProvenanceTemplateIri;
 import org.metadatacenter.spreadsheetvalidator.excel.ProvenanceTableVisitor;
 import org.metadatacenter.spreadsheetvalidator.excel.SchemaTableVisitor;
@@ -76,9 +76,9 @@ public class ServiceResource {
 
   private final ProvenanceTableVisitor provenanceTableVisitor;
 
-  private final SpreadsheetSchemaGenerator spreadsheetSchemaGenerator;
+  private final CedarSpreadsheetSchemaParser cedarSpreadsheetSchemaParser;
 
-  private final ExcelBasedSchemaParser excelBasedSchemaParser;
+  private final ExcelSpreadsheetSchemaParser excelSpreadsheetSchemaParser;
 
   private final SpreadsheetValidator spreadsheetValidator;
 
@@ -94,8 +94,8 @@ public class ServiceResource {
                          @Nonnull SchemaTableVisitor schemaTableVisitor,
                          @Nonnull DataTableVisitor dataTableVisitor,
                          @Nonnull ProvenanceTableVisitor provenanceTableVisitor,
-                         @Nonnull SpreadsheetSchemaGenerator spreadsheetSchemaGenerator,
-                         @Nonnull ExcelBasedSchemaParser excelBasedSchemaParser,
+                         @Nonnull CedarSpreadsheetSchemaParser cedarSpreadsheetSchemaParser,
+                         @Nonnull ExcelSpreadsheetSchemaParser excelSpreadsheetSchemaParser,
                          @Nonnull SpreadsheetValidator spreadsheetValidator,
                          @Nonnull ValidationReportHandler validationReportHandler,
                          @Nonnull ExcelConfig excelConfig) {
@@ -106,8 +106,8 @@ public class ServiceResource {
     this.schemaTableVisitor = schemaTableVisitor;
     this.dataTableVisitor = dataTableVisitor;
     this.provenanceTableVisitor = provenanceTableVisitor;
-    this.spreadsheetSchemaGenerator = checkNotNull(spreadsheetSchemaGenerator);
-    this.excelBasedSchemaParser = checkNotNull(excelBasedSchemaParser);
+    this.cedarSpreadsheetSchemaParser = checkNotNull(cedarSpreadsheetSchemaParser);
+    this.excelSpreadsheetSchemaParser = checkNotNull(excelSpreadsheetSchemaParser);
     this.spreadsheetValidator = checkNotNull(spreadsheetValidator);
     this.validationReportHandler = checkNotNull(validationReportHandler);
     this.excelConfig = checkNotNull(excelConfig);
@@ -154,7 +154,7 @@ public class ServiceResource {
       // Get the CEDAR template IRI
       var cedarTemplateIri = request.getCheckedCedarTemplateIri();
       var cedarTemplate = cedarService.getCedarTemplateFromIri(cedarTemplateIri);
-      var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
+      var spreadsheetSchema = cedarSpreadsheetSchemaParser.parse(cedarTemplate);
 
       // Validate the spreadsheet based on its schema
       var validationReport = doValidation(spreadsheetSchema, spreadsheet);
@@ -247,7 +247,7 @@ public class ServiceResource {
       // Get the CEDAR template ID
       var templateId = getMetadataSchemaId(spreadsheetData);
       var cedarTemplate = cedarService.getCedarTemplateFromId(templateId);
-      var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
+      var spreadsheetSchema = cedarSpreadsheetSchemaParser.parse(cedarTemplate);
 
       // Validate the spreadsheet based on its schema
       var validationReport = doValidation(spreadsheetSchema, spreadsheet);
@@ -329,7 +329,7 @@ public class ServiceResource {
 
       // Get the CEDAR template remotely
       var cedarTemplate = cedarService.getCedarTemplateFromIri(templateIri);
-      var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
+      var spreadsheetSchema = cedarSpreadsheetSchemaParser.parse(cedarTemplate);
 
       // Get the data record table from the data sheet.
       var dataTable = worksheet.accept(dataTableVisitor);
@@ -379,7 +379,7 @@ public class ServiceResource {
       // Retrieve the CEDAR template IRI about the spreadsheet data schema
       var templateIri = excelConfig.getMetaSchemaIri();
       var cedarTemplate = cedarService.getCedarTemplateFromIri(templateIri);
-      var schemaTableSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
+      var schemaTableSchema = cedarSpreadsheetSchemaParser.parse(cedarTemplate);
 
       // Parse the input Excel file
       var metadataSpreadsheet = excelParser.parse(inputStream);
@@ -395,7 +395,7 @@ public class ServiceResource {
       }
 
       // Extract the data schema
-      var dataSchema = excelBasedSchemaParser.extractTableSchemaFrom(schemaTable);
+      var dataSchema = excelSpreadsheetSchemaParser.parse(schemaTable);
 
       // Get the data record table from the data sheet.
       var dataTable = metadataSpreadsheet.accept(dataTableVisitor);

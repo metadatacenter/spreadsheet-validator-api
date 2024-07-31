@@ -3,6 +3,7 @@ package org.metadatacenter.spreadsheetvalidator.excel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import jakarta.inject.Inject;
+import org.metadatacenter.spreadsheetvalidator.SpreadsheetSchemaParser;
 import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.PermissibleValue;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
@@ -21,20 +22,22 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
  * Stanford Center for Biomedical Informatics Research
  */
-public class ExcelBasedSchemaParser {
+public class ExcelSpreadsheetSchemaParser implements SpreadsheetSchemaParser<SchemaTable> {
 
   private final BuiltinTypeMap builtinTypeMap;
 
   private final RequirementLevelMap requirementLevelMap;
 
   @Inject
-  public ExcelBasedSchemaParser(@Nonnull BuiltinTypeMap builtinTypeMap,
-                                @Nonnull RequirementLevelMap requirementLevelMap) {
+  public ExcelSpreadsheetSchemaParser(@Nonnull BuiltinTypeMap builtinTypeMap,
+                                      @Nonnull RequirementLevelMap requirementLevelMap) {
     this.builtinTypeMap = checkNotNull(builtinTypeMap);
     this.requirementLevelMap = checkNotNull(requirementLevelMap);
   }
 
-  public SpreadsheetSchema extractTableSchemaFrom(@Nonnull SchemaTable schemaTable) {
+  @Override
+  @Nonnull
+  public SpreadsheetSchema parse(@Nonnull SchemaTable schemaTable) {
     return SpreadsheetSchema.create(
         "virtual-schema",
         "1.0.0",

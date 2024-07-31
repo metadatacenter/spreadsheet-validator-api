@@ -26,18 +26,18 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Stanford Center for Biomedical Informatics Research
  */
 @ExtendWith(MockitoExtension.class)
-class SpreadsheetSchemaGeneratorIntegrationTest {
+class CedarSpreadsheetSchemaParserIntegrationTest {
 
   private final ObjectMapper mapper = new ObjectMapper();
   private ArtifactReader artifactReader = new JsonSchemaArtifactReader();
   @Mock
   TerminologyService terminologyService;
-  private SpreadsheetSchemaGenerator spreadsheetSchemaGenerator;
+  private CedarSpreadsheetSchemaParser cedarSpreadsheetSchemaParser;
   private File templateFile;
 
   @BeforeEach
   void setUp() {
-    spreadsheetSchemaGenerator = new SpreadsheetSchemaGenerator(artifactReader, terminologyService);
+    cedarSpreadsheetSchemaParser = new CedarSpreadsheetSchemaParser(artifactReader, terminologyService);
     var classLoader = getClass().getClassLoader();
     templateFile = new File(classLoader.getResource("cedar-template.jsonld").getFile());
   }
@@ -46,7 +46,7 @@ class SpreadsheetSchemaGeneratorIntegrationTest {
   @Disabled
   void shouldGenerateSpreadsheetSchema() throws IOException {
     var templateNode = (ObjectNode) mapper.readTree(templateFile);
-    var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(templateNode);
+    var spreadsheetSchema = cedarSpreadsheetSchemaParser.parse(templateNode);
     assertThat(spreadsheetSchema.getName(), is("Sample Section"));
     assertThat(spreadsheetSchema.getTemplateIri(), is("https://repo.metadatacenter.org/templates/a9efb30e-4e2c-4d66-8890-b66204a4a774"));
     assertThat(spreadsheetSchema.getColumnDescription().size(), is(17));
