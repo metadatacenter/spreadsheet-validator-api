@@ -96,8 +96,10 @@ public class ExcelSpreadsheetSchemaParser implements SpreadsheetSchemaParser<Sch
   @Nonnull
   private ImmutableList<PermissibleValue> getPermissibleValues(SchemaTable schemaTable, String columnName) {
     return schemaTable.getPermissibleValuesFor(columnName)
-        .map(values -> Stream.of(values.split("\\|"))
-            .map(s -> PermissibleValue.create(s.trim()))
+        .filter(value -> !value.isBlank())
+        .map(value -> Stream.of(value.split("\\|"))
+            .map(String::trim)
+            .map(PermissibleValue::create)
             .collect(ImmutableList.toImmutableList()))
         .orElseGet(ImmutableList::of);
   }
