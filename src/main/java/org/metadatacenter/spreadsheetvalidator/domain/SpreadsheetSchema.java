@@ -91,14 +91,8 @@ public abstract class SpreadsheetSchema {
     return null;
   }
 
-  @Nonnull
-  @JsonIgnore
-  public Stream<ColumnDescription> getColumnDescriptionStream() {
-    return getColumnDescription().values().stream();
-  }
-
   @JsonIgnore
   public boolean containsColumn(String columnName) {
-    return getColumnDescription().containsKey(columnName);
+    return getColumnDescription(columnName) != null;
   }
 }
