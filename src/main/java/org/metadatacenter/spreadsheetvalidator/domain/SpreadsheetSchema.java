@@ -6,10 +6,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.stream.Stream;
 
 /**
  * @author Josef Hardi <josef.hardi@stanford.edu> <br>
@@ -31,6 +31,7 @@ public abstract class SpreadsheetSchema {
   private static final String GENERATED_FROM = "generatedFrom";
 
   private static final String ACCESS_URL = "accessUrl";
+
 
   @Nonnull
   @JsonCreator
@@ -76,23 +77,24 @@ public abstract class SpreadsheetSchema {
   @Nullable
   @JsonIgnore
   public ColumnDescription getColumnDescription(String columnName) {
-    // First try: search the column description by the map index key
-    var columnDescription = getColumnDescription().get(columnName);
-    if (columnDescription != null) {
-      return columnDescription;
-    }
-    // Second try: search the column description by iterating over all the items and comparing each column label.
-    for (var columnDescriptionItem : getColumnDescription().values()) {
-      if (columnName.equals(columnDescriptionItem.getColumnLabel())) {
-        return columnDescriptionItem;
-      }
-    }
-    // No luck, return null.
-    return null;
+    return getColumnDescription().get(columnName);
   }
 
   @JsonIgnore
   public boolean containsColumn(String columnName) {
-    return getColumnDescription(columnName) != null;
+    return getColumnDescription().containsKey(columnName);
+  }
+
+  @Nonnull
+  public SpreadsheetSchema unfold() {
+    var mutableUnfoldedColumnDescription = Maps.<String, ColumnDescription>newHashMap();
+    getColumnDescription().values()
+        .forEach(columnDescription -> {
+          mutableUnfoldedColumnDescription.put(columnDescription.getColumnName(), columnDescription);
+          mutableUnfoldedColumnDescription.put(columnDescription.getColumnLabel(), columnDescription);
+        });
+    var unfoldedColumnDescription = ImmutableMap.copyOf(mutableUnfoldedColumnDescription);
+    return create(getName(), getVersion(), unfoldedColumnDescription, getRequiredColumns(),
+        getColumnOrder(), getTemplateIri(), getAccessUrl());
   }
 }

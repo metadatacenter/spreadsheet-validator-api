@@ -24,10 +24,11 @@ public class RequiredFieldValidator implements Validator {
 
   @Override
   public List<ValidationError> validate(@Nonnull SpreadsheetRow spreadsheetRow, @Nonnull SpreadsheetSchema spreadsheetSchema, @Nonnull ValidatorContext context) {
+    var unfoldedSchema = spreadsheetSchema.unfold();
     return spreadsheetRow.columnStream()
-        .filter(spreadsheetSchema::containsColumn)
+        .filter(unfoldedSchema::containsColumn)
         .map(columnName -> {
-          var columnDescription = spreadsheetSchema.getColumnDescription(columnName);
+          var columnDescription = unfoldedSchema.getColumnDescription(columnName);
           var rowIndex = spreadsheetRow.getRowNumber();
           var value = spreadsheetRow.getValue(columnName);
           if (columnDescription.isRequiredColumn() && Assert.that(value, isNullOrEmpty())) {

@@ -11,7 +11,6 @@ import org.metadatacenter.spreadsheetvalidator.util.Assert;
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.isNullOrEmpty;
 import static org.metadatacenter.spreadsheetvalidator.util.Matchers.not;
@@ -26,18 +25,19 @@ public abstract class InputValueValidator implements Validator {
   public List<ValidationError> validate(@Nonnull SpreadsheetRow spreadsheetRow,
                                         @Nonnull SpreadsheetSchema spreadsheetSchema,
                                         @Nonnull ValidatorContext validatorContext) {
+    var unfoldedSchema = spreadsheetSchema.unfold();
     return spreadsheetRow.columnStream()
-        .filter(spreadsheetSchema::containsColumn)
+        .filter(unfoldedSchema::containsColumn)
         .map(columnName -> {
           var value = spreadsheetRow.getValue(columnName);
           if (Assert.that(value, not(isNullOrEmpty()))) {
             var rowIndex = spreadsheetRow.getRowNumber();
-            var columnDescription = spreadsheetSchema.getColumnDescription(columnName);
+            var columnDescription = unfoldedSchema.getColumnDescription(columnName);
             var valueContext = ValueContext.create(rowIndex, columnName, columnDescription);
             return validateInputValue(value, valueContext, validatorContext);
           }
           return Optional.<ValidationError>empty();
-          })
+        })
         .flatMap(Optional::stream)
         .collect(ImmutableList.toImmutableList());
   }

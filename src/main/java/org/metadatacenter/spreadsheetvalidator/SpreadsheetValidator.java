@@ -2,7 +2,6 @@ package org.metadatacenter.spreadsheetvalidator;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
 import org.metadatacenter.spreadsheetvalidator.exception.MissingRequiredColumnsException;
@@ -69,11 +68,10 @@ public class SpreadsheetValidator {
 
   private static void checkAllRequiredFieldsPresent(Spreadsheet spreadsheet, SpreadsheetSchema spreadsheetSchema) {
     var spreadsheetColumns = spreadsheet.getColumns();
+    var unfoldedSchema = spreadsheetSchema.unfold();
     var missingColumns = spreadsheetSchema.getRequiredColumns()
         .stream()
-        .map(spreadsheetSchema::getColumnDescription)
-        .filter(desc -> !spreadsheetColumns.contains(desc.getColumnName()) && !spreadsheetColumns.contains(desc.getColumnLabel()))
-        .map(ColumnDescription::getColumnName)
+        .filter(column -> !unfoldedSchema.containsColumn(column))
         .collect(ImmutableList.toImmutableList());
     if (!missingColumns.isEmpty()) {
       var schemaName = spreadsheetSchema.getName();
@@ -83,9 +81,10 @@ public class SpreadsheetValidator {
 
   private static void checkAdditionalColumns(Spreadsheet spreadsheet, SpreadsheetSchema schema) {
     var additionalColumns = Lists.<String>newArrayList();
+    var unfoldedSchema = schema.unfold();
     spreadsheet.getColumns()
         .forEach(column -> {
-          if (!schema.containsColumn(column)) {
+          if (!unfoldedSchema.containsColumn(column)) {
             additionalColumns.add(column);
           }
         });
