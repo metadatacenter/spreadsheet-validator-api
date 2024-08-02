@@ -23,7 +23,7 @@ public class DefaultSchemaKeyword implements SchemaKeyword {
 
   @Override
   public String ofRequirementLevel() {
-    return "Priority";
+    return "Requirement level";
   }
 
   @Override
