@@ -71,7 +71,12 @@ public class SpreadsheetValidator {
     var unfoldedSchema = spreadsheetSchema.unfold();
     var missingColumns = spreadsheetSchema.getRequiredColumns()
         .stream()
-        .filter(column -> !unfoldedSchema.containsColumn(column))
+        .filter(column -> {
+          var columnDescription = unfoldedSchema.getColumnDescription(column);
+          var columnName = columnDescription.getColumnName();
+          var columnLabel = columnDescription.getColumnLabel();
+          return !(spreadsheetColumns.contains(columnName) || spreadsheetColumns.contains(columnLabel));
+        })
         .collect(ImmutableList.toImmutableList());
     if (!missingColumns.isEmpty()) {
       var schemaName = spreadsheetSchema.getName();
