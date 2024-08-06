@@ -2,6 +2,7 @@ package org.metadatacenter.spreadsheetvalidator;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.metadatacenter.spreadsheetvalidator.domain.ColumnDescription;
 import org.metadatacenter.spreadsheetvalidator.domain.Spreadsheet;
 import org.metadatacenter.spreadsheetvalidator.domain.SpreadsheetSchema;
 import org.metadatacenter.spreadsheetvalidator.exception.MissingRequiredColumnsException;
@@ -67,16 +68,16 @@ public class SpreadsheetValidator {
   }
 
   private static void checkAllRequiredFieldsPresent(Spreadsheet spreadsheet, SpreadsheetSchema spreadsheetSchema) {
-    var spreadsheetColumns = spreadsheet.getColumns();
+    var dataColumns = spreadsheet.getColumns();
     var unfoldedSchema = spreadsheetSchema.unfold();
-    var missingColumns = spreadsheetSchema.getRequiredColumns()
-        .stream()
-        .filter(column -> {
-          var columnDescription = unfoldedSchema.getColumnDescription(column);
-          var columnName = columnDescription.getColumnName();
-          var columnLabel = columnDescription.getColumnLabel();
-          return !(spreadsheetColumns.contains(columnName) || spreadsheetColumns.contains(columnLabel));
+    var missingColumns = spreadsheetSchema.getRequiredColumns().stream()
+        .map(unfoldedSchema::getColumnDescription)
+        .filter(columnDescription -> {
+          var requiredColumnName = columnDescription.getColumnName();
+          var requiredColumnLabel = columnDescription.getColumnLabel();
+          return !(dataColumns.contains(requiredColumnName) || dataColumns.contains(requiredColumnLabel));
         })
+        .map(ColumnDescription::getColumnLabel)
         .collect(ImmutableList.toImmutableList());
     if (!missingColumns.isEmpty()) {
       var schemaName = spreadsheetSchema.getName();
