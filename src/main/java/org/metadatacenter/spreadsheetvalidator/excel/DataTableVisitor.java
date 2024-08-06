@@ -33,11 +33,14 @@ public class DataTableVisitor implements ExcelSheetVisitor<DataTable> {
   public DataTable visit(ExcelWorkbook workbook) {
     var dataSheet = workbook.getSheet(DEFAULT_TABLE_SHEET_NAME).orElse(workbook.getFirstSheet());
 
-    // Determine the row indexes to extract the table header and table data.
-    var separatorRow = excelReader.findFirstEmptyRow(dataSheet);
-    var dataHeaderIndex = (separatorRow.isPresent())
-        ? separatorRow.get().getRowNum() + 1  // The header row is after the separator row
-        : dataSheet.getTopRow();              // The header row is always at the top
+    // Find the first 2 empty rows from the sheet
+    var emptyRows = excelReader.findFirstXEmptyRows(dataSheet, 2);
+
+    var dataHeaderIndex = dataSheet.getFirstRowNum();
+    if (emptyRows.isPresent()) {
+      var separatorRows = emptyRows.get();
+      dataHeaderIndex = separatorRows.get(separatorRows.size() - 1).getRowNum() + 1;
+    }
     var startDataTableIndex = dataHeaderIndex + 1;
     var endDataTableIndex = dataSheet.getLastRowNum();
 

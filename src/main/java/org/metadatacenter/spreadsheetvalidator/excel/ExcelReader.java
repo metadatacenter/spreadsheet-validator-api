@@ -1,6 +1,7 @@
 package org.metadatacenter.spreadsheetvalidator.excel;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -46,6 +47,20 @@ public class ExcelReader {
       }
     }
     return Optional.empty();
+  }
+
+  public Optional<List<Row>> findFirstXEmptyRows(Sheet sheet, int numEmptyRows) {
+    var emptyRows = Lists.<Row>newArrayList();
+    for (int i = sheet.getFirstRowNum(); i < sheet.getLastRowNum(); i++) {
+      var row = sheet.getRow(i);
+      if (row == null || isRowEmpty(row)) {
+        emptyRows.add(sheet.createRow(i));
+        if (emptyRows.size() == numEmptyRows) {
+          break;
+        }
+      }
+    }
+    return emptyRows.isEmpty() ? Optional.empty() : Optional.of(ImmutableList.copyOf(emptyRows));
   }
 
   private boolean isRowEmpty(Row row) {

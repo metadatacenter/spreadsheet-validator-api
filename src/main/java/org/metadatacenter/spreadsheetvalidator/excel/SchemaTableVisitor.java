@@ -40,23 +40,32 @@ public class SchemaTableVisitor implements ExcelSheetVisitor<SchemaTable> {
   public SchemaTable visit(ExcelWorkbook workbook) {
     var dataSheet = workbook.getSheet(DEFAULT_TABLE_SHEET_NAME).orElse(workbook.getFirstSheet());
 
-    // Determine the row indexes to extract the table header and table data.
-    var separatorRow = excelReader.findFirstEmptyRow(dataSheet);
-    if (separatorRow.isEmpty()) {
+    // Find the first 2 empty rows from the sheet
+    var emptyRows = excelReader.findFirstXEmptyRows(dataSheet, 2);
+    if (emptyRows.isEmpty()) {
       throw new BadFileException("Bad Excel file", new MissingSeparatorRowException());
     }
-    var separatorIndex = separatorRow.get().getRowNum();
 
-    // Extract the schema section from the data sheet.
-    var startSchemaRowIndex = dataSheet.getTopRow();
-    var endSchemaRowIndex = separatorIndex - 1;
-    var schemaRows = excelReader.getRows(dataSheet, startSchemaRowIndex, endSchemaRowIndex);
+    // A schema table must be included, but its location depends on the number of separator rows.
+    var separatorRows = emptyRows.get();
+    int startSchemaTableIndex, endSchemaTableIndex, dataHeaderIndex;
 
-    // Extract the table header section from the data sheet.
-    var headerRowIndex = separatorIndex + 1;
-    var headerRow = excelReader.getRow(dataSheet, headerRowIndex);
-
+    if (separatorRows.size() == 1) {
+      var separatorIndex = separatorRows.get(0).getRowNum();
+      startSchemaTableIndex = dataSheet.getTopRow();
+      endSchemaTableIndex = separatorIndex - 1;
+      dataHeaderIndex = separatorIndex + 1;
+    } else {
+      var topSeparatorIndex = separatorRows.get(0).getRowNum();
+      var bottomSeparatorIndex = separatorRows.get(1).getRowNum();
+      startSchemaTableIndex = topSeparatorIndex + 1;
+      endSchemaTableIndex = bottomSeparatorIndex - 1;
+      dataHeaderIndex = bottomSeparatorIndex + 1;
+    }
+    var schemaRows = excelReader.getRows(dataSheet, startSchemaTableIndex, endSchemaTableIndex);
+    var headerRow = excelReader.getRow(dataSheet, dataHeaderIndex);
     var records = processRow(schemaRows, headerRow);
+
     return SchemaTable.create(records, schemaKeyword);
   }
 
