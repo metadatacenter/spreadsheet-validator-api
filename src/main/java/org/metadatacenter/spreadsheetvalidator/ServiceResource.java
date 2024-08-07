@@ -1,5 +1,6 @@
 package org.metadatacenter.spreadsheetvalidator;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -24,6 +25,7 @@ import org.metadatacenter.spreadsheetvalidator.excel.DataTableVisitor;
 import org.metadatacenter.spreadsheetvalidator.excel.ExcelParser;
 import org.metadatacenter.spreadsheetvalidator.excel.ExcelSpreadsheetSchemaParser;
 import org.metadatacenter.spreadsheetvalidator.excel.MissingProvenanceTemplateIri;
+import org.metadatacenter.spreadsheetvalidator.excel.PropertiesTableVisitor;
 import org.metadatacenter.spreadsheetvalidator.excel.ProvenanceTableVisitor;
 import org.metadatacenter.spreadsheetvalidator.excel.SchemaTableVisitor;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
@@ -70,6 +72,8 @@ public class ServiceResource {
 
   private final ExcelParser excelParser;
 
+  private final PropertiesTableVisitor propertiesTableVisitor;
+
   private final SchemaTableVisitor schemaTableVisitor;
 
   private final DataTableVisitor dataTableVisitor;
@@ -91,6 +95,7 @@ public class ServiceResource {
                          @Nonnull RestServiceHandler restServiceHandler,
                          @Nonnull TsvParser tsvParser,
                          @Nonnull ExcelParser excelParser,
+                         @Nonnull PropertiesTableVisitor propertiesTableVisitor,
                          @Nonnull SchemaTableVisitor schemaTableVisitor,
                          @Nonnull DataTableVisitor dataTableVisitor,
                          @Nonnull ProvenanceTableVisitor provenanceTableVisitor,
@@ -103,9 +108,10 @@ public class ServiceResource {
     this.restServiceHandler = checkNotNull(restServiceHandler);
     this.tsvParser = checkNotNull(tsvParser);
     this.excelParser = checkNotNull(excelParser);
-    this.schemaTableVisitor = schemaTableVisitor;
-    this.dataTableVisitor = dataTableVisitor;
-    this.provenanceTableVisitor = provenanceTableVisitor;
+    this.propertiesTableVisitor = checkNotNull(propertiesTableVisitor);
+    this.schemaTableVisitor = checkNotNull(schemaTableVisitor);
+    this.dataTableVisitor = checkNotNull(dataTableVisitor);
+    this.provenanceTableVisitor = checkNotNull(provenanceTableVisitor);
     this.cedarSpreadsheetSchemaParser = checkNotNull(cedarSpreadsheetSchemaParser);
     this.excelSpreadsheetSchemaParser = checkNotNull(excelSpreadsheetSchemaParser);
     this.spreadsheetValidator = checkNotNull(spreadsheetValidator);
@@ -376,17 +382,27 @@ public class ServiceResource {
           requiredMode = Schema.RequiredMode.REQUIRED)) @FormDataParam("input_file") InputStream inputStream,
       @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail) {
     try {
-      // Retrieve the CEDAR template IRI about the spreadsheet data schema
-      var templateIri = metaSchemaConfig.getTargetIri();
-      var cedarTemplate = cedarService.getCedarTemplateFromIri(templateIri);
-      var schemaTableSchema = cedarSpreadsheetSchemaParser.parse(cedarTemplate);
-
       // Parse the input Excel file
       var metadataSpreadsheet = excelParser.parse(inputStream);
+
+      // Get the properties table from the data sheet.
+      var propertiesTable = metadataSpreadsheet.accept(propertiesTableVisitor);
 
       // Get the data schema table from the data sheet.
       var schemaTable = metadataSpreadsheet.accept(schemaTableVisitor);
       var schemaSpreadsheet = Spreadsheet.create(schemaTable.getRecords());
+
+      // Retrieve the CEDAR template IRI about the meta-schema header
+      ObjectNode cedarTemplate;
+      var headerSchemaId = propertiesTable.getMetaSchemaId();
+      if (headerSchemaId.isPresent()) {
+        var templateId = headerSchemaId.get();
+        cedarTemplate = cedarService.getCedarTemplateFromId(templateId);
+      } else {
+        var templateIri = metaSchemaConfig.getTargetIri();
+        cedarTemplate = cedarService.getCedarTemplateFromIri(templateIri);
+      }
+      var schemaTableSchema = cedarSpreadsheetSchemaParser.parse(cedarTemplate);
 
       // Validate the data schema table and check the response
       var schemaValidationReport = doValidation(schemaTableSchema, schemaSpreadsheet);

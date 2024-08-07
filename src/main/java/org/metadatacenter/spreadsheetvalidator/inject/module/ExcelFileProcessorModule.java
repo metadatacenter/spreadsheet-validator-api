@@ -4,8 +4,10 @@ import dagger.Module;
 import dagger.Provides;
 import org.metadatacenter.spreadsheetvalidator.excel.DataTableVisitor;
 import org.metadatacenter.spreadsheetvalidator.excel.ExcelReader;
+import org.metadatacenter.spreadsheetvalidator.excel.PropertiesTableVisitor;
 import org.metadatacenter.spreadsheetvalidator.excel.ProvenanceTableVisitor;
 import org.metadatacenter.spreadsheetvalidator.excel.SchemaTableVisitor;
+import org.metadatacenter.spreadsheetvalidator.excel.model.PropertiesKeyword;
 import org.metadatacenter.spreadsheetvalidator.excel.model.ProvenanceKeyword;
 import org.metadatacenter.spreadsheetvalidator.excel.model.SchemaKeyword;
 
@@ -25,6 +27,12 @@ public class ExcelFileProcessorModule {
   @Singleton
   public ExcelReader provideExcelReader() {
     return new ExcelReader();
+  }
+
+  @Provides
+  public PropertiesTableVisitor propertiesTableVisitor(@Nonnull ExcelReader excelReader,
+                                                       @Nonnull PropertiesKeyword propertiesKeyword) {
+    return new PropertiesTableVisitor(excelReader, propertiesKeyword);
   }
 
   @Provides

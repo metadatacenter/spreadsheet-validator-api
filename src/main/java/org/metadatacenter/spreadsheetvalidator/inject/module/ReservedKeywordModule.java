@@ -2,8 +2,10 @@ package org.metadatacenter.spreadsheetvalidator.inject.module;
 
 import dagger.Module;
 import dagger.Provides;
+import org.metadatacenter.spreadsheetvalidator.excel.model.DefaultPropertiesKeyword;
 import org.metadatacenter.spreadsheetvalidator.excel.model.DefaultProvenanceKeyword;
 import org.metadatacenter.spreadsheetvalidator.excel.model.DefaultSchemaKeyword;
+import org.metadatacenter.spreadsheetvalidator.excel.model.PropertiesKeyword;
 import org.metadatacenter.spreadsheetvalidator.excel.model.ProvenanceKeyword;
 import org.metadatacenter.spreadsheetvalidator.excel.model.SchemaKeyword;
 
@@ -13,6 +15,11 @@ import org.metadatacenter.spreadsheetvalidator.excel.model.SchemaKeyword;
  */
 @Module
 public class ReservedKeywordModule {
+
+  @Provides
+  public PropertiesKeyword providePropertiesKeyword() {
+    return new DefaultPropertiesKeyword();
+  }
 
   @Provides
   public SchemaKeyword provideSchemaKeyword() {
