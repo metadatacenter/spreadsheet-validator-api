@@ -34,8 +34,10 @@ import org.metadatacenter.spreadsheetvalidator.request.BadFileException;
 import org.metadatacenter.spreadsheetvalidator.request.ValidateSpreadsheetRequest;
 import org.metadatacenter.spreadsheetvalidator.request.ValidatorRequestBodyException;
 import org.metadatacenter.spreadsheetvalidator.response.ErrorResponse;
+import org.metadatacenter.spreadsheetvalidator.response.ExtendedValidationResponse;
 import org.metadatacenter.spreadsheetvalidator.response.UrlCheckResponse;
-import org.metadatacenter.spreadsheetvalidator.response.ValidateResponse;
+import org.metadatacenter.spreadsheetvalidator.response.ValidationResponse;
+import org.metadatacenter.spreadsheetvalidator.response.ValidationStatus;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.CedarService;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.RestServiceHandler;
 import org.metadatacenter.spreadsheetvalidator.tsv.MissingMetadataSchemaIdException;
@@ -139,7 +141,7 @@ public class ServiceResource {
       description = "A JSON object showing the validation report and other properties such as the" +
           "extracted schema and the original spreadsheet data.",
       content = @Content(
-          schema = @Schema(implementation = ValidateResponse.class),
+          schema = @Schema(implementation = ValidationResponse.class),
           mediaType = MediaType.APPLICATION_JSON
       ))
   @ApiResponse(
@@ -226,7 +228,7 @@ public class ServiceResource {
       description = "A JSON object showing the validation report and other properties such as the" +
           "extracted schema and the original spreadsheet data.",
       content = @Content(
-          schema = @Schema(implementation = ValidateResponse.class),
+          schema = @Schema(implementation = ValidationResponse.class),
           mediaType = MediaType.APPLICATION_JSON
       ))
   @ApiResponse(
@@ -273,8 +275,8 @@ public class ServiceResource {
   private Response getResponse(HttpHeaders headers, SpreadsheetSchema schema, Spreadsheet spreadsheet, ValidationReport reporting) {
     try {
       var response = reporting.isEmpty()
-          ? ValidateResponse.createSuccess(schema, spreadsheet, reporting)
-          : ValidateResponse.createFailed(schema, spreadsheet, reporting);
+          ? ExtendedValidationResponse.create(ValidationStatus.PASSED, schema, spreadsheet, reporting)
+          : ExtendedValidationResponse.create(ValidationStatus.FAILED, schema, spreadsheet, reporting);
       logUsage(headers, schema.getTemplateIri(), reporting);
       return Response.ok(response).build();
     } catch (ValidatorServiceException e) {
@@ -305,7 +307,7 @@ public class ServiceResource {
       description = "A JSON object showing the validation report and other properties such as the" +
           "extracted schema and the original spreadsheet data.",
       content = @Content(
-          schema = @Schema(implementation = ValidateResponse.class),
+          schema = @Schema(implementation = ValidationResponse.class),
           mediaType = MediaType.APPLICATION_JSON
       ))
   @ApiResponse(
@@ -362,7 +364,7 @@ public class ServiceResource {
       description = "A JSON object showing the validation report and other properties such as the" +
           "extracted schema and the original spreadsheet data.",
       content = @Content(
-          schema = @Schema(implementation = ValidateResponse.class),
+          schema = @Schema(implementation = ValidationResponse.class),
           mediaType = MediaType.APPLICATION_JSON
       ))
   @ApiResponse(
