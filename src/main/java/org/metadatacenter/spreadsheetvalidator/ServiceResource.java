@@ -33,6 +33,7 @@ import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceExcepti
 import org.metadatacenter.spreadsheetvalidator.request.BadFileException;
 import org.metadatacenter.spreadsheetvalidator.request.ValidateSpreadsheetRequest;
 import org.metadatacenter.spreadsheetvalidator.request.ValidatorRequestBodyException;
+import org.metadatacenter.spreadsheetvalidator.response.DefaultValidationResponse;
 import org.metadatacenter.spreadsheetvalidator.response.ErrorResponse;
 import org.metadatacenter.spreadsheetvalidator.response.ExtendedValidationResponse;
 import org.metadatacenter.spreadsheetvalidator.response.UrlCheckResponse;
@@ -166,7 +167,7 @@ public class ServiceResource {
 
       // Validate the spreadsheet based on its schema
       var validationReport = doValidation(spreadsheetSchema, spreadsheet);
-      return getResponse(headers, spreadsheetSchema, spreadsheet, validationReport);
+      return getResponse(headers, spreadsheetSchema, spreadsheet, validationReport, true);
     } catch (ValidatorRequestBodyException e) {
       logError(headers, e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
@@ -246,7 +247,13 @@ public class ServiceResource {
           format = "binary",
           description = "A TSV file with a mandatory column `metadata_schema_id` that contains the CEDAR template ID.",
           requiredMode = Schema.RequiredMode.REQUIRED)) @FormDataParam("input_file") InputStream inputStream,
-      @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail) {
+      @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail,
+      @Parameter(schema = @Schema(
+          type = "boolean",
+          format = "string",
+          description = "A flag indicating whether the response object returns only the report (reporting_only = true) " +
+              "or includes both the data and schema (reporting_only = false).",
+          requiredMode = Schema.RequiredMode.NOT_REQUIRED)) @FormDataParam("reporting_only") boolean reportingOnly) {
     try {
       // Parse the input TSV file
       var spreadsheetData = tsvParser.parse(inputStream);
@@ -259,7 +266,7 @@ public class ServiceResource {
 
       // Validate the spreadsheet based on its schema
       var validationReport = doValidation(spreadsheetSchema, spreadsheet);
-      return getResponse(headers, spreadsheetSchema, spreadsheet, validationReport);
+      return getResponse(headers, spreadsheetSchema, spreadsheet, validationReport, reportingOnly);
     } catch (BadFileException e) {
       logError(headers, e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
@@ -272,17 +279,25 @@ public class ServiceResource {
         .collect(validationReportHandler);
   }
 
-  private Response getResponse(HttpHeaders headers, SpreadsheetSchema schema, Spreadsheet spreadsheet, ValidationReport reporting) {
+  private Response getResponse(HttpHeaders headers, SpreadsheetSchema schema, Spreadsheet spreadsheet,
+                               ValidationReport reporting, boolean reportingOnly) {
     try {
-      var response = reporting.isEmpty()
-          ? ExtendedValidationResponse.create(ValidationStatus.PASSED, schema, spreadsheet, reporting)
-          : ExtendedValidationResponse.create(ValidationStatus.FAILED, schema, spreadsheet, reporting);
+      var status = reporting.isEmpty() ? ValidationStatus.PASSED : ValidationStatus.FAILED;
+      var response = createValidationResponse(status, schema, spreadsheet, reporting, reportingOnly);
       logUsage(headers, schema.getTemplateIri(), reporting);
       return Response.ok(response).build();
     } catch (ValidatorServiceException e) {
       logError(headers, schema.getTemplateIri(), e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
     }
+  }
+
+  private ValidationResponse createValidationResponse(ValidationStatus status, SpreadsheetSchema schema,
+                                                      Spreadsheet spreadsheet, ValidationReport reporting,
+                                                      boolean reportingOnly) {
+    return reportingOnly
+        ? DefaultValidationResponse.create(status, reporting)
+        : ExtendedValidationResponse.create(status, schema, spreadsheet, reporting);
   }
 
   private String getMetadataSchemaId(List<Map<String, Object>> spreadsheetData) {
@@ -325,7 +340,14 @@ public class ServiceResource {
           format = "binary",
           description = "An Excel (.xlsx) file with a mandatory `.metadata` sheet that contains the CEDAR template ID.",
           requiredMode = Schema.RequiredMode.REQUIRED)) @FormDataParam("input_file") InputStream inputStream,
-      @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail) {
+      @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail,
+      @Parameter(schema = @Schema(
+          type = "boolean",
+          format = "string",
+          defaultValue = "true",
+          description = "A flag indicating whether the response object returns only the report (reporting_only = true) " +
+              "or includes both the data and schema (reporting_only = false).",
+          requiredMode = Schema.RequiredMode.NOT_REQUIRED)) @FormDataParam("reporting_only") boolean reportingOnly) {
     try {
       // Parse the input Excel file
       var worksheet = excelParser.parse(inputStream);
@@ -345,7 +367,7 @@ public class ServiceResource {
 
       // Validate the spreadsheet based on its schema
       var validationReport = doValidation(spreadsheetSchema, spreadsheet);
-      return getResponse(headers, spreadsheetSchema, spreadsheet, validationReport);
+      return getResponse(headers, spreadsheetSchema, spreadsheet, validationReport, reportingOnly);
     } catch (BadFileException e) {
       logError(headers, e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
@@ -382,7 +404,13 @@ public class ServiceResource {
           format = "binary",
           description = "An Excel (.xlsx) file with metadata records and input rule headers",
           requiredMode = Schema.RequiredMode.REQUIRED)) @FormDataParam("input_file") InputStream inputStream,
-      @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail) {
+      @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail,
+      @Parameter(schema = @Schema(
+          type = "boolean",
+          format = "string",
+          description = "A flag indicating whether the response object returns only the report (reporting_only = true) " +
+              "or includes both the data and schema (reporting_only = false).",
+          requiredMode = Schema.RequiredMode.NOT_REQUIRED)) @FormDataParam("reporting_only") boolean reportingOnly) {
     try {
       // Parse the input Excel file
       var metadataSpreadsheet = excelParser.parse(inputStream);
@@ -409,7 +437,7 @@ public class ServiceResource {
       // Validate the data schema table and check the response
       var schemaValidationReport = doValidation(schemaTableSchema, schemaSpreadsheet);
       if (!schemaValidationReport.isEmpty()) {
-        return getResponse(headers, schemaTableSchema, schemaSpreadsheet, schemaValidationReport);
+        return getResponse(headers, schemaTableSchema, schemaSpreadsheet, schemaValidationReport, false);
       }
 
       // Extract the data schema
@@ -420,7 +448,7 @@ public class ServiceResource {
       var dataSpreadsheet = Spreadsheet.create(dataTable.getRecords());
 
       var dataValidationReport = doValidation(dataSchema, dataSpreadsheet);
-      return getResponse(headers, dataSchema, dataSpreadsheet, dataValidationReport);
+      return getResponse(headers, dataSchema, dataSpreadsheet, dataValidationReport, reportingOnly);
     } catch (BadFileException e) {
       logError(headers, e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
