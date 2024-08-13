@@ -33,7 +33,7 @@ public class DefaultValidationReportHandler implements ValidationReportHandler {
                 validationError.getOtherProp(VALUE),
                 validationError.getErrorType(),
                 validationError.getErrorMessage(),
-                (String) validationError.getOtherProp(SUGGESTION),
+                validationError.getOtherProp(SUGGESTION),
                 validationError.getErrorLocation().getRowIndex(),
                 validationError.getErrorLocation().getColumnName()
             )

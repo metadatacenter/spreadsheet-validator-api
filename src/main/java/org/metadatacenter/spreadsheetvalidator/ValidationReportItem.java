@@ -32,7 +32,7 @@ public abstract class ValidationReportItem {
                                             @Nullable @JsonProperty(VALUE) Object value,
                                             @Nonnull @JsonProperty(ERROR_TYPE) String errorType,
                                             @Nonnull @JsonProperty(ERROR_MESSAGE) String errorMessage,
-                                            @Nullable @JsonProperty(REPAIR_SUGGESTION) String repairSuggestion,
+                                            @Nullable @JsonProperty(REPAIR_SUGGESTION) Object repairSuggestion,
                                             @Nonnull @JsonProperty(ROW) Integer rowIndex,
                                             @Nonnull @JsonProperty(COLUMN) String columnName) {
     return new AutoValue_ValidationReportItem(recordNumber, columnLabel, variable, value, errorType, errorMessage,
@@ -65,7 +65,7 @@ public abstract class ValidationReportItem {
 
   @Nullable
   @JsonProperty(REPAIR_SUGGESTION)
-  public abstract String getRepairSuggestion();
+  public abstract Object getRepairSuggestion();
 
   @Nonnull
   @JsonProperty(ROW)
