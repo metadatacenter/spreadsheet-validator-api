@@ -167,7 +167,7 @@ public class ServiceResource {
 
       // Validate the spreadsheet based on its schema
       var validationReport = doValidation(spreadsheetSchema, spreadsheet);
-      return getResponse(headers, spreadsheetSchema, spreadsheet, validationReport, true);
+      return getResponse(headers, spreadsheetSchema, spreadsheet, validationReport, false);
     } catch (ValidatorRequestBodyException e) {
       logError(headers, e.getResponse().getStatus(), e.getCause().getMessage());
       return responseErrorMessage(e);
@@ -250,11 +250,14 @@ public class ServiceResource {
       @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail,
       @Parameter(schema = @Schema(
           type = "boolean",
-          format = "string",
-          description = "A flag indicating whether the response object returns only the report (reporting_only = true) " +
-              "or includes both the data and schema (reporting_only = false).",
-          requiredMode = Schema.RequiredMode.NOT_REQUIRED)) @FormDataParam("reporting_only") boolean reportingOnly) {
+          defaultValue = "true",
+          description = "A flag indicating whether the response should only returns the error report (reporting_only = true) " +
+              "or includes also the input data and schema (reporting_only = false).",
+          requiredMode = Schema.RequiredMode.NOT_REQUIRED)) @FormDataParam("reporting_only") Boolean reportingOnlyFlag) {
     try {
+      // Parse the reporting_only flag
+      var reportingOnly = reportingOnlyFlag == null || reportingOnlyFlag;
+
       // Parse the input TSV file
       var spreadsheetData = tsvParser.parse(inputStream);
       var spreadsheet = Spreadsheet.create(spreadsheetData);
@@ -343,12 +346,13 @@ public class ServiceResource {
       @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail,
       @Parameter(schema = @Schema(
           type = "boolean",
-          format = "string",
-          defaultValue = "true",
-          description = "A flag indicating whether the response object returns only the report (reporting_only = true) " +
-              "or includes both the data and schema (reporting_only = false).",
-          requiredMode = Schema.RequiredMode.NOT_REQUIRED)) @FormDataParam("reporting_only") boolean reportingOnly) {
+          description = "A flag indicating whether the response should only returns the error report (reporting_only = true) " +
+              "or includes also the input data and schema (reporting_only = false).",
+          requiredMode = Schema.RequiredMode.NOT_REQUIRED)) @FormDataParam("reporting_only")  Boolean reportingOnlyFlag) {
     try {
+      // Parse the reporting_only flag
+      var reportingOnly = reportingOnlyFlag == null || reportingOnlyFlag;
+
       // Parse the input Excel file
       var worksheet = excelParser.parse(inputStream);
 
@@ -407,11 +411,13 @@ public class ServiceResource {
       @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail,
       @Parameter(schema = @Schema(
           type = "boolean",
-          format = "string",
-          description = "A flag indicating whether the response object returns only the report (reporting_only = true) " +
-              "or includes both the data and schema (reporting_only = false).",
-          requiredMode = Schema.RequiredMode.NOT_REQUIRED)) @FormDataParam("reporting_only") boolean reportingOnly) {
+          description = "A flag indicating whether the response should only returns the error report (reporting_only = true) " +
+              "or includes also the input data and schema (reporting_only = false).",
+          requiredMode = Schema.RequiredMode.NOT_REQUIRED)) @FormDataParam("reporting_only") Boolean reportingOnlyFlag) {
     try {
+      // Parse the reporting_only flag
+      var reportingOnly = reportingOnlyFlag == null || reportingOnlyFlag;
+
       // Parse the input Excel file
       var metadataSpreadsheet = excelParser.parse(inputStream);
 
@@ -437,7 +443,7 @@ public class ServiceResource {
       // Validate the data schema table and check the response
       var schemaValidationReport = doValidation(schemaTableSchema, schemaSpreadsheet);
       if (!schemaValidationReport.isEmpty()) {
-        return getResponse(headers, schemaTableSchema, schemaSpreadsheet, schemaValidationReport, false);
+        return getResponse(headers, schemaTableSchema, schemaSpreadsheet, schemaValidationReport, reportingOnly);
       }
 
       // Extract the data schema
