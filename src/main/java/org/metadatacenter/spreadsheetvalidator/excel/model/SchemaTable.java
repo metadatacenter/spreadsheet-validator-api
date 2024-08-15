@@ -74,9 +74,9 @@ public abstract class SchemaTable {
   }
 
   @Nonnull
-  public Optional<String> getInputExampleFor(String columnName) {
+  public Optional<Object> getInputExampleFor(String columnName) {
     return getSchemaFor(columnName)
-        .map(schema -> (String) schema.get(getSchemaKeyword().ofInputExample()));
+        .map(schema -> schema.get(getSchemaKeyword().ofInputExample()));
   }
 
   @Nonnull

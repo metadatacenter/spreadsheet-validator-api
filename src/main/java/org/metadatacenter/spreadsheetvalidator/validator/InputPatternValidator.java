@@ -43,7 +43,7 @@ public class InputPatternValidator extends InputValueValidator {
   }
 
   private static String constructErrorMessage(ColumnDescription columnDescription) {
-    var inputExample = columnDescription.getValueExample();
+    var inputExample = columnDescription.getInputExample();
     return (inputExample == null)
         ? "Value does not conform to the expected format."
         : "Value does not conform to the expected format. An example of a valid value is " + inputExample + ".";

@@ -76,7 +76,7 @@ public class ExcelSpreadsheetSchemaParser implements SpreadsheetSchemaParser<Sch
   }
 
   @Nonnull
-  private Optional<String> getInputExample(SchemaTable schemaTable, String columnName) {
+  private Optional<Object> getInputExample(SchemaTable schemaTable, String columnName) {
     return schemaTable.getInputExampleFor(columnName)
         .or(() -> {
           var datatype = schemaTable.getDatatypeFor(columnName).orElse("text");

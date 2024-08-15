@@ -38,11 +38,11 @@ public abstract class ColumnDescription {
                                          @Nullable @JsonProperty(MAX) Number maxValue,
                                          @Nonnull @JsonProperty(REQUIRED) Boolean isRequiredColumn,
                                          @Nonnull @JsonProperty(DESCRIPTION) String columnDescription,
-                                         @Nullable @JsonProperty(EXAMPLE) String valueExample,
+                                         @Nullable @JsonProperty(EXAMPLE) Object inputExample,
                                          @Nullable @JsonProperty(REGEX) String regexString,
                                          @Nonnull @JsonProperty(PERMISSIBLE_VALUES) ImmutableList<PermissibleValue> permissibleValues) {
     return new AutoValue_ColumnDescription(columnName, columnLabel, valueType, valueSubType, minValue, maxValue,
-        isRequiredColumn, columnDescription, valueExample, regexString, permissibleValues);
+        isRequiredColumn, columnDescription, inputExample, regexString, permissibleValues);
   }
 
   @Nonnull
@@ -94,12 +94,7 @@ public abstract class ColumnDescription {
 
   @Nullable
   @JsonProperty(EXAMPLE)
-  public abstract String getValueExample();
-
-  @JsonIgnore
-  public boolean hasValueExample() {
-    return getValueExample() != null;
-  }
+  public abstract Object getInputExample();
 
   @Nullable
   @JsonProperty(REGEX)
