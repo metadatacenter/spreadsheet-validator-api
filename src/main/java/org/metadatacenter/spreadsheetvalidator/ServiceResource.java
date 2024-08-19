@@ -28,6 +28,7 @@ import org.metadatacenter.spreadsheetvalidator.excel.MissingProvenanceTemplateIr
 import org.metadatacenter.spreadsheetvalidator.excel.PropertiesTableVisitor;
 import org.metadatacenter.spreadsheetvalidator.excel.ProvenanceTableVisitor;
 import org.metadatacenter.spreadsheetvalidator.excel.SchemaTableVisitor;
+import org.metadatacenter.spreadsheetvalidator.excel.model.PropertiesTable;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceException;
 import org.metadatacenter.spreadsheetvalidator.request.BadFileException;
@@ -348,7 +349,7 @@ public class ServiceResource {
           type = "boolean",
           description = "A flag indicating whether the response should only returns the error report (reporting_only = true) " +
               "or includes also the input data and schema (reporting_only = false).",
-          requiredMode = Schema.RequiredMode.NOT_REQUIRED)) @FormDataParam("reporting_only")  Boolean reportingOnlyFlag) {
+          requiredMode = Schema.RequiredMode.NOT_REQUIRED)) @FormDataParam("reporting_only") Boolean reportingOnlyFlag) {
     try {
       // Parse the reporting_only flag
       var reportingOnly = reportingOnlyFlag == null || reportingOnlyFlag;
@@ -429,13 +430,16 @@ public class ServiceResource {
       var schemaSpreadsheet = Spreadsheet.create(schemaTable.getRecords());
 
       // Retrieve the CEDAR template IRI about the meta-schema header
+      var templateIri = metaSchemaConfig.getTargetIri();
+      var allowCustomSchema = metaSchemaConfig.getAllowCustomSchemaFlag();
+
       ObjectNode cedarTemplate;
-      var headerSchemaId = propertiesTable.getMetaSchemaId();
-      if (headerSchemaId.isPresent()) {
-        var templateId = headerSchemaId.get();
-        cedarTemplate = cedarService.getCedarTemplateFromId(templateId);
+      if (allowCustomSchema) {
+        var headerSchemaId = propertiesTable.getMetaSchemaId();
+        cedarTemplate = headerSchemaId
+            .map(cedarService::getCedarTemplateFromId)
+            .orElse(cedarService.getCedarTemplateFromIri(templateIri));
       } else {
-        var templateIri = metaSchemaConfig.getTargetIri();
         cedarTemplate = cedarService.getCedarTemplateFromIri(templateIri);
       }
       var schemaTableSchema = cedarSpreadsheetSchemaParser.parse(cedarTemplate);

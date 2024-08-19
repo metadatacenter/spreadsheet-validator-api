@@ -15,13 +15,20 @@ public abstract class MetaSchemaConfig {
 
   private static final String TARGET_IRI = "targetIri";
 
+  private static final String ALLOW_CUSTOM_SCHEMA = "allowCustomSchema";
+
   @Nonnull
   @JsonCreator
-  public static MetaSchemaConfig create(@Nonnull @JsonProperty(TARGET_IRI) String metaSchemaIri) {
-    return new AutoValue_MetaSchemaConfig(metaSchemaIri);
+  public static MetaSchemaConfig create(@Nonnull @JsonProperty(TARGET_IRI) String metaSchemaIri,
+                                        @Nonnull @JsonProperty(ALLOW_CUSTOM_SCHEMA) boolean allowCustomSchema) {
+    return new AutoValue_MetaSchemaConfig(metaSchemaIri, allowCustomSchema);
   }
 
   @Nonnull
   @JsonProperty(TARGET_IRI)
   public abstract String getTargetIri();
+
+  @Nonnull
+  @JsonProperty(ALLOW_CUSTOM_SCHEMA)
+  public abstract boolean getAllowCustomSchemaFlag();
 }
