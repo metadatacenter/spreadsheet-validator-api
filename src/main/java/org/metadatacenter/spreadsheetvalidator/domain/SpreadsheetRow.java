@@ -1,14 +1,13 @@
 package org.metadatacenter.spreadsheetvalidator.domain;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -22,11 +21,10 @@ public abstract class SpreadsheetRow {
   private static final String ROW_NUM = "rowNumber";
 
   public static SpreadsheetRow create(int rowNumber, @Nonnull Map<String, Object> map) {
-    var newMap = ImmutableMap.<String, Object>builder()
-        .putAll(map)
-        .put(ROW_NUM, rowNumber)
-        .build();
-    return new AutoValue_SpreadsheetRow(rowNumber, map);
+    var mutableMap = Maps.newHashMap(map);
+    mutableMap.put(ROW_NUM, rowNumber);
+    var rowMap = Collections.unmodifiableMap(mutableMap);
+    return new AutoValue_SpreadsheetRow(rowNumber, rowMap);
   }
 
   public abstract int getRowNumber();

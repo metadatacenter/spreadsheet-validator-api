@@ -1,6 +1,7 @@
 package org.metadatacenter.spreadsheetvalidator.excel;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.apache.poi.ss.usermodel.Row;
 import org.metadatacenter.spreadsheetvalidator.excel.model.ExcelSheetVisitor;
 import org.metadatacenter.spreadsheetvalidator.excel.model.SchemaKeyword;
@@ -8,7 +9,9 @@ import org.metadatacenter.spreadsheetvalidator.excel.model.SchemaTable;
 import org.metadatacenter.spreadsheetvalidator.request.BadFileException;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,21 +89,23 @@ public class SchemaTableVisitor implements ExcelSheetVisitor<SchemaTable> {
   }
 
   public Map<String, Object> getDataSchema(List<Row> schemaRows, Row headerRow, int columnIndex) {
-    var builder = ImmutableMap.<String, Object>builder();
+    var mutableMap = Maps.<String, Object>newHashMap();
+
     // Construct a schema map based on the schema rows
     schemaRows.forEach(row ->
-        builder.put(getKey(row), getValue(row, columnIndex))
+        mutableMap.put(getKey(row), getValue(row, columnIndex))
     );
     // Add the column label info into the map based on the header row
-    builder.put(schemaKeyword.ofLabel(), excelReader.getStringValue(headerRow, columnIndex));
+    mutableMap.put(schemaKeyword.ofLabel(), excelReader.getStringValue(headerRow, columnIndex));
 
-    return builder.build();
+    return Collections.unmodifiableMap(mutableMap);
   }
 
   private String getKey(Row row) {
     return excelReader.getStringValue(row, 0);
   }
 
+  @Nullable
   private Object getValue(Row row, int columnIndex) {
     return excelReader.getValue(row, columnIndex);
   }

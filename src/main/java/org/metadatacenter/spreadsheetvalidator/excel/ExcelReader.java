@@ -7,6 +7,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
@@ -80,19 +81,24 @@ public class ExcelReader {
         .orElse(-1);
   }
 
+  @Nullable
   public Object getValue(Sheet sheet, int rowIndex, int columnIndex) {
     var row = sheet.getRow(rowIndex);
     return getValue(row, columnIndex);
   }
 
+  @Nullable
   public Object getValue(Row row, int columnIndex) {
-    var cell = row.getCell(columnIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+    var cell = row.getCell(columnIndex, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+    if (cell == null) {
+      return null;
+    }
     var cellType = cell.getCellType();
     return switch (cellType) {
-      case STRING -> cell.getStringCellValue();
-      case NUMERIC -> parseNumber(cell.getNumericCellValue());
-      case BOOLEAN -> cell.getBooleanCellValue();
-      default -> "";
+      case STRING -> getStringCellValue(cell);
+      case NUMERIC -> getNumericCellValue(cell);
+      case BOOLEAN -> getBooleanCellValue(cell);
+      default -> null;
     };
   }
 
@@ -109,15 +115,24 @@ public class ExcelReader {
   }
 
   public String getStringValue(Row row, int columnIndex) {
-    return row.getCell(columnIndex).getStringCellValue();
+    return getStringCellValue(row.getCell(columnIndex));
   }
 
-  public double getNumberValue(Sheet sheet, int rowIndex, int columnIndex) {
+  private String getStringCellValue(Cell cell) {
+    return cell.getStringCellValue();
+  }
+
+  public Number getNumberValue(Sheet sheet, int rowIndex, int columnIndex) {
     return getNumberValue(sheet.getRow(rowIndex), columnIndex);
   }
 
-  public double getNumberValue(Row row, int columnIndex) {
-    return row.getCell(columnIndex).getNumericCellValue();
+  public Number getNumberValue(Row row, int columnIndex) {
+    return getNumericCellValue(row.getCell(columnIndex));
+  }
+
+  private Number getNumericCellValue(Cell cell) {
+    var numericValue = cell.getNumericCellValue();
+    return parseNumber(numericValue);
   }
 
   public boolean getBooleanValue(Sheet sheet, int rowIndex, int columnIndex) {
@@ -125,6 +140,10 @@ public class ExcelReader {
   }
 
   public boolean getBooleanValue(Row row, int columnIndex) {
-    return row.getCell(columnIndex).getBooleanCellValue();
+    return getBooleanCellValue(row.getCell(columnIndex));
+  }
+
+  private boolean getBooleanCellValue(Cell cell) {
+    return cell.getBooleanCellValue();
   }
 }

@@ -1,16 +1,16 @@
 package org.metadatacenter.spreadsheetvalidator.excel;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.apache.poi.ss.usermodel.Row;
 import org.metadatacenter.spreadsheetvalidator.excel.model.DataTable;
 import org.metadatacenter.spreadsheetvalidator.excel.model.ExcelSheetVisitor;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -58,11 +58,14 @@ public class DataTableVisitor implements ExcelSheetVisitor<DataTable> {
         .collect(ImmutableList.toImmutableList());
   }
 
-  private ImmutableMap<String, Object> createRecordObject(Row headerRow, Row dataRow) {
-    return IntStream.range(0, headerRow.getPhysicalNumberOfCells())
-        .boxed()
-        .collect(ImmutableMap.toImmutableMap(
-            index -> headerRow.getCell(index).getStringCellValue(),
-            index -> excelReader.getValue(dataRow, index)));
+  private Map<String, Object> createRecordObject(Row headerRow, Row dataRow) {
+    var mutableMap = Maps.<String, Object>newHashMap();
+    var numberOfHeaderColumns = headerRow.getPhysicalNumberOfCells();
+    for (int columnIndex = 0; columnIndex < numberOfHeaderColumns; columnIndex++) {
+      var key = excelReader.getStringValue(headerRow, columnIndex);
+      var value = excelReader.getValue(dataRow, columnIndex);
+      mutableMap.put(key, value);
+    }
+    return Collections.unmodifiableMap(mutableMap);
   }
 }
