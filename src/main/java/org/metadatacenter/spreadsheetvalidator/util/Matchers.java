@@ -2,6 +2,7 @@ package org.metadatacenter.spreadsheetvalidator.util;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -30,7 +31,7 @@ public class Matchers {
   }
 
   public static AssertionCriteria isNull() {
-    return value -> value == null;
+    return Objects::isNull;
   }
 
   public static AssertionCriteria isEmpty() {
@@ -41,10 +42,6 @@ public class Matchers {
   public static AssertionCriteria isNullOrEmpty() {
     return value -> Assert.that(value, isNull())
         || Assert.that(value, isEmpty());
-  }
-
-  public static AssertionCriteria isMemberOf(List<? extends Object> list) {
-    return value -> list.contains(value);
   }
 
   public static AssertionCriteria isIgnoreCaseMemberOf(List<String> strings) {
