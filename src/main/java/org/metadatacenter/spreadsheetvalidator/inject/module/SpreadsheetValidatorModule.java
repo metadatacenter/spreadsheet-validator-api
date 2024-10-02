@@ -8,6 +8,7 @@ import org.metadatacenter.spreadsheetvalidator.SpreadsheetValidator;
 import org.metadatacenter.spreadsheetvalidator.ValidationResultProvider;
 import org.metadatacenter.spreadsheetvalidator.ValidationSettingsProvider;
 import org.metadatacenter.spreadsheetvalidator.inject.provider.SpreadsheetValidatorProvider;
+import org.metadatacenter.spreadsheetvalidator.thirdparty.CedarService;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.ChatGptService;
 import org.metadatacenter.spreadsheetvalidator.validator.ResultCollectorImpl;
 
@@ -19,6 +20,7 @@ import javax.annotation.Nonnull;
  */
 @Module(includes = {
     ValidatorContextModule.class,
+    CedarServiceModule.class,
     ChatGptServiceModule.class
 })
 public class SpreadsheetValidatorModule {
@@ -27,8 +29,10 @@ public class SpreadsheetValidatorModule {
   public SpreadsheetValidator provideSpreadsheetValidator(@Nonnull RepairClosures repairClosures,
                                                           @Nonnull ValidationResultProvider validationResultProvider,
                                                           @Nonnull ValidationSettingsProvider validationSettingsProvider,
+                                                          @Nonnull CedarService cedarService,
                                                           @Nonnull ChatGptService chatGptService) {
-    return new SpreadsheetValidatorProvider(repairClosures, validationResultProvider, validationSettingsProvider, chatGptService).get();
+    return new SpreadsheetValidatorProvider(repairClosures, validationResultProvider, validationSettingsProvider,
+        cedarService, chatGptService).get();
   }
 
   @Provides

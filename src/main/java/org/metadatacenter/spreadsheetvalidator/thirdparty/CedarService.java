@@ -5,6 +5,7 @@ import com.google.common.base.Charsets;
 import jakarta.ws.rs.core.Response;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.fluent.Request;
 import org.apache.http.util.EntityUtils;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceException;
 
@@ -32,6 +33,24 @@ public class CedarService {
     this.restServiceHandler = checkNotNull(restServiceHandler);
   }
 
+  public boolean checkCedarTemplateExists(String templateId) {
+    var templateIri = generateTemplateIriFromId(templateId);
+    var request = getTemplateDetailsRequest(templateIri);
+    try {
+      var response = restServiceHandler.execute(request);
+      var statusCode = response.getStatusLine().getStatusCode();
+      return statusCode == HttpStatus.SC_OK;
+    } catch (IOException e) {
+      throw new ValidatorServiceException("Error while connecting to CEDAR Resource server.",
+        e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+  }
+
+  private Request getTemplateDetailsRequest(String templateIri) {
+    var url = generateTemplateDetailsCall(templateIri);
+    return restServiceHandler.createGetRequest(url, "apiKey " + cedarConfig.getApiKey());
+  }
+
   public ObjectNode getCedarTemplateFromId(String id) {
     var iri = generateTemplateIriFromId(id);
     return getCedarTemplateFromIri(iri);
@@ -39,10 +58,10 @@ public class CedarService {
 
   private String generateTemplateIriFromId(String id) {
     return new StringBuilder()
-        .append(cedarConfig.getRepoBaseUrl())
-        .append("templates/")
-        .append(id)
-        .toString();
+      .append(cedarConfig.getRepoBaseUrl())
+      .append("templates/")
+      .append(id)
+      .toString();
   }
 
   public ObjectNode getCedarTemplateFromIri(String iri) {
@@ -62,27 +81,34 @@ public class CedarService {
       }
     } catch (IOException e) {
       throw new ValidatorServiceException("Error while connecting to CEDAR Resource server.",
-          e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
     // Process the response
     try {
       return (ObjectNode) restServiceHandler.processResponse(response);
     } catch (IOException e) {
       throw new ValidatorServiceException("Failed to process response from CEDAR Resource server",
-          e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
   }
 
   private String generateTemplateUrlFromIri(String iri) {
     try {
       return new StringBuilder()
-          .append(cedarConfig.getResourceBaseUrl())
-          .append("templates/")
-          .append(URLEncoder.encode(iri, Charsets.UTF_8.toString()))
-          .toString();
+        .append(cedarConfig.getResourceBaseUrl())
+        .append("templates/")
+        .append(URLEncoder.encode(iri, Charsets.UTF_8.toString()))
+        .toString();
     } catch (UnsupportedEncodingException e) {
       throw new ValidatorServiceException("Unable to construct the template IRI",
-          e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
+  }
+
+  private String generateTemplateDetailsCall(String templateIri) {
+    return cedarConfig.getResourceBaseUrl() +
+      "templates/" +
+      URLEncoder.encode(templateIri, Charsets.UTF_8) +
+      "/details/";
   }
 }
