@@ -149,29 +149,36 @@ public class ServiceResource {
   }
 
   private void logUsage(HttpHeaders headers, String cedarTemplateIri, ValidationReport reporting) {
+    var forwardedFor = getHeaderOrDefault(headers, "X-Forwarded-For", "n/a");
+    var userAgent = getHeaderOrDefault(headers, "User-Agent", "n/a");
     var usageReport = UsageLog.create(
         ((ContainerRequest) headers).getAbsolutePath().toString(),
         Instant.now().toString(),
-        headers.getRequestHeader("X-Forwarded-For").stream().findFirst().orElse(""),
-        headers.getRequestHeader("User-Agent").stream().findFirst().orElse(""),
+        forwardedFor,
+        userAgent,
         200,
         "Success",
         cedarTemplateIri,
         reporting
     );
-    if (reporting.isEmpty()) {
-      writeToFile(usageReport, "passed");
-    } else {
-      writeToFile(usageReport, "failed");
-    }
+    var result = reporting.isEmpty() ? "passed" : "failed";
+    writeToFile(usageReport, result);
+  }
+
+  private String getHeaderOrDefault(HttpHeaders headers, String headerName, String defaultValue) {
+    return headers.getRequestHeader(headerName) != null && !headers.getRequestHeader(headerName).isEmpty()
+      ? headers.getRequestHeader(headerName).get(0)
+      : defaultValue;
   }
 
   private void logError(HttpHeaders headers, String cedarTemplateIri, int statusCode, String statusMessage) {
+    var forwardedFor = getHeaderOrDefault(headers, "X-Forwarded-For", "n/a");
+    var userAgent = getHeaderOrDefault(headers, "User-Agent", "n/a");
     var usageReport = UsageLog.create(
         ((ContainerRequest) headers).getAbsolutePath().toString(),
         Instant.now().toString(),
-        headers.getRequestHeader("X-Forwarded-For").stream().findFirst().orElse(""),
-        headers.getRequestHeader("User-Agent").stream().findFirst().orElse(""),
+        forwardedFor,
+        userAgent,
         statusCode,
         statusMessage,
         cedarTemplateIri,
