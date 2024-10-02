@@ -34,20 +34,11 @@ public class CedarService {
 
   public boolean checkCedarTemplateExists(String templateId) {
     var templateIri = generateTemplateIriFromId(templateId);
-    var request = getTemplateDetailsRequest(templateIri);
-    try {
-      var response = restServiceHandler.execute(request);
-      var statusCode = response.getStatusLine().getStatusCode();
-      return statusCode == HttpStatus.SC_OK;
-    } catch (IOException e) {
-      throw new ValidatorServiceException("Error while connecting to CEDAR Resource server.",
-        e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-    }
-  }
-
-  private Request getTemplateDetailsRequest(String templateIri) {
     var url = generateTemplateDetailsCall(templateIri);
-    return restServiceHandler.createGetRequest(url, "apiKey " + cedarConfig.getApiKey());
+    var request = createCedarRequest(url);
+
+    var response = executeRequest(request);
+    return response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
   }
 
   public ObjectNode getCedarTemplateFromId(String id) {
@@ -60,25 +51,47 @@ public class CedarService {
   }
 
   public ObjectNode getCedarTemplateFromIri(String iri) {
-    // Prepare the request
     var url = generateGetTemplateCall(iri);
-    var request = restServiceHandler.createGetRequest(url, "apiKey " + cedarConfig.getApiKey());
+    var request = createCedarRequest(url);
+    var response = executeRequest(request);
 
-    // Execute the request
-    HttpResponse response = null;
+    validateResponse(response);
+    return processCedarResponse(response);
+  }
+
+  private Request createCedarRequest(String url) {
+    return restServiceHandler.createGetRequest(url, "apiKey " + cedarConfig.getApiKey());
+  }
+
+  private HttpResponse executeRequest(Request request) {
     try {
-      response = restServiceHandler.execute(request);
-      var statusCode = response.getStatusLine().getStatusCode();
-      if (statusCode != HttpStatus.SC_OK) {
-        var causeMessage = new String(EntityUtils.toByteArray(response.getEntity()));
-        var cause = new IOException(causeMessage);
-        throw new ValidatorServiceException("Failed to retrieve the metadata specification used for the validation.", cause, statusCode);
-      }
+      return restServiceHandler.execute(request);
     } catch (IOException e) {
       throw new ValidatorServiceException("Error while connecting to CEDAR Resource server.",
         e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
-    // Process the response
+  }
+
+  private void validateResponse(HttpResponse response) {
+    int statusCode = response.getStatusLine().getStatusCode();
+    if (statusCode != HttpStatus.SC_OK) {
+      String causeMessage = getResponseContent(response);
+      throw new ValidatorServiceException(
+        "Failed to retrieve the metadata specification used for the validation.",
+        new IOException(causeMessage), statusCode);
+    }
+  }
+
+  private String getResponseContent(HttpResponse response) {
+    try {
+      return new String(EntityUtils.toByteArray(response.getEntity()));
+    } catch (IOException e) {
+      throw new ValidatorServiceException("Error reading response content.",
+        e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+  }
+
+  private ObjectNode processCedarResponse(HttpResponse response) {
     try {
       return (ObjectNode) restServiceHandler.processResponse(response);
     } catch (IOException e) {
