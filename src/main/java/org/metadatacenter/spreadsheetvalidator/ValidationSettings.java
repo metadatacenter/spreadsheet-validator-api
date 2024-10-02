@@ -34,4 +34,8 @@ public class ValidationSettings {
         return Charsets.UTF_8;
     }
   }
+
+  public String getSchemaColumn() {
+    return generalConfig.getSchemaColumn();
+  }
 }

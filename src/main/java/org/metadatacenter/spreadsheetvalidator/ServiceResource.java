@@ -207,7 +207,7 @@ public class ServiceResource {
       @Parameter(schema = @Schema(
           type = "string",
           format = "binary",
-          description = "A TSV file with a mandatory column `metadata_schema_id` that contains the CEDAR template ID.",
+          description = "A TSV file.",
           requiredMode = Schema.RequiredMode.REQUIRED)) @FormDataParam("input_file") InputStream inputStream,
       @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail) {
     try {
@@ -252,16 +252,17 @@ public class ServiceResource {
   }
 
   private String getTemplateIri(List<Map<String, Object>> spreadsheetData) {
+    var schemaColumn = spreadsheetValidator.getValidationSettings().getSchemaColumn();
     var metadataRow = spreadsheetData.stream()
         .findAny()
         .orElseThrow(() -> new InvalidInputFileException(
             "Bad TSV file.",
             new IllegalArgumentException("The file is empty")));
-    var templateId = metadataRow.get("metadata_schema_id").toString();
+    var templateId = metadataRow.get(schemaColumn).toString();
     if (templateId.trim().isEmpty()) {
       throw new SchemaIdNotFoundException(
           "Bad TSV file.",
-          new IllegalArgumentException("The metadata_schema_id is missing in the file."));
+          new IllegalArgumentException("The required '" + schemaColumn + "' column is missing in the file."));
     }
     return templateId;
   }

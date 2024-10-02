@@ -53,6 +53,7 @@ web:
 
 general:
   encoding: 'ASCII'
+  schemaColumn: 'metadata_schema_id'
 
 cedarConfig:
   apiKey: ''

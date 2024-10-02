@@ -62,10 +62,18 @@ public class SpreadsheetValidator {
     return this;
   }
 
+  public ValidationResult getValidationResult() {
+    return validationResultProvider.get();
+  }
+
+  public ValidationSettings getValidationSettings() {
+    return validationSettingsProvider.get();
+  }
+
   public SpreadsheetValidator validate(Spreadsheet spreadsheet,
                                        SpreadsheetSchema spreadsheetSchema) {
     checkAllRequiredFieldsPresent(spreadsheet, spreadsheetSchema);
-    validatorContext = new ValidatorContext(repairClosures, validationResultProvider.get(), validationSettingsProvider.get());
+    validatorContext = new ValidatorContext(repairClosures, getValidationResult(), getValidationSettings());
     spreadsheet.getRowStream().forEach(
         spreadsheetRow -> validatorList.forEach(
             validator -> validator.validate(validatorContext, spreadsheetSchema, spreadsheetRow)));
