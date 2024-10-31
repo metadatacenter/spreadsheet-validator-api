@@ -98,6 +98,7 @@ public class ExcelReader {
       case STRING -> getStringCellValue(cell);
       case NUMERIC -> getNumericCellValue(cell);
       case BOOLEAN -> getBooleanCellValue(cell);
+      case FORMULA -> getFormulaCellValue(cell);
       default -> null;
     };
   }
@@ -145,5 +146,18 @@ public class ExcelReader {
 
   private boolean getBooleanCellValue(Cell cell) {
     return cell.getBooleanCellValue();
+  }
+
+  @Nullable
+  private Object getFormulaCellValue(Cell cell) {
+    var workbook = cell.getSheet().getWorkbook();
+    var evaluator = workbook.getCreationHelper().createFormulaEvaluator();
+    var formulaResultType = evaluator.evaluateFormulaCell(cell);
+    return switch (formulaResultType) {
+      case STRING -> getStringCellValue(cell);
+      case NUMERIC -> getNumericCellValue(cell);
+      case BOOLEAN -> getBooleanCellValue(cell);
+      default -> null;
+    };
   }
 }
