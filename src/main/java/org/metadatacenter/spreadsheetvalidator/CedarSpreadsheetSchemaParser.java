@@ -108,20 +108,25 @@ public class CedarSpreadsheetSchemaParser implements SpreadsheetSchemaParser<Obj
 
     @Override
     public BiConsumer<ImmutableMap.Builder<String, ColumnDescription>, FieldSchemaArtifact> accumulator() {
-      return (builder, fieldSchema) -> builder.put(fieldSchema.name(),
+      return (builder, fieldSchema) -> {
+        var valueConstraints = fieldSchema.valueConstraints().get();
+        builder.put(fieldSchema.name(),
           ColumnDescription.create(
-              fieldSchema.name(),
-              fieldSchema.preferredLabel().orElse(fieldSchema.name()),
-              getColumnType(fieldSchema.fieldUi().inputType()),
-              getColumnSubType(fieldSchema.valueConstraints().get()),
-              getMinValueConstraint(fieldSchema.valueConstraints().get()),
-              getMaxValueConstraint(fieldSchema.valueConstraints().get()),
-              fieldSchema.valueConstraints().get().requiredValue(),
-              getDescription(fieldSchema.description()),
-              getValueExample(fieldSchema.description()),
-              getRegexString(fieldSchema.valueConstraints().get()),
-              getPermissibleValues(fieldSchema.name(), fieldSchema.valueConstraints().get())
-          ));
+            fieldSchema.name(),
+            fieldSchema.preferredLabel().orElse(fieldSchema.name()),
+            getColumnType(fieldSchema.fieldUi().inputType()),
+            getColumnSubType(valueConstraints),
+            getMinValueConstraint(valueConstraints),
+            getMaxValueConstraint(valueConstraints),
+            valueConstraints.requiredValue(),
+            fieldSchema.isMultiple(),
+            getDescription(fieldSchema.description()),
+            getValueExample(fieldSchema.description()),
+            getRegexString(valueConstraints),
+            getPermissibleValues(fieldSchema.name(), valueConstraints)
+          )
+        );
+      };
     }
 
     @Nonnull

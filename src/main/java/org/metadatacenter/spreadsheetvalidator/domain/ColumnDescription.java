@@ -23,6 +23,7 @@ public abstract class ColumnDescription {
   private static final String MIN = "min";
   private static final String MAX = "max";
   private static final String REQUIRED = "required";
+  private static final String MULTIVALUED = "multivalued";
   private static final String PERMISSIBLE_VALUES = "permissibleValues";
   private static final String DESCRIPTION = "description";
   private static final String EXAMPLE = "example";
@@ -37,12 +38,13 @@ public abstract class ColumnDescription {
                                          @Nullable @JsonProperty(MIN) Number minValue,
                                          @Nullable @JsonProperty(MAX) Number maxValue,
                                          @Nonnull @JsonProperty(REQUIRED) Boolean isRequiredColumn,
+                                         @Nonnull @JsonProperty(MULTIVALUED) Boolean isMultiValued,
                                          @Nonnull @JsonProperty(DESCRIPTION) String columnDescription,
                                          @Nullable @JsonProperty(EXAMPLE) Object inputExample,
                                          @Nullable @JsonProperty(REGEX) String regexString,
                                          @Nonnull @JsonProperty(PERMISSIBLE_VALUES) ImmutableList<PermissibleValue> permissibleValues) {
     return new AutoValue_ColumnDescription(columnName, columnLabel, valueType, valueSubType, minValue, maxValue,
-        isRequiredColumn, columnDescription, inputExample, regexString, permissibleValues);
+        isRequiredColumn, isMultiValued, columnDescription, inputExample, regexString, permissibleValues);
   }
 
   @Nonnull
@@ -87,6 +89,10 @@ public abstract class ColumnDescription {
   @Nonnull
   @JsonProperty(REQUIRED)
   public abstract Boolean isRequiredColumn();
+
+  @Nonnull
+  @JsonProperty(MULTIVALUED)
+  public abstract Boolean isMultiValued();
 
   @Nonnull
   @JsonProperty(DESCRIPTION)
