@@ -58,6 +58,7 @@ public class ExcelSpreadsheetSchemaParser implements SpreadsheetSchemaParser<Sch
           var minValue = schemaTable.getMinValueConstraintFor(columnName).orElse(null);
           var maxValue = schemaTable.getMaxValueConstraintFor(columnName).orElse(null);
           var isRequired = requirementLevelMap.isRequired(schemaTable.getRequirementLevelFor(columnName).orElse("OPTIONAL"));
+          var isMultiValued = false; // TODO: Allow multivalued option in the table schema
           var description = schemaTable.getDescriptionFor(columnName).orElse(null);
           var inputExample = getInputExample(schemaTable, columnName).orElse(null);
           var inputPattern = getInputPattern(schemaTable, columnName).orElse(null);
@@ -67,9 +68,9 @@ public class ExcelSpreadsheetSchemaParser implements SpreadsheetSchemaParser<Sch
                   variableName, variableLabel,
                   variableType, variableSubType,
                   minValue, maxValue,
-                  isRequired, description,
-                  inputExample, inputPattern,
-                  permissibleValues
+                  isRequired, isMultiValued,
+                  description, inputExample,
+                  inputPattern, permissibleValues
               ));
         })
         .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
