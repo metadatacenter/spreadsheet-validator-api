@@ -59,10 +59,13 @@ public class SpreadsheetValidator {
     }
 
     var validatorContext = new ValidatorContext(repairClosures, validationSettings);
+
+    // Parallelize the row and validator processing
     validationErrors = spreadsheet.getRowStream()
-        .flatMap(spreadsheetRow -> validators.stream()
-            .flatMap(validator -> validator.validate(spreadsheetRow, spreadsheetSchema, validatorContext).stream()))
-        .collect(ImmutableList.toImmutableList());
+      .parallel() // Parallelize row processing
+      .flatMap(spreadsheetRow -> validators.parallelStream() // Parallelize validator processing
+        .flatMap(validator -> validator.validate(spreadsheetRow, spreadsheetSchema, validatorContext).stream()))
+      .collect(ImmutableList.toImmutableList());
 
     return this;
   }
