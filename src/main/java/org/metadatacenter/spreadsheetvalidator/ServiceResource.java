@@ -28,7 +28,6 @@ import org.metadatacenter.spreadsheetvalidator.excel.MissingProvenanceTemplateIr
 import org.metadatacenter.spreadsheetvalidator.excel.PropertiesTableVisitor;
 import org.metadatacenter.spreadsheetvalidator.excel.ProvenanceTableVisitor;
 import org.metadatacenter.spreadsheetvalidator.excel.SchemaTableVisitor;
-import org.metadatacenter.spreadsheetvalidator.excel.model.PropertiesTable;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorServiceException;
 import org.metadatacenter.spreadsheetvalidator.request.BadFileException;
