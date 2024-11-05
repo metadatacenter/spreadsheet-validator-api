@@ -55,7 +55,7 @@ public class SpreadsheetValidatorProvider implements Provider<SpreadsheetValidat
     validator.registerValidator(new DecimalNumberRangeValidator());
     validator.registerValidator(new PermissibleValueValidator());
     validator.registerValidator(new InputPatternValidator());
-    validator.registerValidator(new UrlValidator());
+    validator.registerValidator(new UrlValidator(new UrlStatusCacheProvider().get()));
     return validator;
   }
 }
