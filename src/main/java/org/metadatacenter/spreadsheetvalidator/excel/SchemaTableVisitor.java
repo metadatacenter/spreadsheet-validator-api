@@ -57,12 +57,14 @@ public class SchemaTableVisitor implements ExcelSheetVisitor<SchemaTable> {
       startSchemaTableIndex = 0;
       endSchemaTableIndex = separatorIndex - 1;
       dataHeaderIndex = separatorIndex + 1;
+    } else if (separatorRows.size() == 2){
+      var firstSeparatorIndex = separatorRows.get(0).getRowNum();
+      var secondSeparatorIndex = separatorRows.get(1).getRowNum();
+      startSchemaTableIndex = firstSeparatorIndex + 1;
+      endSchemaTableIndex = secondSeparatorIndex - 1;
+      dataHeaderIndex = secondSeparatorIndex + 1;
     } else {
-      var topSeparatorIndex = separatorRows.get(0).getRowNum();
-      var bottomSeparatorIndex = separatorRows.get(1).getRowNum();
-      startSchemaTableIndex = topSeparatorIndex + 1;
-      endSchemaTableIndex = bottomSeparatorIndex - 1;
-      dataHeaderIndex = bottomSeparatorIndex + 1;
+      throw new BadFileException("Bad Excel file", new TooManySeparatorRowsException());
     }
     var schemaRows = excelReader.getRows(dataSheet, startSchemaTableIndex, endSchemaTableIndex);
     var headerRow = excelReader.getRow(dataSheet, dataHeaderIndex);
