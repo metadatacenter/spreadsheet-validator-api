@@ -41,32 +41,40 @@ public class ExcelReader {
   }
 
   public Optional<Row> findFirstEmptyRow(Sheet sheet) {
-    for (int i = sheet.getFirstRowNum(); i < sheet.getLastRowNum(); i++) {
-      var row = sheet.getRow(i);
+    var lastRowNum = sheet.getLastRowNum();
+    for (int rowNum = sheet.getFirstRowNum(); rowNum < lastRowNum; rowNum++) {
+      var row = sheet.getRow(rowNum);
       if (row == null || isRowEmpty(row)) {
-        return Optional.of(sheet.createRow(i));
+        return Optional.of(sheet.createRow(rowNum));
       }
     }
     return Optional.empty();
   }
 
-  public Optional<List<Row>> findFirstXEmptyRows(Sheet sheet, int numEmptyRows) {
-    var emptyRows = Lists.<Row>newArrayList();
-    for (int i = sheet.getFirstRowNum(); i < sheet.getLastRowNum(); i++) {
-      var row = sheet.getRow(i);
-      if (row == null || isRowEmpty(row)) {
-        emptyRows.add(sheet.createRow(i));
-        if (emptyRows.size() == numEmptyRows) {
+  public ImmutableList<Row> findSeparatorRows(Sheet sheet) {
+    var separatorRows = Lists.<Row>newArrayList();
+    var lastRowNum = sheet.getLastRowNum();
+
+    for (int rowNum = sheet.getFirstRowNum(); rowNum < lastRowNum; rowNum++) {
+      var currentRow = sheet.getRow(rowNum);
+      if (currentRow == null || isRowEmpty(currentRow)) {
+        var nextRow = sheet.getRow(rowNum + 1);
+        // Check if the current and next rows are both empty, then break
+        if (nextRow == null || isRowEmpty(nextRow)) {
           break;
+        } else {
+          // Add the current row if it's empty and the next row is not empty
+          separatorRows.add(sheet.createRow(rowNum));
         }
       }
     }
-    return emptyRows.isEmpty() ? Optional.empty() : Optional.of(ImmutableList.copyOf(emptyRows));
+    return ImmutableList.copyOf(separatorRows);
   }
 
   private boolean isRowEmpty(Row row) {
     for (Cell cell : row) {
-      if (cell.getCellType() != BLANK && cell.getCellType() != STRING
+      if (cell.getCellType() != BLANK
+          && cell.getCellType() != STRING
           || (cell.getCellType() == STRING && !cell.getStringCellValue().trim().isEmpty())) {
         return false;
       }

@@ -36,15 +36,14 @@ public class PropertiesTableVisitor implements ExcelSheetVisitor<PropertiesTable
     // Table properties are stored in the main sheet
     var dataSheet = workbook.getSheet(DEFAULT_TABLE_SHEET_NAME).orElse(workbook.getFirstSheet());
 
-    // Find the first 2 empty rows
-    var emptyRows = excelReader.findFirstXEmptyRows(dataSheet, 2);
-    if (emptyRows.isEmpty()) {
+    // Find the separator rows from the sheet
+    var separatorRows = excelReader.findSeparatorRows(dataSheet);
+    if (separatorRows.isEmpty()) {
       throw new BadFileException("Bad Excel file", new MissingSeparatorRowException());
     }
 
     // Locate the properties table when there are actually two separator rows.
     var properties = new Properties();
-    var separatorRows = emptyRows.get();
     if (separatorRows.size() == 2) {
       // The first separator row is dedicated for indicating the properties table
       var separatorIndex = separatorRows.get(0).getRowNum();

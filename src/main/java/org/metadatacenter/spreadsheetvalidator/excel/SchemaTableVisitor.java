@@ -43,19 +43,18 @@ public class SchemaTableVisitor implements ExcelSheetVisitor<SchemaTable> {
   public SchemaTable visit(ExcelWorkbook workbook) {
     var dataSheet = workbook.getSheet(DEFAULT_TABLE_SHEET_NAME).orElse(workbook.getFirstSheet());
 
-    // Find the first 2 empty rows from the sheet
-    var emptyRows = excelReader.findFirstXEmptyRows(dataSheet, 2);
-    if (emptyRows.isEmpty()) {
+    // Find the separator rows from the sheet
+    var separatorRows = excelReader.findSeparatorRows(dataSheet);
+    if (separatorRows.isEmpty()) {
       throw new BadFileException("Bad Excel file", new MissingSeparatorRowException());
     }
 
     // A schema table must be included, but its location depends on the number of separator rows.
-    var separatorRows = emptyRows.get();
     int startSchemaTableIndex, endSchemaTableIndex, dataHeaderIndex;
 
     if (separatorRows.size() == 1) {
       var separatorIndex = separatorRows.get(0).getRowNum();
-      startSchemaTableIndex = dataSheet.getTopRow();
+      startSchemaTableIndex = 0;
       endSchemaTableIndex = separatorIndex - 1;
       dataHeaderIndex = separatorIndex + 1;
     } else {
