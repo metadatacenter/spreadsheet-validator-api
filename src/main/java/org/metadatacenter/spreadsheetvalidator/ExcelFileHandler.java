@@ -68,12 +68,18 @@ public class ExcelFileHandler {
     var sheetSize = sheet.getLastRowNum();
     for (int row = 1; row <= sheetSize; row++) {
       var data = sheet.getRow(row);
+      if (data == null) {
+        continue; // Skip empty rows
+      }
       var map = headers.stream()
           .collect(toMap(
               header -> header,
               header -> {
                 var column = headers.indexOf(header);
                 var cell = data.getCell(column);
+                if (cell == null) {
+                  return ""; // Return empty string for missing cells
+                }
                 var cellType = cell.getCellType();
                 Object value = null;
                 if (cellType == CellType.NUMERIC) {
