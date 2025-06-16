@@ -115,14 +115,8 @@ public class ServiceResource {
       description = "The server encountered an unexpected condition that prevented " +
           "it from fulfilling the request.")
   public Response validate(
-    @Context HttpHeaders headers,
-    @Nonnull ValidateSpreadsheetRequest request,
-    @Parameter(schema = @Schema(
-        type = "boolean",
-        description = "A flag indicating whether additional columns are allowed in the input data (allow_additional_columns = true) " +
-            "or not (allow_additional_columns = false).",
-        defaultValue = "true",
-        requiredMode = Schema.RequiredMode.NOT_REQUIRED)) @FormDataParam("allow_additional_columns") Boolean allowAdditionalColumns) {
+      @Context HttpHeaders headers,
+      @Nonnull ValidateSpreadsheetRequest request) {
     try {
       var cedarTemplateIri = getCedarTemplateIri(request);
       try {
@@ -131,7 +125,8 @@ public class ServiceResource {
         var spreadsheetData = request.getSpreadsheetData();
         var spreadsheet = Spreadsheet.create(spreadsheetData);
         var reporting = spreadsheetValidator
-            .checkAdditionalColumns(spreadsheet, spreadsheetSchema, Optional.ofNullable(allowAdditionalColumns).orElse(DEFAULT_ALLOW_ADDITIONAL_COLUMNS))
+            .checkAdditionalColumns(spreadsheet, spreadsheetSchema, Optional.ofNullable(
+                request.getAllowAdditionalColumns()).orElse(DEFAULT_ALLOW_ADDITIONAL_COLUMNS))
             .validate(spreadsheet, spreadsheetSchema)
             .collect(resultCollector);
         var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
