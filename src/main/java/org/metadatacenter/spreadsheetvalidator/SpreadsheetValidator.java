@@ -47,17 +47,20 @@ public class SpreadsheetValidator {
     validatorList.add(validator);
   }
 
-  public SpreadsheetValidator additionalColumnsNotAllowed(Spreadsheet spreadsheet,
-                                                          SpreadsheetSchema spreadsheetSchema) {
-    var additionalColumns = Lists.<String>newArrayList();
-    spreadsheet.getColumns().stream()
-        .forEach(column -> {
-          if (!spreadsheetSchema.containsColumn(column)) {
-            additionalColumns.add(column);
-          }
-        });
-    if (!additionalColumns.isEmpty()) {
-      throw new UnexpectedColumnsException(additionalColumns);
+  public SpreadsheetValidator checkAdditionalColumns(Spreadsheet spreadsheet,
+                                                     SpreadsheetSchema spreadsheetSchema,
+                                                     boolean allowAdditionalColumns) {
+    if (!allowAdditionalColumns) {
+      var additionalColumns = Lists.<String>newArrayList();
+      spreadsheet.getColumns().stream()
+          .forEach(column -> {
+            if (!column.isBlank() && !spreadsheetSchema.containsColumn(column)) {
+              additionalColumns.add(column);
+            }
+          });
+      if (!additionalColumns.isEmpty()) {
+        throw new UnexpectedColumnsException(additionalColumns);
+      }
     }
     return this;
   }

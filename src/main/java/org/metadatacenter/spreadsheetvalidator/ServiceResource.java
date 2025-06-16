@@ -42,6 +42,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -52,6 +53,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Path("/service")
 @Produces(MediaType.APPLICATION_JSON)
 public class ServiceResource {
+
+  private static final boolean DEFAULT_ALLOW_ADDITIONAL_COLUMNS = true;
 
   private final CedarService cedarService;
 
@@ -111,8 +114,15 @@ public class ServiceResource {
       responseCode = "500",
       description = "The server encountered an unexpected condition that prevented " +
           "it from fulfilling the request.")
-  public Response validate(@Context HttpHeaders headers,
-                           @Nonnull ValidateSpreadsheetRequest request) {
+  public Response validate(
+    @Context HttpHeaders headers,
+    @Nonnull ValidateSpreadsheetRequest request,
+    @Parameter(schema = @Schema(
+        type = "boolean",
+        description = "A flag indicating whether additional columns are allowed in the input data (allow_additional_columns = true) " +
+            "or not (allow_additional_columns = false).",
+        defaultValue = "true",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED)) @FormDataParam("allow_additional_columns") Boolean allowAdditionalColumns) {
     try {
       var cedarTemplateIri = getCedarTemplateIri(request);
       try {
@@ -121,7 +131,7 @@ public class ServiceResource {
         var spreadsheetData = request.getSpreadsheetData();
         var spreadsheet = Spreadsheet.create(spreadsheetData);
         var reporting = spreadsheetValidator
-            .additionalColumnsNotAllowed(spreadsheet, spreadsheetSchema)
+            .checkAdditionalColumns(spreadsheet, spreadsheetSchema, Optional.ofNullable(allowAdditionalColumns).orElse(DEFAULT_ALLOW_ADDITIONAL_COLUMNS))
             .validate(spreadsheet, spreadsheetSchema)
             .collect(resultCollector);
         var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
@@ -216,7 +226,13 @@ public class ServiceResource {
           format = "binary",
           description = "A TSV file.",
           requiredMode = Schema.RequiredMode.REQUIRED)) @FormDataParam("input_file") InputStream inputStream,
-      @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail) {
+      @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail,
+      @Parameter(schema = @Schema(
+        type = "boolean",
+        description = "A flag indicating whether additional columns are allowed in the input data (allow_additional_columns = true) " +
+            "or not (allow_additional_columns = false).",
+        defaultValue = "true",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED)) @FormDataParam("allow_additional_columns") Boolean allowAdditionalColumns) {
     try {
       var tsvString = getTsvString(inputStream);
       var spreadsheetData = parseTsvString(tsvString);
@@ -226,7 +242,7 @@ public class ServiceResource {
         var spreadsheetSchema = spreadsheetSchemaGenerator.generateFrom(cedarTemplate);
         var spreadsheet = Spreadsheet.create(spreadsheetData);
         var reporting = spreadsheetValidator
-            .additionalColumnsNotAllowed(spreadsheet, spreadsheetSchema)
+            .checkAdditionalColumns(spreadsheet, spreadsheetSchema, Optional.ofNullable(allowAdditionalColumns).orElse(DEFAULT_ALLOW_ADDITIONAL_COLUMNS))
             .validate(spreadsheet, spreadsheetSchema)
             .collect(resultCollector);
         var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);
@@ -303,7 +319,13 @@ public class ServiceResource {
           format = "binary",
           description = "An Excel (.xlsx) file with a mandatory `.metadata` sheet that contains the CEDAR template ID.",
           requiredMode = Schema.RequiredMode.REQUIRED)) @FormDataParam("input_file") InputStream inputStream,
-      @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail) {
+      @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail,
+      @Parameter(schema = @Schema(
+        type = "boolean",
+        description = "A flag indicating whether additional columns are allowed in the input data (allow_additional_columns = true) " +
+            "or not (allow_additional_columns = false).",
+        defaultValue = "true",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED)) @FormDataParam("allow_additional_columns") Boolean allowAdditionalColumns) {
     try {
       var workbook = getWorkbook(inputStream);
       var metadataSheet = getMetadataSheet(workbook);
@@ -315,7 +337,7 @@ public class ServiceResource {
         var spreadsheetData = excelFileHandler.getTableData(mainSheet);
         var spreadsheet = Spreadsheet.create(spreadsheetData);
         var reporting = spreadsheetValidator
-            .additionalColumnsNotAllowed(spreadsheet, spreadsheetSchema)
+            .checkAdditionalColumns(spreadsheet, spreadsheetSchema, Optional.ofNullable(allowAdditionalColumns).orElse(DEFAULT_ALLOW_ADDITIONAL_COLUMNS))
             .validate(spreadsheet, spreadsheetSchema)
             .collect(resultCollector);
         var response = ValidateResponse.create(spreadsheetSchema, spreadsheet, reporting);

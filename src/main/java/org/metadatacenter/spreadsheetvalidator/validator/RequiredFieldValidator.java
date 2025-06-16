@@ -26,19 +26,21 @@ public class RequiredFieldValidator implements Validator {
     var validationResult = context.getValidationResult();
     spreadsheetRow.columnStream()
         .forEach(column -> {
-          var columnDescription = spreadsheetSchema.getColumnDescription(column);
-          var rowNumber = spreadsheetRow.getRowNumber();
-          var value = spreadsheetRow.getValue(column);
-          if (columnDescription.isRequiredColumn() && Assert.that(value, isNullOrEmpty())) {
-            validationResult.add(
-                ValidationError.builder()
-                    .setColumnName(column)
-                    .setRowNumber(rowNumber)
-                    .setErrorDescription("Required value is missing")
-                    .setProp(VALUE, value)
-                    .setProp(ERROR_TYPE, "missingRequired")
-                    .setProp(SEVERITY, 5)
-                    .build());
+          if (spreadsheetSchema.containsColumn(column)) {
+            var columnDescription = spreadsheetSchema.getColumnDescription(column);
+            var rowNumber = spreadsheetRow.getRowNumber();
+            var value = spreadsheetRow.getValue(column);
+            if (columnDescription.isRequiredColumn() && Assert.that(value, isNullOrEmpty())) {
+              validationResult.add(
+                  ValidationError.builder()
+                      .setColumnName(column)
+                      .setRowNumber(rowNumber)
+                      .setErrorDescription("Required value is missing")
+                      .setProp(VALUE, value)
+                      .setProp(ERROR_TYPE, "missingRequired")
+                      .setProp(SEVERITY, 5)
+                      .build());
+            }
           }
         });
   }
