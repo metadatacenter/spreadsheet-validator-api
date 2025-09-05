@@ -77,9 +77,12 @@ public class SpreadsheetValidator {
                                        SpreadsheetSchema spreadsheetSchema) {
     checkAllRequiredFieldsPresent(spreadsheet, spreadsheetSchema);
     validatorContext = new ValidatorContext(repairClosures, getValidationResult(), getValidationSettings());
-    spreadsheet.getRowStream().forEach(
-        spreadsheetRow -> validatorList.forEach(
-            validator -> validator.validate(validatorContext, spreadsheetSchema, spreadsheetRow)));
+
+    // Parallelize the row and validator processing
+    spreadsheet.getRowStream()
+            .parallel() // Parallelize row processing
+            .forEach(spreadsheetRow -> validatorList.parallelStream() // Parallelize validator processing
+                    .forEach(validator -> validator.validate(validatorContext, spreadsheetSchema, spreadsheetRow)));
     return this;
   }
 
