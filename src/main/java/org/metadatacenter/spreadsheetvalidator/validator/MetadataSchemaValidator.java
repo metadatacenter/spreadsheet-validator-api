@@ -5,6 +5,8 @@ import org.metadatacenter.spreadsheetvalidator.ValidatorContext;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.CedarService;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.*;
@@ -16,6 +18,7 @@ import static org.metadatacenter.spreadsheetvalidator.validator.PropNames.*;
 public class MetadataSchemaValidator extends InputValueValidator {
 
   private final CedarService cedarService;
+  private final Map<String, Boolean> templateExistsCache = new ConcurrentHashMap<>();
 
   public MetadataSchemaValidator(@Nonnull CedarService cedarService) {
     this.cedarService = checkNotNull(cedarService);
@@ -30,7 +33,7 @@ public class MetadataSchemaValidator extends InputValueValidator {
     var schemaColumn = validatorContext.getValidationSettings().getSchemaColumn();
     if (column.equals(schemaColumn)) {
       var templateId = String.valueOf(value);
-      var exists = cedarService.checkCedarTemplateExists(templateId);
+      var exists = templateExistsCache.computeIfAbsent(templateId, cedarService::checkCedarTemplateExists);
       if (!exists) {
         validatorContext.getValidationResult().add(
           ValidationError.builder()
