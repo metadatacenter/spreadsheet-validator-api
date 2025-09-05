@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -80,14 +79,7 @@ public class ExcelFileHandler {
                 if (cell == null) {
                   return ""; // Return empty string for missing cells
                 }
-                var cellType = cell.getCellType();
-                Object value = null;
-                if (cellType == CellType.NUMERIC) {
-                  value = cell.getNumericCellValue();
-                } else {
-                  value = cell.getStringCellValue();
-                }
-                return value;
+                return getValue(cell);
               }));
       content.add(map);
     }
@@ -96,5 +88,49 @@ public class ExcelFileHandler {
 
   public String getStringCellValue(XSSFSheet sheet, int rowIndex, int columnIndex) {
     return sheet.getRow(rowIndex).getCell(columnIndex).getStringCellValue();
+  }
+
+  private Object getValue(Cell cell) {
+    var cellType = cell.getCellType();
+    return switch (cellType) {
+      case STRING -> getStringCellValue(cell);
+      case NUMERIC -> getNumericCellValue(cell);
+      case BOOLEAN -> getBooleanCellValue(cell);
+      case FORMULA -> getFormulaCellValue(cell);
+      default -> "";
+    };
+  }
+
+  private String getStringCellValue(Cell cell) {
+    return cell.getStringCellValue();
+  }
+
+  private Number getNumericCellValue(Cell cell) {
+    var numericValue = cell.getNumericCellValue();
+    return parseNumber(numericValue);
+  }
+
+  private static Number parseNumber(double numericValue) {
+    if (numericValue % 1 == 0) {
+      return (int) numericValue;
+    } else {
+      return numericValue;
+    }
+  }
+
+  private boolean getBooleanCellValue(Cell cell) {
+    return cell.getBooleanCellValue();
+  }
+
+  private Object getFormulaCellValue(Cell cell) {
+    var workbook = cell.getSheet().getWorkbook();
+    var evaluator = workbook.getCreationHelper().createFormulaEvaluator();
+    var formulaResultType = evaluator.evaluateFormulaCell(cell);
+    return switch (formulaResultType) {
+      case STRING -> getStringCellValue(cell);
+      case NUMERIC -> getNumericCellValue(cell);
+      case BOOLEAN -> getBooleanCellValue(cell);
+      default -> null;
+    };
   }
 }
