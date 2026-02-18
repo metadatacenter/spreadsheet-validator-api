@@ -45,8 +45,39 @@ public class UrlValidator extends InputValueValidator {
   private boolean isResolvable(URL url) {
     try {
       var conn = (HttpURLConnection) url.openConnection();
+      conn.setInstanceFollowRedirects(true);
       conn.setRequestMethod("HEAD");
+      conn.setConnectTimeout(5000);
+      conn.setReadTimeout(5000);
       int responseCode = conn.getResponseCode();
+      // Follow redirects manually if needed (e.g., cross-protocol redirects)
+      if (responseCode == HttpURLConnection.HTTP_MOVED_PERM
+          || responseCode == HttpURLConnection.HTTP_MOVED_TEMP
+          || responseCode == 307 || responseCode == 308) {
+        var redirectUrl = new URL(conn.getHeaderField("Location"));
+        conn.disconnect();
+        return isResolvable(redirectUrl);
+      }
+      conn.disconnect();
+      // If HEAD returns 404, retry with GET as some servers don't support HEAD
+      if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
+        return isResolvableWithGet(url);
+      }
+      return responseCode != HttpURLConnection.HTTP_NOT_FOUND;
+    } catch (IOException e) {
+      return false;
+    }
+  }
+
+  private boolean isResolvableWithGet(URL url) {
+    try {
+      var conn = (HttpURLConnection) url.openConnection();
+      conn.setInstanceFollowRedirects(true);
+      conn.setRequestMethod("GET");
+      conn.setConnectTimeout(5000);
+      conn.setReadTimeout(5000);
+      int responseCode = conn.getResponseCode();
+      conn.disconnect();
       return responseCode != HttpURLConnection.HTTP_NOT_FOUND;
     } catch (IOException e) {
       return false;
