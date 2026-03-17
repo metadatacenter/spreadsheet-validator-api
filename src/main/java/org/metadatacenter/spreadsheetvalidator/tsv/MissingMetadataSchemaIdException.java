@@ -11,13 +11,16 @@ import java.util.Optional;
  */
 public class MissingMetadataSchemaIdException extends ValidatorRuntimeException {
 
-  public MissingMetadataSchemaIdException() {
-    super("The metadata record sheet is missing 'metadata_schema_id' column or its value.", HttpStatus.SC_BAD_REQUEST);
+  public MissingMetadataSchemaIdException(String columnName) {
+    super("The metadata record sheet is missing '" + columnName + "' column or its value.", HttpStatus.SC_BAD_REQUEST);
+    this.columnName = columnName;
   }
+
+  private final String columnName;
 
   @Override
   public Optional<String> getFixSuggestion() {
-    return Optional.of("Please ensure the metadata record sheet contains the 'metadata_schema_id' column " +
+    return Optional.of("Please ensure the metadata record sheet contains the '" + columnName + "' column " +
         "and that it has the correct value.");
   }
 }

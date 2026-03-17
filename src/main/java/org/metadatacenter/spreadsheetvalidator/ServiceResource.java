@@ -93,6 +93,8 @@ public class ServiceResource {
 
   private final MetaSchemaConfig metaSchemaConfig;
 
+  private final GeneralConfig generalConfig;
+
   @Inject
   public ServiceResource(@Nonnull CedarService cedarService,
                          @Nonnull RestServiceHandler restServiceHandler,
@@ -106,6 +108,7 @@ public class ServiceResource {
                          @Nonnull ExcelSpreadsheetSchemaParser excelSpreadsheetSchemaParser,
                          @Nonnull SpreadsheetValidator spreadsheetValidator,
                          @Nonnull ValidationReportHandler validationReportHandler,
+                         @Nonnull GeneralConfig generalConfig,
                          @Nonnull MetaSchemaConfig metaSchemaConfig) {
     this.cedarService = checkNotNull(cedarService);
     this.restServiceHandler = checkNotNull(restServiceHandler);
@@ -119,6 +122,7 @@ public class ServiceResource {
     this.excelSpreadsheetSchemaParser = checkNotNull(excelSpreadsheetSchemaParser);
     this.spreadsheetValidator = checkNotNull(spreadsheetValidator);
     this.validationReportHandler = checkNotNull(validationReportHandler);
+    this.generalConfig = checkNotNull(generalConfig);
     this.metaSchemaConfig = checkNotNull(metaSchemaConfig);
   }
 
@@ -245,7 +249,7 @@ public class ServiceResource {
       @Parameter(schema = @Schema(
           type = "string",
           format = "binary",
-          description = "A TSV file with a mandatory column `metadata_schema_id` that contains the CEDAR template ID.",
+          description = "A TSV file with a mandatory schema column that contains the CEDAR template ID.",
           requiredMode = Schema.RequiredMode.REQUIRED)) @FormDataParam("input_file") InputStream inputStream,
       @Parameter(hidden = true) @FormDataParam("input_file") FormDataContentDisposition fileDetail,
       @Parameter(schema = @Schema(
@@ -307,9 +311,10 @@ public class ServiceResource {
     var metadataRow = spreadsheetData.stream()
         .findAny()
         .orElseThrow(() -> new BadFileException("Bad TSV file.", new IOException("The file is empty")));
-    var metadataSchemaId = metadataRow.get("metadata_schema_id").toString();
+    var schemaColumn = generalConfig.getSchemaColumn();
+    var metadataSchemaId = metadataRow.get(schemaColumn).toString();
     if (metadataSchemaId.trim().isEmpty()) {
-      throw new BadFileException("Bad TSV file.", new MissingMetadataSchemaIdException());
+      throw new BadFileException("Bad TSV file.", new MissingMetadataSchemaIdException(schemaColumn));
     }
     return metadataSchemaId;
   }
