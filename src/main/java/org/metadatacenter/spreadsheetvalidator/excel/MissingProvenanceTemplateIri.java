@@ -3,10 +3,8 @@ package org.metadatacenter.spreadsheetvalidator.excel;
 import org.apache.http.HttpStatus;
 import org.metadatacenter.spreadsheetvalidator.exception.ValidatorRuntimeException;
 
-import javax.annotation.Nonnull;
 import java.util.Optional;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
 /**
