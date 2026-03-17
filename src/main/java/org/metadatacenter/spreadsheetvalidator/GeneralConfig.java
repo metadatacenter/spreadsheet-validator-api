@@ -16,13 +16,20 @@ public abstract class GeneralConfig {
 
   private static final String ENCODING = "encoding";
 
+  private static final String MAX_TABLE_SIZE = "maxTableSize";
+
   @Nonnull
   @JsonCreator
-  public static GeneralConfig create(@Nonnull @JsonProperty(ENCODING) String encoding) {
-    return new AutoValue_GeneralConfig(encoding);
+  public static GeneralConfig create(@Nonnull @JsonProperty(ENCODING) String encoding,
+                                     @Nonnull @JsonProperty(MAX_TABLE_SIZE) int maxTableSize) {
+    return new AutoValue_GeneralConfig(encoding, maxTableSize);
   }
 
   @Nonnull
   @JsonProperty(ENCODING)
   public abstract String getEncoding();
+
+  @Nonnull
+  @JsonProperty(MAX_TABLE_SIZE)
+  public abstract int getMaxTableSize();
 }
