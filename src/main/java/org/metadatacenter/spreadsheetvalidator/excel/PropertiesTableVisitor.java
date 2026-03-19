@@ -46,7 +46,7 @@ public class PropertiesTableVisitor implements ExcelSheetVisitor<PropertiesTable
     var properties = new Properties();
     if (separatorRows.size() == 2) {
       // The first separator row is dedicated for indicating the properties table
-      var separatorIndex = separatorRows.get(0).getRowNum();
+      var separatorIndex = separatorRows.get(0);
 
       // Extract the properties section from the data sheet.
       var startInfoRowIndex = dataSheet.getTopRow();

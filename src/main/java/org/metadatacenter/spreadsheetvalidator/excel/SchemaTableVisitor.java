@@ -53,13 +53,13 @@ public class SchemaTableVisitor implements ExcelSheetVisitor<SchemaTable> {
     int startSchemaTableIndex, endSchemaTableIndex, dataHeaderIndex;
 
     if (separatorRows.size() == 1) {
-      var separatorIndex = separatorRows.get(0).getRowNum();
+      var separatorIndex = separatorRows.get(0);
       startSchemaTableIndex = 0;
       endSchemaTableIndex = separatorIndex - 1;
       dataHeaderIndex = separatorIndex + 1;
     } else if (separatorRows.size() == 2){
-      var firstSeparatorIndex = separatorRows.get(0).getRowNum();
-      var secondSeparatorIndex = separatorRows.get(1).getRowNum();
+      var firstSeparatorIndex = separatorRows.get(0);
+      var secondSeparatorIndex = separatorRows.get(1);
       startSchemaTableIndex = firstSeparatorIndex + 1;
       endSchemaTableIndex = secondSeparatorIndex - 1;
       dataHeaderIndex = secondSeparatorIndex + 1;

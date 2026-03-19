@@ -18,14 +18,11 @@ public abstract class GeneralConfig {
 
   private static final String SCHEMA_COLUMN = "schemaColumn";
 
-  private static final String MAX_TABLE_SIZE = "maxTableSize";
-
   @Nonnull
   @JsonCreator
   public static GeneralConfig create(@Nonnull @JsonProperty(ENCODING) String encoding,
-                                     @Nonnull @JsonProperty(SCHEMA_COLUMN) String schemaColumn,
-                                     @Nonnull @JsonProperty(MAX_TABLE_SIZE) int maxTableSize) {
-    return new AutoValue_GeneralConfig(encoding, schemaColumn, maxTableSize);
+                                     @Nonnull @JsonProperty(SCHEMA_COLUMN) String schemaColumn) {
+    return new AutoValue_GeneralConfig(encoding, schemaColumn);
   }
 
   @Nonnull
@@ -35,8 +32,4 @@ public abstract class GeneralConfig {
   @Nonnull
   @JsonProperty(SCHEMA_COLUMN)
   public abstract String getSchemaColumn();
-
-  @Nonnull
-  @JsonProperty(MAX_TABLE_SIZE)
-  public abstract int getMaxTableSize();
 }

@@ -8,7 +8,6 @@ import io.dropwizard.web.WebBundle;
 import io.dropwizard.web.conf.WebConfiguration;
 import io.federecio.dropwizard.swagger.SwaggerBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
-import org.apache.poi.util.IOUtils;
 import org.metadatacenter.spreadsheetvalidator.inject.component.DaggerWebappComponent;
 import org.metadatacenter.spreadsheetvalidator.inject.module.WebResourceModule;
 
@@ -43,7 +42,6 @@ public class SpreadsheetValidatorApplication extends Application<SpreadsheetVali
   @Override
   public void run(SpreadsheetValidatorConfiguration spreadsheetValidatorConfiguration,
                   Environment environment) {
-    IOUtils.setByteArrayMaxOverride(spreadsheetValidatorConfiguration.getGeneralConfig().getMaxTableSize());
     var component = DaggerWebappComponent.builder()
         .webResourceModule(new WebResourceModule(spreadsheetValidatorConfiguration))
         .build();

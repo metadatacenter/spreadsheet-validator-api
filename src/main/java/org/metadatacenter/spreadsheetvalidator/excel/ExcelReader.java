@@ -1,15 +1,12 @@
 package org.metadatacenter.spreadsheetvalidator.excel;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -22,17 +19,17 @@ import static org.apache.poi.ss.usermodel.CellType.STRING;
  */
 public class ExcelReader {
 
-  public Row getHeaderRow(Sheet sheet) {
+  public Row getHeaderRow(CachedSheet sheet) {
     return getRow(sheet, sheet.getTopRow());
   }
 
-  public List<Row> getRows(Sheet sheet, int fromRow, int toRow) {
+  public List<Row> getRows(CachedSheet sheet, int fromRow, int toRow) {
     return IntStream.rangeClosed(fromRow, toRow)
         .mapToObj(index -> getRow(sheet, index))
         .collect(ImmutableList.toImmutableList());
   }
 
-  public Row getRow(Sheet sheet, int rowIndex) {
+  public Row getRow(CachedSheet sheet, int rowIndex) {
     return sheet.getRow(rowIndex);
   }
 
@@ -40,19 +37,8 @@ public class ExcelReader {
     return Streams.stream(row.cellIterator());
   }
 
-  public Optional<Row> findFirstEmptyRow(Sheet sheet) {
-    var lastRowNum = sheet.getLastRowNum();
-    for (int rowNum = sheet.getFirstRowNum(); rowNum < lastRowNum; rowNum++) {
-      var row = sheet.getRow(rowNum);
-      if (row == null || isRowEmpty(row)) {
-        return Optional.of(sheet.createRow(rowNum));
-      }
-    }
-    return Optional.empty();
-  }
-
-  public ImmutableList<Row> findSeparatorRows(Sheet sheet) {
-    var separatorRows = Lists.<Row>newArrayList();
+  public ImmutableList<Integer> findSeparatorRows(CachedSheet sheet) {
+    var separatorRows = new java.util.ArrayList<Integer>();
     var lastRowNum = sheet.getLastRowNum();
 
     for (int rowNum = sheet.getFirstRowNum(); rowNum < lastRowNum; rowNum++) {
@@ -63,8 +49,8 @@ public class ExcelReader {
         if (nextRow == null || isRowEmpty(nextRow)) {
           break;
         } else {
-          // Add the current row if it's empty and the next row is not empty
-          separatorRows.add(sheet.createRow(rowNum));
+          // Add the row index if it's empty and the next row is not empty
+          separatorRows.add(rowNum);
         }
       }
     }
@@ -90,7 +76,7 @@ public class ExcelReader {
   }
 
   @Nullable
-  public Object getValue(Sheet sheet, int rowIndex, int columnIndex) {
+  public Object getValue(CachedSheet sheet, int rowIndex, int columnIndex) {
     var row = sheet.getRow(rowIndex);
     return getValue(row, columnIndex);
   }
@@ -119,7 +105,7 @@ public class ExcelReader {
     }
   }
 
-  public String getStringValue(Sheet sheet, int rowIndex, int columnIndex) {
+  public String getStringValue(CachedSheet sheet, int rowIndex, int columnIndex) {
     return getStringValue(sheet.getRow(rowIndex), columnIndex);
   }
 
@@ -131,7 +117,7 @@ public class ExcelReader {
     return cell.getStringCellValue();
   }
 
-  public Number getNumberValue(Sheet sheet, int rowIndex, int columnIndex) {
+  public Number getNumberValue(CachedSheet sheet, int rowIndex, int columnIndex) {
     return getNumberValue(sheet.getRow(rowIndex), columnIndex);
   }
 
@@ -144,7 +130,7 @@ public class ExcelReader {
     return parseNumber(numericValue);
   }
 
-  public boolean getBooleanValue(Sheet sheet, int rowIndex, int columnIndex) {
+  public boolean getBooleanValue(CachedSheet sheet, int rowIndex, int columnIndex) {
     return getBooleanValue(sheet.getRow(rowIndex), columnIndex);
   }
 
@@ -158,10 +144,8 @@ public class ExcelReader {
 
   @Nullable
   private Object getFormulaCellValue(Cell cell) {
-    var workbook = cell.getSheet().getWorkbook();
-    var evaluator = workbook.getCreationHelper().createFormulaEvaluator();
-    var formulaResultType = evaluator.evaluateFormulaCell(cell);
-    return switch (formulaResultType) {
+    var cachedType = cell.getCachedFormulaResultType();
+    return switch (cachedType) {
       case STRING -> getStringCellValue(cell);
       case NUMERIC -> getNumericCellValue(cell);
       case BOOLEAN -> getBooleanCellValue(cell);

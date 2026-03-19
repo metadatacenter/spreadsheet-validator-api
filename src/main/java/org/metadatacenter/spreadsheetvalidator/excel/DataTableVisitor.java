@@ -39,7 +39,7 @@ public class DataTableVisitor implements ExcelSheetVisitor<DataTable> {
     var dataHeaderIndex = dataSheet.getFirstRowNum();
     if (!separatorRows.isEmpty()) {
       var lastIndex = separatorRows.size() - 1;
-      dataHeaderIndex = separatorRows.get(lastIndex).getRowNum() + 1;
+      dataHeaderIndex = separatorRows.get(lastIndex) + 1;
     }
     var startDataTableIndex = dataHeaderIndex + 1;
     var endDataTableIndex = dataSheet.getLastRowNum();
