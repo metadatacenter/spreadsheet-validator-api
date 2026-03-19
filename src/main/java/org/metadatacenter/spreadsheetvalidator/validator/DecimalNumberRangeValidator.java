@@ -32,7 +32,7 @@ public class DecimalNumberRangeValidator extends InputValueValidator {
 
       var hasMinValue = columnDescription.hasMinValue();
       var hasMaxValue = columnDescription.hasMaxValue();
-      var minValue = hasMinValue ? columnDescription.getMinValue().doubleValue() : Double.MIN_VALUE;
+      var minValue = hasMinValue ? columnDescription.getMinValue().doubleValue() : -Double.MAX_VALUE;
       var maxValue = hasMaxValue ? columnDescription.getMaxValue().doubleValue() : Double.MAX_VALUE;
 
       if (numberValue < minValue || numberValue > maxValue) {
