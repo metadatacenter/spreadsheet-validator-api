@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.metadatacenter.artifacts.model.reader.ArtifactReader;
-import org.metadatacenter.artifacts.model.reader.JsonSchemaArtifactReader;
+import org.metadatacenter.artifacts.model.reader.JsonArtifactReader;
 import org.metadatacenter.spreadsheetvalidator.domain.PermissibleValue;
 import org.metadatacenter.spreadsheetvalidator.domain.ValueType;
 import org.metadatacenter.spreadsheetvalidator.thirdparty.TerminologyService;
@@ -29,7 +29,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 class CedarSpreadsheetSchemaParserIntegrationTest {
 
   private final ObjectMapper mapper = new ObjectMapper();
-  private ArtifactReader artifactReader = new JsonSchemaArtifactReader();
+  private ArtifactReader artifactReader = new JsonArtifactReader();
   @Mock
   TerminologyService terminologyService;
   private CedarSpreadsheetSchemaParser cedarSpreadsheetSchemaParser;
