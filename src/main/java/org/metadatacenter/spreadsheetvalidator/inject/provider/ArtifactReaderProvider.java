@@ -2,7 +2,7 @@ package org.metadatacenter.spreadsheetvalidator.inject.provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.metadatacenter.artifacts.model.reader.ArtifactReader;
-import org.metadatacenter.artifacts.model.reader.JsonSchemaArtifactReader;
+import org.metadatacenter.artifacts.model.reader.JsonArtifactReader;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -25,6 +25,6 @@ public class ArtifactReaderProvider implements Provider<ArtifactReader> {
 
   @Override
   public ArtifactReader get() {
-    return new JsonSchemaArtifactReader();
+    return new JsonArtifactReader();
   }
 }

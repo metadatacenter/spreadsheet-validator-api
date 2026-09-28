@@ -14,9 +14,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <mainClass>org.metadatacenter.spreadsheetvalidator.SpreadsheetValidatorApplication</mainClass>
-        <cedar.version>2.6.61</cedar.version>
+        <cedar.version>2.9.19</cedar.version>
         <caffeine.version>3.1.8</caffeine.version>
         <dagger.version>2.51</dagger.version>
+        <poi.version>5.2.5</poi.version>
         <dropwizard.version>4.0.7</dropwizard.version>
         <dropwizard-web.version>3.0.1</dropwizard-web.version>
         <smoketurner.version>4.0.5-1</smoketurner.version>
@@ -164,7 +165,25 @@
                     <groupId>com.google.code.findbugs</groupId>
                     <artifactId>jsr305</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.apache.poi</groupId>
+                    <artifactId>poi</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.poi</groupId>
+                    <artifactId>poi-ooxml</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
