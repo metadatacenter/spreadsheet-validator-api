@@ -42,7 +42,7 @@ public class TerminologyService {
     try {
       var payload = ImmutableMap.of(
           "parameterObject", ImmutableMap.of("valueConstraints", valueConstraints),
-          "pageSize", 4999,
+          "pageSize", cedarConfig.getPageSize(),
           "page", 1);
       payloadString = restServiceHandler.writeJsonString(payload);
       request = restServiceHandler.createPostRequest(
