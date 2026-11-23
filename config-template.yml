@@ -60,7 +60,7 @@ cedarConfig:
   repoBaseUrl: 'https://repo.metadatacenter.org/'
   resourceBaseUrl: 'https://resource.metadatacenter.org/'
   terminologyEndpoint: 'https://terminology.metadatacenter.org/bioportal/integrated-search/'
-  pageSize: 1000
+  pageSize: 500
   maxRetries: 5
   backoffSleepTime: 1000
 
