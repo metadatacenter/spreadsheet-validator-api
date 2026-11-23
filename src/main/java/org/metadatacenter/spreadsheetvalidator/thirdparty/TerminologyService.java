@@ -3,7 +3,7 @@ package org.metadatacenter.spreadsheetvalidator.thirdparty;
 import autovalue.shaded.com.google.common.collect.ImmutableList;
 import autovalue.shaded.com.google.common.collect.ImmutableMap;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.collect.Streams;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
@@ -33,17 +33,57 @@ public class TerminologyService {
     this.restServiceHandler = checkNotNull(restServiceHandler);
   }
 
+  /**
+   * The largest page the terminology server's integrated search serves. A configured page size above
+   * it is reduced to it, since the server refuses a larger limit rather than shortening the page.
+   */
+  static final int MAX_PAGE_SIZE = 500;
+
+  /**
+   * The furthest a value set is read. It bounds the walk should the server keep answering full pages.
+   */
+  static final int MAX_VALUES = 100_000;
+
+  /**
+   * Every value the constraints allow, read a page at a time by {@code limit} and {@code offset} until
+   * a page comes back short or the server's {@code totalCount} is reached.
+   */
   @Nonnull
   public ImmutableList<OntologyValue> getOntologyValues(@Nonnull String fieldName,
                                                         @Nonnull ValueConstraints valueConstraints) {
+    var limit = Math.max(1, Math.min(cedarConfig.getPageSize(), MAX_PAGE_SIZE));
+    var values = ImmutableList.<OntologyValue>builder();
+    var offset = 0;
+    while (offset < MAX_VALUES) {
+      var page = getPage(fieldName, valueConstraints, offset, limit);
+      var collection = page.withArray("collection");
+      collection.elements().forEachRemaining(ontologyValue -> {
+        try {
+          values.add(restServiceHandler.writeObject(ontologyValue, OntologyValue.class));
+        } catch (JsonProcessingException e) {
+          throw badResponseError(e);
+        }
+      });
+      offset += collection.size();
+      var totalCount = page.path("totalCount");
+      if (collection.size() < limit || (totalCount.isNumber() && offset >= totalCount.asInt())) {
+        break;
+      }
+    }
+    return values.build();
+  }
+
+  @Nonnull
+  private JsonNode getPage(@Nonnull String fieldName, @Nonnull ValueConstraints valueConstraints,
+                           int offset, int limit) {
     // Prepare the request
     Request request = null;
     String payloadString = "";
     try {
       var payload = ImmutableMap.of(
           "parameterObject", ImmutableMap.of("valueConstraints", valueConstraints),
-          "pageSize", cedarConfig.getPageSize(),
-          "page", 1);
+          "limit", limit,
+          "offset", offset);
       payloadString = restServiceHandler.writeJsonString(payload);
       request = restServiceHandler.createPostRequest(
           cedarConfig.getTerminologyEndpoint(),
@@ -58,16 +98,7 @@ public class TerminologyService {
 
     // Process the response
     try {
-      var responseObject = restServiceHandler.processResponse(response);
-      return Streams.stream(responseObject.withArray("collection").elements())
-          .map(ontologyValue -> {
-            try {
-              return restServiceHandler.writeObject(ontologyValue, OntologyValue.class);
-            } catch (JsonProcessingException e) {
-              throw badResponseError(e);
-            }
-          })
-          .collect(ImmutableList.toImmutableList());
+      return restServiceHandler.processResponse(response);
     } catch (IOException e) {
       throw badResponseError(e);
     }
